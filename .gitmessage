@@ -1,0 +1,29 @@
+:Emoji: Short description in imperative mode
+
+# Description of changes:
+
+# Please format your commit message in the following way:
+# * Pick the appropriate emojis from the list below in order to categorise the commit
+# * Add a descriptive title in imperative mode
+# * List the changes you made under "Description of changes". Add a motivation
+#    for those changes if it is not obvious from the description itself.
+# * If you are referring to a specific issue or pull request, refer to them using #<issue-number> and GH-<PR-number>
+#
+# As a general rule, aim restrict your commit to changes of one category.
+#
+#
+# Common emojis for categories include the following:
+# Cosmetic/style      :art:
+# New feature         :sparkles:
+# Bugfix              :bug:
+# Refactoring         :recycle:
+# Documentation       :books:
+# Tests               :rotating_light:
+# Performance         :racehorse:
+# Removal             :scissors:
+# Data                :floppy_disk:
+# Plots               :bar_chart:
+# Version tag         :bookmark:
+#
+# For more, see https://github.com/dannyfritz/commit-message-emoji
+
