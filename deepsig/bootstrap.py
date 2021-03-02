@@ -32,6 +32,8 @@ def bootstrap_test(
     float
         Estimated p-value.
     """
+    assert len(scores_a) == len(scores_b), "Scores have to be of same length."
+
     N = len(scores_a)
     delta = np.mean(scores_a) - np.mean(scores_b)
     num_larger = 0
