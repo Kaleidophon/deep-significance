@@ -12,6 +12,8 @@ from typing import List
 import numpy as np
 from scipy import stats
 
+# TODO: Add type array conversions here?
+
 
 def correct_p_values(p_values: List[float], method: str = "bonferroni") -> List[float]:
     """

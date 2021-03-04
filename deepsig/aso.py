@@ -10,10 +10,14 @@ from typing import List, Callable, Tuple
 import numpy as np
 from scipy.stats import norm as normal
 
+# PKG
+from deepsig.conversion import ArrayLike, score_conversion
 
+
+@score_conversion
 def aso(
-    scores_a: List[float],
-    scores_b: List[float],
+    scores_a: ArrayLike,
+    scores_b: ArrayLike,
     confidence_level: float = 0.05,
     num_samples_a: int = 1000,
     num_samples_b: int = 1000,
@@ -78,11 +82,9 @@ def aso(
     return violation_ratio, min_epsilon
 
 
-def compute_violation_ratio(
-    scores_a: List[float], scores_b: List[float], dt: float
-) -> float:
+def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -> float:
     """
-    Compute the violation ration (equation 4 + 5).
+    Compute the violation ration e_W2 (equation 4 + 5).
 
     Parameters
     ----------
@@ -111,7 +113,7 @@ def compute_violation_ratio(
     return violation_ratio
 
 
-def get_quantile_function(scores: List[float]) -> Callable:
+def get_quantile_function(scores: np.array) -> Callable:
     """
     Return the quantile function corresponding to an empirical distribution of scores.
 

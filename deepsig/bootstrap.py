@@ -9,10 +9,12 @@ from typing import List
 # EXT
 import numpy as np
 
+# PKG
+from deepsig.conversion import ArrayLike, score_conversion
 
-def bootstrap_test(
-    scores_a: List[float], scores_b: List[float], num_samples: int
-) -> float:
+
+@score_conversion
+def bootstrap_test(scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int) -> float:
     """
     Implementation of paired bootstrap test. A p-value is being estimated by comparing the mean of scores
     for two algorithms to the means of resampled populations, where `num_samples` determines the number of
