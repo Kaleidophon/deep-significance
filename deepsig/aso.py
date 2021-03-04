@@ -1,17 +1,17 @@
 """
-Re-implementation of Almost Stochastic Dominance (ASD) by [Dror et al. (2019)](https://arxiv.org/pdf/2010.03039.pdf).
+Re-implementation of Almost Stochastic Order (ASO) by [Dror et al. (2019)](https://arxiv.org/pdf/2010.03039.pdf).
 The code here heavily borrows from their [original code base](https://github.com/rtmdrr/DeepComparison).
 """
 
 # STD
-from typing import List, Callable
+from typing import List, Callable, Tuple
 
 # EXT
 import numpy as np
 from scipy.stats import norm as normal
 
 
-def asd(
+def aso(
     scores_a: List[float],
     scores_b: List[float],
     confidence_level: float = 0.05,
@@ -19,12 +19,13 @@ def asd(
     num_samples_b: int = 1000,
     num_bootstrap_iterations: int = 1000,
     dt: float = 0.005,
-) -> float:
+) -> Tuple[float, float]:
     """
-    Performs the Almost Stochastic Dominance test by Dror et al. (2019). The function takes two list of scores as input
-    (they do not have to be of the same length) and returns the minimum epsilon
-    threshold. If epsilon threshold is smaller than 0.5, the null hypothesis is rejected (and the model
-    scores_a belongs to is deemed better than the model of scores_b).
+    Performs the Almost Stochastic Order test by Dror et al. (2019). The function takes two list of scores as input
+    (they do not have to be of the same length) and returns the violation ratio and the minimum epsilon
+    threshold. If the violation ratio is below the minimum epsilon threshold, the null hypothesis can be rejected
+    (and the model scores_a belongs to is deemed better than the model of scores_b). Intuitively, the violation ratio
+    denotes the degree to which total stochastic order (algorithm A is *always* better than B) is being violated.
 
     The epsilon threshold directly depends on the number of supplied scores; thus, the more scores are used, the more
     safely we can reject the null hypothesis.
@@ -48,10 +49,11 @@ def asd(
 
     Returns
     -------
-    float
-        Return the minimum epsilon threshold which is has to surpass in order for the null hypothesis to be rejected.
+    Tuple[float, float]
+        Return violation ratio and the minimum epsilon threshold. The violation ratio should fall below the threshold in
+        order for the null hypothesis to be rejected.
     """
-    eps = compute_epsilon(scores_a, scores_b, dt)
+    violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
     const = np.sqrt(num_samples_a * num_samples_b / (num_samples_a + num_samples_b))
 
     samples = []
@@ -62,20 +64,25 @@ def asd(
         sampled_scores_b = list(
             map(get_quantile_function(scores_b), np.random.uniform(0, 1, num_samples_b))
         )
-        distance = compute_epsilon(sampled_scores_a, sampled_scores_b, dt)
+        distance = compute_violation_ratio(sampled_scores_a, sampled_scores_b, dt)
         samples.append(distance)
 
     sigma_hat = np.std(samples)
     min_epsilon = min(
-        max(eps - (1 / const) * sigma_hat + normal.ppf(confidence_level), 0), 1
+        max(
+            violation_ratio - (1 / const) * sigma_hat + normal.ppf(confidence_level), 0
+        ),
+        1,
     )
 
-    return min_epsilon
+    return violation_ratio, min_epsilon
 
 
-def compute_epsilon(scores_a: List[float], scores_b: List[float], dt: float) -> float:
+def compute_violation_ratio(
+    scores_a: List[float], scores_b: List[float], dt: float
+) -> float:
     """
-    Compute the epsilon_W2 score (equation 4 + 5).
+    Compute the violation ration (equation 4 + 5).
 
     Parameters
     ----------
@@ -89,7 +96,7 @@ def compute_epsilon(scores_a: List[float], scores_b: List[float], dt: float) -> 
     Returns
     -------
     float
-        Return e_W2.
+        Return violation ratio.
     """
     squared_wasserstein_dist = 0
     int_violation_set = 0  # Integral over violation set A_X
@@ -99,7 +106,9 @@ def compute_epsilon(scores_a: List[float], scores_b: List[float], dt: float) -> 
         squared_wasserstein_dist += dt * diff ** 2
         int_violation_set += dt * max(diff, 0) ** 2
 
-    return int_violation_set / (squared_wasserstein_dist + 1e-8)
+    violation_ratio = int_violation_set / (squared_wasserstein_dist + 1e-8)
+
+    return violation_ratio
 
 
 def get_quantile_function(scores: List[float]) -> Callable:
