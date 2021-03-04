@@ -33,7 +33,6 @@ def sign_test(scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int) -> flo
     """
     assert len(scores_a) == len(scores_b), "Scores have to be of same length."
     N = len(scores_a)
-    scores_a, scores_b = np.array(scores_a), np.array(scores_b)
     num_larger = 0
 
     # Do the permutations

@@ -22,6 +22,7 @@ CONVERSIONS = defaultdict(lambda: lambda array_like: array_like)
 CONVERSIONS[list] = CONVERSIONS[set] = CONVERSIONS[tuple] = lambda array_like: np.array(
     array_like
 )
+ALLOWED_TYPES = {list, set, tuple, np.array, np.ndarray}
 
 
 def extend_type(type_: typing._GenericAlias, new_type: type) -> typing._GenericAlias:
@@ -36,8 +37,10 @@ def extend_type(type_: typing._GenericAlias, new_type: type) -> typing._GenericA
 try:
     import torch
 
-    ArrayLike = extend_type(ArrayLike, torch.Tensor)
-    CONVERSIONS[torch.Tensor] = lambda t: t.detach().numpy()
+    for tensor_type in (torch.FloatTensor, torch.LongTensor, torch.Tensor):
+        ArrayLike = extend_type(ArrayLike, tensor_type)
+        CONVERSIONS[tensor_type] = lambda t: t.detach().numpy()
+        ALLOWED_TYPES.add(tensor_type)
 
 except:
     pass
@@ -49,11 +52,13 @@ try:
 
     ArrayLike = extend_type(ArrayLike, tf.Tensor)
     CONVERSIONS[tf.Tensor] = lambda t: tf.make_ndarray(t)
+    ALLOWED_TYPES.add(tf.Tensor)
 
     from tensorflow.python.framework.ops import EagerTensor
 
     ArrayLike = extend_type(ArrayLike, EagerTensor)
     CONVERSIONS[EagerTensor] = lambda t: t.numpy()
+    ALLOWED_TYPES.add(EagerTensor)
 
 except:
     pass
@@ -65,6 +70,7 @@ try:
 
     ArrayLike = extend_type(ArrayLike, _DeviceArray)
     CONVERSIONS[_DeviceArray] = lambda t: np.array(t)
+    ALLOWED_TYPES.add(_DeviceArray)
 
 except:
     pass
