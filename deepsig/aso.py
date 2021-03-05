@@ -102,13 +102,19 @@ def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -
     """
     squared_wasserstein_dist = 0
     int_violation_set = 0  # Integral over violation set A_X
+    quantile_func_a = get_quantile_function(scores_a)
+    quantile_func_b = get_quantile_function(scores_b)
 
     for p in np.arange(0, 1, dt):
-        diff = get_quantile_function(scores_b)(p) - get_quantile_function(scores_a)(p)
-        squared_wasserstein_dist += dt * diff ** 2
-        int_violation_set += dt * max(diff, 0) ** 2
+        diff = quantile_func_b(p) - quantile_func_a(p)
+        squared_wasserstein_dist += (diff ** 2) * dt
+        int_violation_set += (max(diff, 0) ** 2) * dt
 
-    violation_ratio = int_violation_set / (squared_wasserstein_dist + 1e-8)
+    violation_ratio = (
+        (int_violation_set / squared_wasserstein_dist)
+        if squared_wasserstein_dist != 0
+        else 0
+    )
 
     return violation_ratio
 
@@ -128,10 +134,10 @@ def get_quantile_function(scores: np.array) -> Callable:
         Return the quantile function belonging to an empirical score distribution.
     """
 
-    def _quantile_function(p: int) -> float:
+    def _quantile_function(p: float) -> float:
         cdf = np.sort(scores)
         num = len(scores)
-        index = int(np.ceil(p * num))
+        index = int(np.ceil(num * p))
 
         return cdf[min(num - 1, max(0, index - 1))]
 

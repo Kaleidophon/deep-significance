@@ -37,10 +37,11 @@ def sign_test(scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int) -> flo
 
     # Do the permutations
     for _ in range(num_samples):
-        normed_resampled_a = np.mean(np.random.choice(scores_a, N))
-        normed_resampled_b = np.mean(np.random.choice(scores_b, N))
+        resampled_a = np.random.choice(scores_a, N)
+        resampled_b = np.random.choice(scores_b, N)
 
-        if normed_resampled_a > normed_resampled_b:
+        # A wins over B in more than 50 % of cases
+        if (resampled_a > resampled_b).astype(int) > N / 2:
             num_larger += 1
 
     p_value = (num_larger + 1) / (num_samples + 1)

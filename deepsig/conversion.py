@@ -25,7 +25,7 @@ CONVERSIONS[list] = CONVERSIONS[set] = CONVERSIONS[tuple] = lambda array_like: n
 ALLOWED_TYPES = {list, set, tuple, np.array, np.ndarray}
 
 
-def extend_type(type_: typing._GenericAlias, new_type: type) -> typing._GenericAlias:
+def extend_type(type_: type, new_type: type) -> type:
     """ Extend a custom type which is a union of types with another type. """
     type_.__args__ = (new_type, *type_.__args__)
     return type_
