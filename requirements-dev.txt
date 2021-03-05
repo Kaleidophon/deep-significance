@@ -1,1 +1,4 @@
 scipy
+jax
+tensorflow
+torch

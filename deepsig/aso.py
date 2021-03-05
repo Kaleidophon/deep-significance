@@ -5,6 +5,7 @@ The code here heavily borrows from their [original code base](https://github.com
 
 # STD
 from typing import List, Callable, Tuple
+from warnings import warn
 
 # EXT
 import numpy as np
@@ -59,22 +60,25 @@ def aso(
     """
     violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
     const = np.sqrt(num_samples_a * num_samples_b / (num_samples_a + num_samples_b))
+    quantile_func_a = get_quantile_function(scores_a)
+    quantile_func_b = get_quantile_function(scores_b)
 
     samples = []
     for _ in range(num_bootstrap_iterations):
         sampled_scores_a = list(
-            map(get_quantile_function(scores_a), np.random.uniform(0, 1, num_samples_a))
+            map(quantile_func_a, np.random.uniform(0, 1, num_samples_a))
         )
         sampled_scores_b = list(
-            map(get_quantile_function(scores_b), np.random.uniform(0, 1, num_samples_b))
+            map(quantile_func_b, np.random.uniform(0, 1, num_samples_b))
         )
-        distance = compute_violation_ratio(sampled_scores_a, sampled_scores_b, dt)
-        samples.append(distance)
+        resampled_vr = compute_violation_ratio(sampled_scores_a, sampled_scores_b, dt)
+        samples.append(resampled_vr)
 
-    sigma_hat = np.std(samples)
+    sigma_hat = np.std(const * (np.array(samples) - violation_ratio))
+
     min_epsilon = min(
         max(
-            violation_ratio - (1 / const) * sigma_hat + normal.ppf(confidence_level), 0
+            violation_ratio - (1 / const) * sigma_hat * normal.ppf(confidence_level), 0
         ),
         1,
     )
@@ -110,11 +114,12 @@ def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -
         squared_wasserstein_dist += (diff ** 2) * dt
         int_violation_set += (max(diff, 0) ** 2) * dt
 
-    violation_ratio = (
-        (int_violation_set / squared_wasserstein_dist)
-        if squared_wasserstein_dist != 0
-        else 0
-    )
+    if squared_wasserstein_dist == 0:
+        warn("Division by zero encountered in violation ratio.")
+        violation_ratio = 0
+
+    else:
+        violation_ratio = int_violation_set / squared_wasserstein_dist
 
     return violation_ratio
 
