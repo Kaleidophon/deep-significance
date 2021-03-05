@@ -37,6 +37,7 @@ def sign_test(scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int) -> flo
 
     # Do the permutations
     for _ in range(num_samples):
+        # TODO: Correct: Choice should be between score_a_i and score_b_i
         resampled_a = np.random.choice(scores_a, N)
         resampled_b = np.random.choice(scores_b, N)
 
