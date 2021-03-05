@@ -4,6 +4,7 @@ Tests for deepsig.aso.py.
 
 # STD
 import unittest
+from collections import namedtuple
 
 # EXT
 import numpy as np
@@ -11,6 +12,9 @@ from scipy.stats import wasserstein_distance, pearsonr
 
 # PKG
 from deepsig.aso import aso, compute_violation_ratio, get_quantile_function
+
+# TYPES
+RRS = namedtuple("RRS", ["eps_min", "sample_size", "scale", "loc", "rate"])
 
 '''
 class ASOTechnicalTests(unittest.TestCase):
@@ -77,6 +81,19 @@ class ASOSanityChecks(unittest.TestCase):
         self.num_samples = 1000
         self.num_bootstrap_iters = 500
 
+        # For test_rejection_rates(), taken from del Barrio et al. (2018).
+        self.rejection_rates_params = [
+            RRS(eps_min=0.01, sample_size=100, loc=0.139, scale=1.1, rate=0),
+            RRS(eps_min=0.01, sample_size=1000, loc=0.455, scale=1.5, rate=0),
+            RRS(eps_min=0.01, sample_size=5000, loc=1.395, scale=2, rate=0.77),
+            RRS(eps_min=0.05, sample_size=100, loc=0.091, scale=1.1, rate=0.004),
+            RRS(eps_min=0.05, sample_size=1000, loc=0.697, scale=1.5, rate=0.929),
+            RRS(eps_min=0.05, sample_size=5000, loc=1.395, scale=2, rate=1),
+            RRS(eps_min=0.10, sample_size=100, loc=0.091, scale=1.1, rate=0.017),
+            RRS(eps_min=0.10, sample_size=1000, loc=0.341, scale=1.5, rate=0.076),
+            RRS(eps_min=0.10, sample_size=5000, loc=1.395, scale=2, rate=1),
+        ]
+
     '''
     def test_extreme_cases(self):
         """
@@ -104,6 +121,7 @@ class ASOSanityChecks(unittest.TestCase):
         self.assertAlmostEqual(eps_min2, 0, delta=0.01)
     '''
 
+    '''
     def test_dependency_on_alpha(self):
         """
         Make sure that the minimum epsilon threshold increases as we increase the confidence level.
@@ -133,6 +151,7 @@ class ASOSanityChecks(unittest.TestCase):
         self.assertEqual(
             list(sorted(min_epsilons)), min_epsilons
         )  # Make sure min_epsilon decreases
+    '''
 
     def test_rejection_rates(self):
         """
@@ -140,4 +159,32 @@ class ASOSanityChecks(unittest.TestCase):
         between a Gaussian with zero mean and unit variance and another normal with variable parameters, as well as
         different minimum epsilon threshold values and sample sizes.
         """
-        ...  # TODO
+        # TODO: This is still untested and quite slow
+        num_simulations = 1000
+
+        for rrs in self.rejection_rates_params:
+            num_rejections = 0
+
+            for _ in range(num_simulations):
+                print(_)
+                samples_normal1 = np.random.normal(
+                    size=rrs.sample_size
+                )  # Scores for algorithm A
+                samples_normal2 = np.random.normal(
+                    loc=rrs.loc, scale=rrs.scale, size=rrs.sample_size
+                )  # Scores for algorithm B
+                vr, _ = aso(
+                    samples_normal1,
+                    samples_normal2,
+                    num_bootstrap_iterations=100,
+                    num_samples_a=100,
+                    num_samples_b=100,
+                )
+                return
+
+                if vr > rrs.eps_min:
+                    num_rejections += 1
+
+            rejection_rate = num_rejections / num_simulations
+            print(rejection_rate)
+            self.assertAlmostEqual(rejection_rate, rrs.rate, delta=0.05)

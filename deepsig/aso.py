@@ -63,18 +63,13 @@ def aso(
     quantile_func_a = get_quantile_function(scores_a)
     quantile_func_b = get_quantile_function(scores_b)
 
-    samples = []
-    for _ in range(num_bootstrap_iterations):
-        sampled_scores_a = list(
-            map(quantile_func_a, np.random.uniform(0, 1, num_samples_a))
-        )
-        sampled_scores_b = list(
-            map(quantile_func_b, np.random.uniform(0, 1, num_samples_b))
-        )
-        resampled_vr = compute_violation_ratio(sampled_scores_a, sampled_scores_b, dt)
-        samples.append(resampled_vr)
+    samples = np.zeros(num_bootstrap_iterations)
+    for i in range(num_bootstrap_iterations):
+        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, num_samples_a))
+        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, num_samples_b))
+        samples[i] = compute_violation_ratio(sampled_scores_a, sampled_scores_b, dt)
 
-    sigma_hat = np.std(const * (np.array(samples) - violation_ratio))
+    sigma_hat = np.std(const * (samples - violation_ratio))
 
     min_epsilon = min(
         max(
@@ -146,4 +141,4 @@ def get_quantile_function(scores: np.array) -> Callable:
 
         return cdf[min(num - 1, max(0, index - 1))]
 
-    return _quantile_function
+    return np.vectorize(_quantile_function)
