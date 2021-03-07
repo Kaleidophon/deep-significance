@@ -123,3 +123,61 @@ def score_conversion(func: Callable) -> Callable:
         return func(scores_a, scores_b, *args, **kwargs)
 
     return with_score_conversion
+
+
+def p_value_conversion(func: Callable) -> Callable:
+    """
+    Decorator that makes sure that any sort of array containing p-values is internally being converted to a numpy array.
+    Supports most common Python iterables, PyTorch and Tensorflow tensors as well as Jax arrays.
+
+    Parameters
+    ----------
+    func: Callable
+        Function to be decorated. Should have scores_a and scores_b as first positional arguments.
+
+    Returns
+    -------
+    Callable
+        Decorated function.
+    """
+
+    @wraps(func)
+    def with_p_value_conversion(p_values: ArrayLike, *args, **kwargs):
+
+        # Select appropriate conversion functions
+        conversion_func = CONVERSIONS[type(p_values)]
+
+        # Convert to numpy arrays
+        p_values = conversion_func(p_values)
+        p_values = _squeeze_or_exception(p_values, "p_values")
+
+        return func(p_values, *args, **kwargs)
+
+    return with_p_value_conversion
+
+
+def _squeeze_or_exception(array: np.array, name: str) -> np.array:
+    """
+    Squeeze a two-dimensional array if possible. If not, throw a TypeError.
+
+    Parameters
+    ----------
+    array: np.array
+        Numpy array to be squeezed.
+    name: str
+        Name of the array (for better error message).
+
+    Returns
+    -------
+    np.array
+        Squeezed, 1D Numpy array.
+    """
+    dims = len(array.shape)
+
+    if dims > 1:
+        if len(array) == 2 and array.shape[-1] == 1:
+            array = np.squeeze(array, dim=1)
+        else:
+            raise TypeError(f"{name} has to be one-dimensional, {dims} found.")
+
+    return array
