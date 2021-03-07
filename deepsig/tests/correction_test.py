@@ -49,6 +49,7 @@ class CorrectionTests(unittest.TestCase):
 
         # 3. Test different p-values
         p_values3 = np.random.rand(5) / 5
+        p_values3.sort()  # Sort values here already so that the multiplication with np.arange for the test works
         corrected_p_values3 = correct_p_values(p_values3, method="bonferroni")
         self.assertTrue((p_values3 * np.arange(5, 0, -1) == corrected_p_values3).all())
 
@@ -74,7 +75,6 @@ class CorrectionTests(unittest.TestCase):
         # 3. Test different p-values
         p_values3 = np.random.rand(5) / 5
         corrected_p_values3 = correct_p_values(p_values3, method="fisher")
-        p_values3.sort()
         self.assertTrue((p_values3 >= corrected_p_values3).all())
 
         # 4. Make sure low p-values don't corrected under 0

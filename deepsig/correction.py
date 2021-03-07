@@ -41,11 +41,17 @@ def correct_p_values(p_values: ArrayLike, method: str = "bonferroni") -> np.arra
     ).all(), "Input contains invalid p-values."
 
     N = len(p_values)
+    p_values = p_values.copy()
 
     if N == 1:
         return p_values
 
-    p_values.copy().sort()
+    # In order to maintain order of p-values, remember which one was which after sorting
+    indices = range(N)
+    # Ugly one-liner (inside to outside): Zip p-values and indices to list of tuples and sort ascendingly by p-value.
+    # Then unzip again with zip(* ...) into two separate lists.
+    p_values, sorted_indices = zip(*sorted(zip(p_values, indices), key=lambda t: t[0]))
+    p_values, sorted_indices = np.array(p_values), np.array(sorted_indices)
     corrected_p_values = np.ones(N)
 
     for u in range(N):
@@ -53,6 +59,9 @@ def correct_p_values(p_values: ArrayLike, method: str = "bonferroni") -> np.arra
 
     # Make sure p-values never get correct above 1
     corrected_p_values = np.minimum(corrected_p_values, 1)
+
+    # "Unsort" p-values again. This makes it easier to check which null hypotheses can be rejected.
+    corrected_p_values = corrected_p_values[sorted_indices]
 
     return corrected_p_values
 
