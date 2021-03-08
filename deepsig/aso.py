@@ -59,11 +59,10 @@ def aso(
     assert (
         len(scores_a) > 0 and len(scores_b) > 0
     ), "Both lists of scores must be non-empty."
-
-    for sample_var in [num_samples, num_bootstrap_iterations]:
-        assert (
-            sample_var > 0
-        ), f"{sample_var.__name__} must be positive, {sample_var} found."
+    assert num_samples > 0, f"num_samples must be positive, {num_samples} found."
+    assert (
+        num_bootstrap_iterations > 0
+    ), f"num_samples must be positive, {num_bootstrap_iterations} found."
 
     violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
     const = np.sqrt(num_samples ** 2 / 2 * num_samples)
