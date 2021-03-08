@@ -3,9 +3,6 @@ Implementation of paired bootstrap test
 [(Efron & Tibshirani, 1994)](https://cds.cern.ch/record/526679/files/0412042312_TOC.pdf).
 """
 
-# STD
-from typing import List
-
 # EXT
 import numpy as np
 
@@ -22,9 +19,9 @@ def bootstrap_test(scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int) -
 
     Parameters
     ----------
-    scores_a: List[float]
+    scores_a: ArrayLike
         Scores of algorithm A.
-    scores_b: List[float]
+    scores_b: ArrrayLike
         Scores of algorithm B.
     num_samples: int
         Number of bootstrap samples used for estimation.
