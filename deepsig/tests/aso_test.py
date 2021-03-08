@@ -22,6 +22,28 @@ class ASOTechnicalTests(unittest.TestCase):
     def setUp(self) -> None:
         self.num_samples = 100000
 
+    def test_assertions(self):
+        """
+        Make sure that invalid input arguments raise an error.
+        """
+        with self.assertRaises(AssertionError):
+            aso([], [1, 3])
+
+        with self.assertRaises(AssertionError):
+            aso([3, 4], [])
+
+        with self.assertRaises(AssertionError):
+            aso([1, 2, 3], [3, 4, 5], num_samples=-1)
+
+        with self.assertRaises(AssertionError):
+            aso([1, 2, 3], [3, 4, 5], num_samples=0)
+
+        with self.assertRaises(AssertionError):
+            aso([1, 2, 3], [3, 4, 5], num_bootstrap_iterations=-1)
+
+        with self.assertRaises(AssertionError):
+            aso([1, 2, 3], [3, 4, 5], num_bootstrap_iterations=0)
+
     def test_compute_violation_ratio(self):
         """
         Test whether violation ratio is being computed correctly.

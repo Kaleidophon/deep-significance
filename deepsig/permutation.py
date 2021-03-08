@@ -10,7 +10,9 @@ from deepsig.conversion import ArrayLike, score_conversion
 
 
 @score_conversion
-def permutation(scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int) -> float:
+def permutation_test(
+    scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int = 1000
+) -> float:
     """
     Implementation of a permutation-randomization test. Scores of A and B will be randomly swapped and the difference
     in samples is then compared to the original differece.
@@ -30,6 +32,11 @@ def permutation(scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int) -> f
         Estimated p-value.
     """
     assert len(scores_a) == len(scores_b), "Scores have to be of same length."
+    assert (
+        len(scores_a) > 0 and len(scores_b) > 0
+    ), "Both lists of scores must be non-empty."
+    assert num_samples > 0, f"num_samples must be positive, {num_samples} found."
+
     N = len(scores_a)
     delta = np.mean(scores_a - scores_b)
     num_larger = 0
@@ -45,6 +52,7 @@ def permutation(scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int) -> f
                 for i in range(N)
             ]
         )
+        swapped_a, swapped_b = np.array(swapped_a), np.array(swapped_b)
 
         if np.mean(swapped_a - swapped_b) <= delta:
             num_larger += 1

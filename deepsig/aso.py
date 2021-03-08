@@ -20,8 +20,7 @@ def aso(
     scores_a: ArrayLike,
     scores_b: ArrayLike,
     confidence_level: float = 0.05,
-    num_samples_a: int = 1000,
-    num_samples_b: int = 1000,
+    num_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
     dt: float = 0.005,
 ) -> Tuple[float, float]:
@@ -43,10 +42,8 @@ def aso(
         Scores of algorithm B.
     confidence_level: float
         Desired confidence level of test. Set to 0.05 by default.
-    num_samples_a: int
-        Number of samples from the score distribution of A during every bootstrap iteration when estimating sigma.
-    num_samples_b: int
-        Number of samples from the score distribution of B during every bootstrap iteration when estimating sigma.
+    num_samples: int
+        Number of samples from the score distributions during every bootstrap iteration when estimating sigma.
     num_bootstrap_iterations: int
         Number of bootstrap iterations when estimating sigma.
     dt: float
@@ -58,15 +55,25 @@ def aso(
         Return violation ratio and the minimum epsilon threshold. The violation ratio should fall below the threshold in
         order for the null hypothesis to be rejected.
     """
+    # TODO: Change part in documentation about eps_min
+    assert (
+        len(scores_a) > 0 and len(scores_b) > 0
+    ), "Both lists of scores must be non-empty."
+
+    for sample_var in [num_samples, num_bootstrap_iterations]:
+        assert (
+            sample_var > 0
+        ), f"{sample_var.__name__} must be positive, {sample_var} found."
+
     violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
-    const = np.sqrt(num_samples_a * num_samples_b / (num_samples_a + num_samples_b))
+    const = np.sqrt(num_samples ** 2 / 2 * num_samples)
     quantile_func_a = get_quantile_function(scores_a)
     quantile_func_b = get_quantile_function(scores_b)
 
     samples = np.zeros(num_bootstrap_iterations)
     for i in range(num_bootstrap_iterations):
-        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, num_samples_a))
-        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, num_samples_b))
+        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, num_samples))
+        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, num_samples))
         samples[i] = compute_violation_ratio(sampled_scores_a, sampled_scores_b, dt)
 
     sigma_hat = np.std(const * (samples - violation_ratio))

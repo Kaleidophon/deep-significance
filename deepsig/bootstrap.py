@@ -11,7 +11,9 @@ from deepsig.conversion import ArrayLike, score_conversion
 
 
 @score_conversion
-def bootstrap_test(scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int) -> float:
+def bootstrap_test(
+    scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int = 1000
+) -> float:
     """
     Implementation of paired bootstrap test. A p-value is being estimated by comparing the mean of scores
     for two algorithms to the means of resampled populations, where `num_samples` determines the number of
@@ -32,6 +34,10 @@ def bootstrap_test(scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int) -
         Estimated p-value.
     """
     assert len(scores_a) == len(scores_b), "Scores have to be of same length."
+    assert (
+        len(scores_a) > 0 and len(scores_b) > 0
+    ), "Both lists of scores must be non-empty."
+    assert num_samples > 0, f"num_samples must be positive, {num_samples} found."
 
     N = len(scores_a)
     delta = np.mean(scores_a) - np.mean(scores_b)
@@ -41,9 +47,9 @@ def bootstrap_test(scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int) -
         resampled_scores_a = np.random.choice(scores_a, N)
         resampled_scores_b = np.random.choice(scores_b, N)
 
-        new_delta = np.mean(resampled_scores_a) - np.mean(resampled_scores_b)
+        new_delta = np.mean(resampled_scores_a - resampled_scores_b)
 
-        if new_delta > 2 * delta:
+        if new_delta < 2 * delta:
             num_larger += 1
 
     p_value = num_larger / num_samples
