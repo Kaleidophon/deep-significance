@@ -9,8 +9,7 @@ import unittest
 import numpy as np
 
 # PKG
-from deepsig import bootstrap_test
-from deepsig import permutation_test
+from deepsig import bootstrap_test, permutation_test
 
 
 class BootstrapPermutationTests(unittest.TestCase):

@@ -19,9 +19,8 @@ import numpy as np
 # This trick borrowed from https://github.com/Kaleidophon/token2index/blob/master/t2i/decorators.py.
 ArrayLike = Union[List[float], np.array]
 CONVERSIONS = defaultdict(lambda: lambda array_like: array_like)
-CONVERSIONS[list] = CONVERSIONS[set] = CONVERSIONS[tuple] = lambda array_like: np.array(
-    array_like
-)
+CONVERSIONS[list] = CONVERSIONS[tuple] = lambda array_like: np.array(array_like)
+CONVERSIONS[set] = lambda array_like: np.array(list(array_like))
 ALLOWED_TYPES = {list, set, tuple, np.array, np.ndarray}
 
 
@@ -110,8 +109,8 @@ def score_conversion(func: Callable) -> Callable:
             dims = len(array.shape)
 
             if dims > 1:
-                if len(array) == 2 and array.shape[-1] == 1:
-                    array = np.squeeze(array, dim=1)
+                if dims == 2 and array.shape[-1] == 1:
+                    array = np.squeeze(array, axis=1)
                 else:
                     raise TypeError(f"{name} has to be one-dimensional, {dims} found.")
 
@@ -175,8 +174,8 @@ def _squeeze_or_exception(array: np.array, name: str) -> np.array:
     dims = len(array.shape)
 
     if dims > 1:
-        if len(array) == 2 and array.shape[-1] == 1:
-            array = np.squeeze(array, dim=1)
+        if dims == 2 and array.shape[-1] == 1:
+            array = np.squeeze(array, axis=1)
         else:
             raise TypeError(f"{name} has to be one-dimensional, {dims} found.")
 
