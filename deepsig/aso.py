@@ -4,7 +4,7 @@ The code here heavily borrows from their [original code base](https://github.com
 """
 
 # STD
-from typing import List, Callable, Tuple
+from typing import List, Callable
 from warnings import warn
 
 # EXT
@@ -23,16 +23,14 @@ def aso(
     num_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
     dt: float = 0.005,
-) -> Tuple[float, float]:
+) -> float:
     """
     Performs the Almost Stochastic Order test by Dror et al. (2019). The function takes two list of scores as input
-    (they do not have to be of the same length) and returns the violation ratio and the minimum epsilon
-    threshold. If the violation ratio is below the minimum epsilon threshold, the null hypothesis can be rejected
-    (and the model scores_a belongs to is deemed better than the model of scores_b). Intuitively, the violation ratio
-    denotes the degree to which total stochastic order (algorithm A is *always* better than B) is being violated.
-
-    The epsilon threshold directly depends on the number of supplied scores; thus, the more scores are used, the more
-    safely we can reject the null hypothesis.
+    (they do not have to be of the same length) and returns an upper bound to the violation ratio - the minimum epsilon
+    threshold. If the violation ratio is below 0.5, the null hypothesis can be rejected safely (and the model scores_a
+    belongs to is deemed better than the model of scores_b). Intuitively, the violation ratio denotes the degree to
+    which total stochastic order (algorithm A is *always* better than B) is being violated.
+    The more scores and the higher num_samples / num_bootstrap_iterations, the more reliable is the result.
 
     Parameters
     ----------
@@ -51,11 +49,9 @@ def aso(
 
     Returns
     -------
-    Tuple[float, float]
-        Return violation ratio and the minimum epsilon threshold. The violation ratio should fall below the threshold in
-        order for the null hypothesis to be rejected.
+    float
+        Return an upper bound to the violation ratio. If it falls below 0.5, the null hypothesis can be rejected.
     """
-    # TODO: Change part in documentation about eps_min
     assert (
         len(scores_a) > 0 and len(scores_b) > 0
     ), "Both lists of scores must be non-empty."
@@ -84,7 +80,7 @@ def aso(
         1,
     )
 
-    return violation_ratio, min_epsilon
+    return min_epsilon
 
 
 def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -> float:

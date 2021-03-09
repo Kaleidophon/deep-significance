@@ -110,7 +110,7 @@ class ASOSanityChecks(unittest.TestCase):
             size=self.num_samples
         )  # Scores for algorithm A
 
-        _, eps_min = aso(
+        eps_min = aso(
             samples_normal1,
             samples_normal1 + 1e-8,
             num_bootstrap_iterations=self.num_bootstrap_iters,
@@ -121,12 +121,11 @@ class ASOSanityChecks(unittest.TestCase):
         samples_normal3 = np.random.normal(
             loc=5, scale=0.1, size=self.num_samples
         )  # New scores for algorithm A
-        vr2, eps_min2 = aso(
+        eps_min2 = aso(
             samples_normal3,
             samples_normal2,
             num_bootstrap_iterations=self.num_bootstrap_iters,
         )
-        self.assertAlmostEqual(vr2, 0, delta=0.01)
         self.assertAlmostEqual(eps_min2, 0, delta=0.01)
 
     def test_dependency_on_alpha(self):
@@ -140,21 +139,16 @@ class ASOSanityChecks(unittest.TestCase):
             scale=2, size=self.num_samples
         )  # Scores for algorithm B
 
-        violation_ratios = []
         min_epsilons = []
         for alpha in np.arange(0.8, 0.1, -0.1):
-            vr, min_eps = aso(
+            min_eps = aso(
                 samples_normal1,
                 samples_normal2,
                 confidence_level=alpha,
                 num_bootstrap_iterations=100,
             )
-            violation_ratios.append(vr)
             min_epsilons.append(min_eps)
 
-        self.assertEqual(
-            len(set(violation_ratios)), 1
-        )  # Check that violation ratio stays constant
         self.assertEqual(
             list(sorted(min_epsilons)), min_epsilons
         )  # Make sure min_epsilon decreases
