@@ -27,7 +27,7 @@ from recommonmark.transform import AutoStructify
 
 sys.path.insert(0, os.path.abspath("../"))
 sys.path.insert(0, os.path.abspath("../deepsig"))
-from deepsig import __version__
+__version__ = "0.9"
 
 
 # -- General configuration ------------------------------------------------
