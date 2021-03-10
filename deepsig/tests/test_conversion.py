@@ -104,8 +104,8 @@ class ConversionTests(unittest.TestCase):
             # These should work
             correct1_scores_a = torch.FloatTensor(self.scores_a)
             correct1_scores_b = torch.FloatTensor(self.scores_b)
-            correct2_scores_a = correct1_scores_a.unsqueeze()
-            correct2_scores_b = correct1_scores_b.unsqueeze()
+            correct2_scores_a = correct1_scores_a.unsqueeze(dim=1)
+            correct2_scores_b = correct1_scores_b.unsqueeze(dim=1)
 
             for test_func in [bootstrap_test, permutation_test, self._aso_wrapper]:
                 for scores_a, scores_b in [
@@ -115,7 +115,7 @@ class ConversionTests(unittest.TestCase):
                     test_func(scores_a, scores_b)
 
             correct1_p_values = torch.FloatTensor(self.p_values)
-            correct2_p_values = correct1_p_values.unsqueeze()
+            correct2_p_values = correct1_p_values.unsqueeze(dim=1)
 
             correct_p_values(correct1_p_values, method="bonferroni")
             correct_p_values(correct1_p_values, method="fisher")

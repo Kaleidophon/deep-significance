@@ -14,6 +14,6 @@ install:
   - pip install -r requirements-dev.txt
 
 script:
-  - coverage run --include=deepsig/__init__.py -m unittest discover -v deepsig "_test.py"
+  - coverage run -m unittest discover deepsig/tests
   - coverage report --skip-covered
   - coveralls
