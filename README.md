@@ -9,27 +9,29 @@ warning.**
 
 ### :interrobang: Why?
 
-Although the field of Machine Learning and Deep Learning has undergone spectacular growth in the recent decade,
+Although Deep Learning has undergone spectacular growth in the recent decade,
 a large portion of experimental evidence is not supported by statistical hypothesis tests. Instead, 
 conclusions are often drawn based on single performance scores. 
 
 This is problematic: Neural network display highly non-convex
 loss surfaces (Li et al., 2018) and their performance depends on the specific hyperparameters that were found, or stochastic factors 
-like Dropout masks, making comparisons more difficult. Based on comparing only (the mean of) a few scores, **we cannot 
+like Dropout masks, making comparisons between architectures more difficult. Based on comparing only (the mean of) a 
+few scores, **we often cannot 
 conclude that one model type or algorithm is better than another**.
-This endangers the progress in the field, as seeming success due to random chance might lead practicioners astray. 
+This endangers the progress in the field, as seeming success due to random chance might practitioners astray. 
+
 For instance,
 a recent study in Natural Language Processing by Narang et al. (2021) has found that many modifications proposed to 
 transformers do not actually improve performance. Similar issues are known to plague other fields like e.g. 
 Reinforcement Learning (Henderson et al., 2018) and Computer Vision (Borji, 2017) as well. 
 
-To help mitigate this problem, this package supplies fully-tested reimplementations of useful functions for significance
+To help mitigate this problem, this package supplies fully-tested re-implementations of useful functions for significance
 testing:
-* Non-parametic test such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron & Tibshirani, 1994) and 
+* Non-parametric tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron & Tibshirani, 1994) and 
   permutation-randomization.
 * p-value corrections methods such as Bonferroni (Bonferroni, 1936) and Fisher (Fisher, 1992). 
 
-All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch and 
+All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch / 
 Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation here 
 (@TODO: Add link to docs) or the scenarios in the section [Examples](#examples).
 
@@ -40,6 +42,14 @@ Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usag
 The package can simply be installed using `pip` by running
 
     pip3 install deepsig
+
+Another option is to clone the repository and install the package locally:
+
+    git clone https://github.com/Kaleidophon/deep-significance.git
+    cd deep-significance
+    pip3 install -e .
+
+**Warning**: Installed like this, imports will fail when the clones repository is moved.
 
 ## :bookmark: Examples
 
