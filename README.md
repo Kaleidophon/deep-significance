@@ -16,7 +16,7 @@ factors).
 To help mitigate this problem, this package supplies fully-tested reimplementations of useful functions for significance
 testing:
 * Non-parametic test such as Almost Stochastic Order (Dror et al., 2019), bootstrap and permutation-randomization.
-* P-value corrections methods such as Bonferroni and Fisher. 
+* p-value corrections methods such as Bonferroni and Fisher. 
 
 For examples about the usage, consult the documentation here (@TODO: Add link to docs) or the scenarios 
 in the section [Examples](#examples).
@@ -46,12 +46,12 @@ Alternatively, the repository can also be installed by cloning the repo first:
 In the following, I will lay out three scenarios that describe common use cases for ML practitioners and how to apply 
 the methods implemented in this package accordingly.
 
-### Scenario 1
+### Scenario 1 - Comparing multiple runs of two models 
 
 In the simplest scenario, we have retrieved a set of scores from a model A and a baseline B on a dataset, stemming from 
 various model runs with different seeds. We can now simply apply the ASO test:
 
-    ```python`
+    ```python
     from deepsig import aso
 
     scores_a = ...  # TODO
@@ -64,11 +64,11 @@ Because ASO is a non-parametric test, **it does not make any assumptions about t
 This means that we can apply it to any kind of test metric. The scores of model runs are supplied, the more reliable 
 the test becomes.
 
-### Scenario 2
+### Scenario 2 - Comparing multiple runs across datasets
 
 @TODO: Comparison between two models, multiple datasets
 
-### Scenario 3
+### Scenario 3 - Comparing sample-level scores
 
 @TODO: Comparison between two models, multiple seeds, sample-level
 

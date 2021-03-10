@@ -1,0 +1,19 @@
+dist: xenial
+sudo: false
+language: python
+cache: pip
+python:
+  - "3.8"
+
+# command to install dependencies
+install:
+  - pip install -U pip
+  # - pip install -e .
+
+  # dev dependencies
+  - pip install -r requirements-dev.txt
+
+script:
+  - coverage run --include=deepsig/__init__.py -m unittest discover -v deepsig "_test.py"
+  - coverage report --skip-covered
+  - coveralls
