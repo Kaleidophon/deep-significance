@@ -111,7 +111,9 @@ def score_conversion(func: Callable) -> Callable:
                 if dims == 2 and array.shape[-1] == 1:
                     array = np.squeeze(array, axis=1)
                 else:
-                    raise TypeError(f"{name} has to be one-dimensional, {dims} found.")
+                    raise TypeError(
+                        "{} has to be one-dimensional, {} found.".format(name, dims)
+                    )
 
             return array
 
@@ -176,6 +178,8 @@ def _squeeze_or_exception(array: np.array, name: str) -> np.array:
         if dims == 2 and array.shape[-1] == 1:
             array = np.squeeze(array, axis=1)
         else:
-            raise TypeError(f"{name} has to be one-dimensional, {dims} found.")
+            raise TypeError(
+                "{} has to be one-dimensional, {} found.".format(name, dims)
+            )
 
     return array

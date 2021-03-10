@@ -37,7 +37,9 @@ def bootstrap_test(
     assert (
         len(scores_a) > 0 and len(scores_b) > 0
     ), "Both lists of scores must be non-empty."
-    assert num_samples > 0, f"num_samples must be positive, {num_samples} found."
+    assert num_samples > 0, "num_samples must be positive, {} found.".format(
+        num_samples
+    )
 
     N = len(scores_a)
     delta = np.mean(scores_a) - np.mean(scores_b)
