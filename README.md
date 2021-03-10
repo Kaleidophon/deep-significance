@@ -1,5 +1,6 @@
 # deep-significance: Easy Significance Testing for Deep Neural Networks
 
+[![Build Status](https://travis-ci.com/Kaleidophon/deep-significance.svg?branch=main)]()
 [![Coverage Status](https://coveralls.io/repos/github/Kaleidophon/deep-significance/badge.svg?branch=main)](https://coveralls.io/github/Kaleidophon/deep-significance?branch=main)
 [![Compatibility](https://img.shields.io/badge/python-3.5%2B-blue)]()
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)

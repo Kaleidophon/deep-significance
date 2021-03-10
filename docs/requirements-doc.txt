@@ -1,0 +1,6 @@
+sphinxbootstrap4theme==0.6.0
+sphinxemoji==0.1.8
+m2r==0.2.1
+recommonmark==0.7.1
+numpy==1.19.5
+scipy==1.5.4
