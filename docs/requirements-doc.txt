@@ -4,3 +4,4 @@ m2r==0.2.1
 recommonmark==0.7.1
 numpy==1.19.5
 scipy==1.5.4
+numpydoc==1.1.0

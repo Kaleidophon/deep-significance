@@ -95,10 +95,7 @@
                 <div class="local-toc"><ul>
 <li><a class="reference internal" href="#">deep-significance: Easy Significance Testing for Deep Neural Networks</a><ul>
 <li><a class="reference internal" href="#interrobang-why">|:interrobang:| Why?</a></li>
-<li><a class="reference internal" href="#inbox-tray-installation">|:inbox_tray:| Installation</a><ul>
-<li><a class="reference internal" href="#bulb-a-short-and-gentle-introduction-to-significance-testing-for-dnns">|:bulb:| A short and gentle introduction to significance testing (for DNNs)</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#inbox-tray-installation">|:inbox_tray:| Installation</a></li>
 <li><a class="reference internal" href="#bookmark-examples">|:bookmark:| Examples</a><ul>
 <li><a class="reference internal" href="#scenario-1-comparing-multiple-runs-of-two-models">Scenario 1 - Comparing multiple runs of two models</a></li>
 <li><a class="reference internal" href="#scenario-2-comparing-multiple-runs-across-datasets">Scenario 2 - Comparing multiple runs across datasets</a></li>
@@ -137,31 +134,36 @@
             
   <div class="section" id="deep-significance-easy-significance-testing-for-deep-neural-networks">
 <h1>deep-significance: Easy Significance Testing for Deep Neural Networks<a class="headerlink" href="#deep-significance-easy-significance-testing-for-deep-neural-networks" title="Permalink to this headline">¶</a></h1>
-<p><a class="reference external" href="https://www.gnu.org/licenses/gpl-3.0"><img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
+<p><a class="reference external" href="#"><img alt="Build Status" src="https://travis-ci.com/Kaleidophon/deep-significance.svg?branch=main" /></a>
+<a class="reference external" href="https://coveralls.io/github/Kaleidophon/deep-significance?branch=main"><img alt="Coverage Status" src="https://coveralls.io/repos/github/Kaleidophon/deep-significance/badge.svg?branch=main" /></a>
+<a class="reference external" href="#"><img alt="Compatibility" src="https://img.shields.io/badge/python-3.5%2B-blue" /></a>
+<a class="reference external" href="https://www.gnu.org/licenses/gpl-3.0"><img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
 <a class="reference external" href="https://github.com/python/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a></p>
 <p><strong>Warning: This project is still under development. Code might be erroneous and breaking changes be introduced without
 warning.</strong></p>
 <div class="section" id="interrobang-why">
 <h2>|:interrobang:| Why?<a class="headerlink" href="#interrobang-why" title="Permalink to this headline">¶</a></h2>
-<p>Although the field of Machine Learning and Deep Learning has undergone spectacular growth in the recent decade,
-a large portion of experimental evidence is not supported by statistical significance tests. Instead,
+<p>Although Deep Learning has undergone spectacular growth in the recent decade,
+a large portion of experimental evidence is not supported by statistical hypothesis tests. Instead,
 conclusions are often drawn based on single performance scores.</p>
 <p>This is problematic: Neural network display highly non-convex
 loss surfaces (Li et al., 2018) and their performance depends on the specific hyperparameters that were found, or stochastic factors
-like Dropout masks, making comparisons more difficult. Based on comparing only (the mean of) a few scores, <strong>we cannot conclude that one model type is better than another</strong>.
-This endangers the progress in the field, as seeming success due to random chance might lead practicioners astray.
-For instance,
+like Dropout masks, making comparisons between architectures more difficult. Based on comparing only (the mean of) a
+few scores, <strong>we often cannot
+conclude that one model type or algorithm is better than another</strong>.
+This endangers the progress in the field, as seeming success due to random chance might practitioners astray.</p>
+<p>For instance,
 a recent study in Natural Language Processing by Narang et al. (2021) has found that many modifications proposed to
 transformers do not actually improve performance. Similar issues are known to plague other fields like e.g.
 Reinforcement Learning (Henderson et al., 2018) and Computer Vision (Borji, 2017) as well.</p>
-<p>To help mitigate this problem, this package supplies fully-tested reimplementations of useful functions for significance
+<p>To help mitigate this problem, this package supplies fully-tested re-implementations of useful functions for significance
 testing:</p>
 <ul class="simple">
-<li><p>Non-parametic test such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron &amp; Tibshirani, 1994) and
+<li><p>Non-parametric tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron &amp; Tibshirani, 1994) and
 permutation-randomization.</p></li>
 <li><p>p-value corrections methods such as Bonferroni (Bonferroni, 1936) and Fisher (Fisher, 1992).</p></li>
 </ul>
-<p>All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch and
+<p>All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch /
 Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation here
 (&#64;TODO: Add link to docs) or the scenarios in the section <a class="reference external" href="#examples">Examples</a>.</p>
 </div>
@@ -172,17 +174,20 @@ Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usag
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">deepsig</span>
 </pre></div>
 </div>
-<div class="section" id="bulb-a-short-and-gentle-introduction-to-significance-testing-for-dnns">
-<h3>|:bulb:| A short and gentle introduction to significance testing (for DNNs)<a class="headerlink" href="#bulb-a-short-and-gentle-introduction-to-significance-testing-for-dnns" title="Permalink to this headline">¶</a></h3>
-<p>&#64;TODO: Significant testing basic idea
-&#64;TODO: Multiple comparisons
-&#64;TODO: Significance testing for neural networks</p>
+<p>Another option is to clone the repository and install the package locally:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">Kaleidophon</span><span class="o">/</span><span class="n">deep</span><span class="o">-</span><span class="n">significance</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">deep</span><span class="o">-</span><span class="n">significance</span>
+<span class="n">pip3</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
+</pre></div>
 </div>
+<p><strong>Warning</strong>: Installed like this, imports will fail when the clones repository is moved.</p>
 </div>
 <div class="section" id="bookmark-examples">
 <h2>|:bookmark:| Examples<a class="headerlink" href="#bookmark-examples" title="Permalink to this headline">¶</a></h2>
 <p>In the following, I will lay out three scenarios that describe common use cases for ML practitioners and how to apply
-the methods implemented in this package accordingly.</p>
+the methods implemented in this package accordingly. For an introduction into statistical hypothesis testing, please
+refer to resources such as <a class="reference external" href="https://machinelearningmastery.com/statistical-hypothesis-tests/">this blog post</a> for a general
+overview or <a class="reference external" href="https://www.aclweb.org/anthology/P18-1128.pdf">Dror et al. (2018)</a> for a NLP-specific point of view.</p>
 <div class="section" id="scenario-1-comparing-multiple-runs-of-two-models">
 <h3>Scenario 1 - Comparing multiple runs of two models<a class="headerlink" href="#scenario-1-comparing-multiple-runs-of-two-models" title="Permalink to this headline">¶</a></h3>
 <p>In the simplest scenario, we have retrieved a set of scores from a model A and a baseline B on a dataset, stemming from
@@ -239,6 +244,7 @@ the test becomes.</p>
 <h3>|:books:| Bibliography<a class="headerlink" href="#books-bibliography" title="Permalink to this headline">¶</a></h3>
 <p>Bonferroni, Carlo. “Teoria statistica delle classi e calcolo delle probabilita.” Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.</p>
 <p>Borji, Ali. “Negative results in computer vision: A perspective.” Image and Vision Computing 69 (2018): 1-8.</p>
+<p>Dror, Rotem, et al. “The hitchhiker’s guide to testing statistical significance in natural language processing.” Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2018.</p>
 <p>Dror, Rotem, Segev Shlomov, and Roi Reichart. “Deep dominance-how to properly compare deep neural models.” Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics. 2019.</p>
 <p>Efron, Bradley, and Robert J. Tibshirani. An introduction to the bootstrap. CRC press, 1994.</p>
 <p>Fisher, Ronald Aylmer. “Statistical methods for research workers.” Breakthroughs in statistics. Springer, New York, NY, 1992. 66-70.</p>
