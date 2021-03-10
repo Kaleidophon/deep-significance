@@ -2,3 +2,5 @@ scipy
 jax
 tensorflow
 torch
+coverage
+coveralls
