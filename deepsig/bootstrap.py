@@ -1,6 +1,6 @@
 """
 Implementation of paired bootstrap test
-[(Efron & Tibshirani, 1994)](https://cds.cern.ch/record/526679/files/0412042312_TOC.pdf).
+`(Efron & Tibshirani, 1994) <https://cds.cern.ch/record/526679/files/0412042312_TOC.pdf>`_.
 """
 
 # EXT

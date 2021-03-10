@@ -6,7 +6,6 @@ numpy arrays for consistency.
 # STD
 from collections import defaultdict
 from functools import wraps
-import typing
 from typing import Callable, List, Union
 
 # EXT

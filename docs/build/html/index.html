@@ -1,0 +1,418 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    
+    <title>deep-significance: Easy Significance Testing for Deep Neural Networks &#8212; deep-significance 0.9 documentation</title>
+
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-4.3.1-dist/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinxbootstrap4.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/bootstrap-4.3.1-dist/js/bootstrap.min.js"></script>
+    <script src="_static/sphinxbootstrap4.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+  <nav class="navbar navbar-expand-md  fixed-top navbar-dark bg-dark flex-wrap">
+    <button class="navbar-toggler ml-auto py-2" type="button" data-toggle="collapse" data-target="#exCollapsingNavbar2">
+      &#9776;
+    </button>
+      <div class="navbar-collapse collapse" id="exCollapsingNavbar2">
+           <a class="navbar-brand py-1" href="#">
+                  deep-significance
+          </a>
+          <span class="navbar-text navbar-version pb-0 pt-1"><b>0.9</b></span>
+          <ul class="navbar-nav mr-auto">
+          
+              <li class="nav-item dropdown d-none d-sm-block" id="navbar-pages">
+                  <a class="nav-link dropdown-toggle" data-toggle="dropdown">Pages</a>
+                  <ul class="dropdown-menu">
+                  
+                  </ul>
+              </li>
+          </ul>
+          <div class="dropdown-divider d-block d-sm-none mb-4"></div>
+             
+<form class="form-inline" action="search.html" method="get">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      </div>
+
+      <!--<div class="row hidden-sm-up">
+          <div class="collapse navbar-toggleable-xs container" id="exCollapsingNavbar2">
+              <div class="container">
+             　　 <a class="navbar-brand" href="#">
+                      deep-significance
+                  </a>
+              </div>
+              <ul class="nav navbar-nav">
+              </ul>
+              <div class="dropdown-divider"></div>
+              <div class="navbar-text">search<div>
+              
+<form class="form-inline" action="search.html" method="get">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          </div>
+      </div>-->
+    </nav>
+  </div>
+
+    <div class="related d-flex justify-content-between bg-light flex-wrap" role="navigation" aria-label="related navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">deep-significance 0.9 documentation</a></li>
+            <li class="breadcrumb-item active">deep-significance: Easy Significance Testing for Deep Neural Networks</li>
+        </ol>
+       <div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+           </div>
+       </div>
+    </div>
+
+  <div class="main container-fluid">
+    <div class="row"> 
+      <div class="sphinxsidebar d-none d-md-block">
+        <div class="sphinxsidebarwrapper">          
+            <h4>Table Of Contents</h4>
+            
+            
+                <!-- Local TOC -->
+                <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">deep-significance: Easy Significance Testing for Deep Neural Networks</a><ul>
+<li><a class="reference internal" href="#interrobang-why">⁉️ Why?</a><ul>
+<li><a class="reference internal" href="#inbox-tray-installation">📥 Installation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bulb-a-short-and-gentle-introduction-to-significance-testing-for-dnns">💡 A short and gentle introduction to significance testing (for DNNs)</a><ul>
+<li><a class="reference internal" href="#bookmark-examples">🔖 Examples</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#scenario-1-comparing-multiple-runs-of-two-models">Scenario 1 - Comparing multiple runs of two models</a></li>
+<li><a class="reference internal" href="#scenario-2-comparing-multiple-runs-across-datasets">Scenario 2 - Comparing multiple runs across datasets</a></li>
+<li><a class="reference internal" href="#scenario-3-comparing-sample-level-scores">Scenario 3 - Comparing sample-level scores</a></li>
+<li><a class="reference internal" href="#mortar-board-cite">🎓 Cite</a></li>
+<li><a class="reference internal" href="#medal-sports-credit">🏅 Credit</a></li>
+<li><a class="reference internal" href="#books-bibliography">📚 Bibliography</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-deepsig">Documentation</a></li>
+</ul>
+</div>
+            
+          
+<div id="searchbox" style="display: none">
+    <form class="form search" action="search.html" method="get">
+      <input type="text" name="q" class="form-control" placeholder="Search..." />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+
+<script type="text/javascript">$('#searchbox').show(0);</script>
+  <ul class="this-page-menu list-unstyled text-right">
+    <li><a href="_sources/index.rst.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+        </div>
+      </div> 
+
+      <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="deep-significance-easy-significance-testing-for-deep-neural-networks">
+<h1>deep-significance: Easy Significance Testing for Deep Neural Networks<a class="headerlink" href="#deep-significance-easy-significance-testing-for-deep-neural-networks" title="Permalink to this headline">¶</a></h1>
+<a class="reference external image-reference" href="https://www.gnu.org/licenses/gpl-3.0"><img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
+<a class="reference external image-reference" href="https://github.com/python/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a>
+<p><strong>Warning: This project is still under development. Code might be erroneous and breaking changes be introduced without
+warning.</strong></p>
+<div class="section" id="interrobang-why">
+<h2>⁉️ Why?<a class="headerlink" href="#interrobang-why" title="Permalink to this headline">¶</a></h2>
+<p>Although the field of Machine Learning and Deep Learning has undergone spectacular growth in the recent decade,
+a large portion of experimental evidence is not supported by statistical significance tests. Instead,
+conclusions are often drawn based on single performance scores.</p>
+<p>This is problematic: Neural network display highly non-convex
+loss surfaces (Li et al., 2018) and their performance depends on the specific hyperparameters that were found, or stochastic factors
+like Dropout masks, making comparisons more difficult. Based on comparing only (the mean of) a few scores, <strong>we cannot conclude that one model type is better than another</strong>.
+This endangers the progress in the field, as seeming success due to random chance might lead practicioners astray.
+For instance,
+a recent study in Natural Language Processing by Narang et al. (2021) has found that many modifications proposed to
+transformers do not actually improve performance. Similar issues are known to plague other fields like e.g.
+Reinforcement Learning (Henderson et al., 2018) and Computer Vision (Borji, 2017) as well.</p>
+<p>To help mitigate this problem, this package supplies fully-tested reimplementations of useful functions for significance
+testing:</p>
+<ul class="simple">
+<li><p>Non-parametic test such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron &amp; Tibshirani, 1994) and
+permutation-randomization.</p></li>
+<li><p>p-value corrections methods such as Bonferroni (Bonferroni, 1936) and Fisher (Fisher, 1992).</p></li>
+</ul>
+<p>All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch and
+Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation here
+(&#64;TODO: Add link to docs) or the scenarios in the section <a class="reference external" href="#examples">Examples</a>.</p>
+<div class="section" id="inbox-tray-installation">
+<h3>📥 Installation<a class="headerlink" href="#inbox-tray-installation" title="Permalink to this headline">¶</a></h3>
+<p>(<strong>The package has not been released on pip yet</strong>)</p>
+<p>The package can simply be installed using <code class="docutils literal notranslate"><span class="pre">pip</span></code> by running</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">deepsig</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="bulb-a-short-and-gentle-introduction-to-significance-testing-for-dnns">
+<h2>💡 A short and gentle introduction to significance testing (for DNNs)<a class="headerlink" href="#bulb-a-short-and-gentle-introduction-to-significance-testing-for-dnns" title="Permalink to this headline">¶</a></h2>
+<p>&#64;TODO: Significant testing basic idea
+&#64;TODO: Multiple comparisons
+&#64;TODO: Significance testing for neural networks</p>
+<div class="section" id="bookmark-examples">
+<h3>🔖 Examples<a class="headerlink" href="#bookmark-examples" title="Permalink to this headline">¶</a></h3>
+<p>In the following, I will lay out three scenarios that describe common use cases for ML practitioners and how to apply
+the methods implemented in this package accordingly.</p>
+</div>
+</div>
+<div class="section" id="scenario-1-comparing-multiple-runs-of-two-models">
+<h2>Scenario 1 - Comparing multiple runs of two models<a class="headerlink" href="#scenario-1-comparing-multiple-runs-of-two-models" title="Permalink to this headline">¶</a></h2>
+<p>In the simplest scenario, we have retrieved a set of scores from a model A and a baseline B on a dataset, stemming from
+various model runs with different seeds. We can now simply apply the ASO test:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">deepsig</span> <span class="kn">import</span> <span class="n">aso</span>
+
+<span class="n">scores_a</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># TODO</span>
+<span class="n">scores_b</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># TODO</span>
+
+<span class="n">min_eps</span> <span class="o">=</span> <span class="n">aso</span><span class="p">(</span><span class="n">scores_a</span><span class="p">,</span> <span class="n">scores_b</span><span class="p">)</span>  <span class="c1"># min_eps = ..., so A is better</span>
+</pre></div>
+</div>
+<p>Because ASO is a non-parametric test, <strong>it does not make any assumptions about the distributions of the scores</strong>.
+This means that we can apply it to any kind of test metric. The scores of model runs are supplied, the more reliable
+the test becomes.</p>
+</div>
+<div class="section" id="scenario-2-comparing-multiple-runs-across-datasets">
+<h2>Scenario 2 - Comparing multiple runs across datasets<a class="headerlink" href="#scenario-2-comparing-multiple-runs-across-datasets" title="Permalink to this headline">¶</a></h2>
+<p>&#64;TODO: Comparison between two models, multiple datasets</p>
+</div>
+<div class="section" id="scenario-3-comparing-sample-level-scores">
+<h2>Scenario 3 - Comparing sample-level scores<a class="headerlink" href="#scenario-3-comparing-sample-level-scores" title="Permalink to this headline">¶</a></h2>
+<p>&#64;TODO: Comparison between two models, multiple seeds, sample-level</p>
+</div>
+<div class="section" id="mortar-board-cite">
+<h2>🎓 Cite<a class="headerlink" href="#mortar-board-cite" title="Permalink to this headline">¶</a></h2>
+<p>If you use the ASO test via <code class="docutils literal notranslate"><span class="pre">aso()</span></code>, please cite the original work:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inproceedings</span><span class="p">{</span><span class="n">dror2019deep</span><span class="p">,</span>
+  <span class="n">author</span>    <span class="o">=</span> <span class="p">{</span><span class="n">Rotem</span> <span class="n">Dror</span> <span class="ow">and</span>
+               <span class="n">Segev</span> <span class="n">Shlomov</span> <span class="ow">and</span>
+               <span class="n">Roi</span> <span class="n">Reichart</span><span class="p">},</span>
+  <span class="n">editor</span>    <span class="o">=</span> <span class="p">{</span><span class="n">Anna</span> <span class="n">Korhonen</span> <span class="ow">and</span>
+               <span class="n">David</span> <span class="n">R</span><span class="o">.</span> <span class="n">Traum</span> <span class="ow">and</span>
+               <span class="n">Llu</span><span class="p">{</span>\<span class="s1">&#39;{\i}}s M{\`</span><span class="si">{a}</span><span class="s1">}rquez},</span>
+  <span class="n">title</span>     <span class="o">=</span> <span class="p">{</span><span class="n">Deep</span> <span class="n">Dominance</span> <span class="o">-</span> <span class="n">How</span> <span class="n">to</span> <span class="n">Properly</span> <span class="n">Compare</span> <span class="n">Deep</span> <span class="n">Neural</span> <span class="n">Models</span><span class="p">},</span>
+  <span class="n">booktitle</span> <span class="o">=</span> <span class="p">{</span><span class="n">Proceedings</span> <span class="n">of</span> <span class="n">the</span> <span class="mi">57</span><span class="n">th</span> <span class="n">Conference</span> <span class="n">of</span> <span class="n">the</span> <span class="n">Association</span> <span class="k">for</span> <span class="n">Computational</span>
+               <span class="n">Linguistics</span><span class="p">,</span> <span class="p">{</span><span class="n">ACL</span><span class="p">}</span> <span class="mi">2019</span><span class="p">,</span> <span class="n">Florence</span><span class="p">,</span> <span class="n">Italy</span><span class="p">,</span> <span class="n">July</span> <span class="mi">28</span><span class="o">-</span> <span class="n">August</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2019</span><span class="p">,</span>
+               <span class="n">Volume</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Long</span> <span class="n">Papers</span><span class="p">},</span>
+  <span class="n">pages</span>     <span class="o">=</span> <span class="p">{</span><span class="mi">2773</span><span class="o">--</span><span class="mi">2785</span><span class="p">},</span>
+  <span class="n">publisher</span> <span class="o">=</span> <span class="p">{</span><span class="n">Association</span> <span class="k">for</span> <span class="n">Computational</span> <span class="n">Linguistics</span><span class="p">},</span>
+  <span class="n">year</span>      <span class="o">=</span> <span class="p">{</span><span class="mi">2019</span><span class="p">},</span>
+  <span class="n">url</span>       <span class="o">=</span> <span class="p">{</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">doi</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="mf">10.18653</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">p19</span><span class="o">-</span><span class="mi">1266</span><span class="p">},</span>
+  <span class="n">doi</span>       <span class="o">=</span> <span class="p">{</span><span class="mf">10.18653</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">p19</span><span class="o">-</span><span class="mi">1266</span><span class="p">},</span>
+  <span class="n">timestamp</span> <span class="o">=</span> <span class="p">{</span><span class="n">Tue</span><span class="p">,</span> <span class="mi">28</span> <span class="n">Jan</span> <span class="mi">2020</span> <span class="mi">10</span><span class="p">:</span><span class="mi">27</span><span class="p">:</span><span class="mi">52</span> <span class="o">+</span><span class="mi">0100</span><span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="medal-sports-credit">
+<h2>🏅 Credit<a class="headerlink" href="#medal-sports-credit" title="Permalink to this headline">¶</a></h2>
+<p>&#64;TODO</p>
+</div>
+<div class="section" id="books-bibliography">
+<h2>📚 Bibliography<a class="headerlink" href="#books-bibliography" title="Permalink to this headline">¶</a></h2>
+<p>Bonferroni, Carlo. “Teoria statistica delle classi e calcolo delle probabilita.” Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.</p>
+<p>Borji, Ali. “Negative results in computer vision: A perspective.” Image and Vision Computing 69 (2018): 1-8.</p>
+<p>Dror, Rotem, Segev Shlomov, and Roi Reichart. “Deep dominance-how to properly compare deep neural models.” Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics. 2019.</p>
+<p>Efron, Bradley, and Robert J. Tibshirani. An introduction to the bootstrap. CRC press, 1994.</p>
+<p>Fisher, Ronald Aylmer. “Statistical methods for research workers.” Breakthroughs in statistics. Springer, New York, NY, 1992. 66-70.</p>
+<p>Henderson, Peter, et al. “Deep reinforcement learning that matters.” Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 32. No. 1. 2018.</p>
+<p>Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein: Visualizing the Loss Landscape of Neural Nets. NeurIPS 2018: 6391-6401</p>
+<p>Narang, Sharan, et al. “Do Transformer Modifications Transfer Across Implementations and Applications?.” arXiv preprint arXiv:2102.11972 (2021).</p>
+</div>
+</div>
+<div class="section" id="module-deepsig">
+<span id="documentation"></span><h1>Documentation<a class="headerlink" href="#module-deepsig" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-deepsig.aso"></span><p>Re-implementation of Almost Stochastic Order (ASO) by <a class="reference external" href="https://arxiv.org/pdf/2010.03039.pdf">Dror et al. (2019)</a>.
+The code here heavily borrows from their <a class="reference external" href="https://github.com/rtmdrr/DeepComparison">original code base</a>.</p>
+<dl class="py function">
+<dt id="deepsig.aso.aso">
+<code class="sig-prename descclassname"><span class="pre">deepsig.aso.</span></code><code class="sig-name descname"><span class="pre">aso</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scores_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_bootstrap_iterations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.005</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#deepsig.aso.aso" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the Almost Stochastic Order test by Dror et al. (2019). The function takes two list of scores as input
+(they do not have to be of the same length) and returns an upper bound to the violation ratio - the minimum epsilon
+threshold. If the violation ratio is below 0.5, the null hypothesis can be rejected safely (and the model scores_a
+belongs to is deemed better than the model of scores_b). Intuitively, the violation ratio denotes the degree to
+which total stochastic order (algorithm A is <em>always</em> better than B) is being violated.
+The more scores and the higher num_samples / num_bootstrap_iterations, the more reliable is the result.</p>
+<dl class="simple">
+<dt>scores_a: List[float]</dt><dd><p>Scores of algorithm A.</p>
+</dd>
+<dt>scores_b: List[float]</dt><dd><p>Scores of algorithm B.</p>
+</dd>
+<dt>confidence_level: float</dt><dd><p>Desired confidence level of test. Set to 0.05 by default.</p>
+</dd>
+<dt>num_samples: int</dt><dd><p>Number of samples from the score distributions during every bootstrap iteration when estimating sigma.</p>
+</dd>
+<dt>num_bootstrap_iterations: int</dt><dd><p>Number of bootstrap iterations when estimating sigma.</p>
+</dd>
+<dt>dt: float</dt><dd><p>Differential for t during integral calculation.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>float</dt><dd><p>Return an upper bound to the violation ratio. If it falls below 0.5, the null hypothesis can be rejected.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="deepsig.aso.compute_violation_ratio">
+<code class="sig-prename descclassname"><span class="pre">deepsig.aso.</span></code><code class="sig-name descname"><span class="pre">compute_violation_ratio</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scores_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#deepsig.aso.compute_violation_ratio" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the violation ration e_W2 (equation 4 + 5).</p>
+<dl class="simple">
+<dt>scores_a: List[float]</dt><dd><p>Scores of algorithm A.</p>
+</dd>
+<dt>scores_b: List[float]</dt><dd><p>Scores of algorithm B.</p>
+</dd>
+<dt>dt: float</dt><dd><p>Differential for t during integral calculation.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>float</dt><dd><p>Return violation ratio.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="deepsig.aso.get_quantile_function">
+<code class="sig-prename descclassname"><span class="pre">deepsig.aso.</span></code><code class="sig-name descname"><span class="pre">get_quantile_function</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.array</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Callable</span><a class="headerlink" href="#deepsig.aso.get_quantile_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the quantile function corresponding to an empirical distribution of scores.</p>
+<dl class="simple">
+<dt>scores: List[float]</dt><dd><p>Empirical distribution of scores belonging to an algorithm.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Callable</dt><dd><p>Return the quantile function belonging to an empirical score distribution.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-deepsig.bootstrap"></span><p>Implementation of paired bootstrap test
+<a class="reference external" href="https://cds.cern.ch/record/526679/files/0412042312_TOC.pdf">(Efron &amp; Tibshirani, 1994)</a>.</p>
+<dl class="py function">
+<dt id="deepsig.bootstrap.bootstrap_test">
+<code class="sig-prename descclassname"><span class="pre">deepsig.bootstrap.</span></code><code class="sig-name descname"><span class="pre">bootstrap_test</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scores_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#deepsig.bootstrap.bootstrap_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implementation of paired bootstrap test. A p-value is being estimated by comparing the mean of scores
+for two algorithms to the means of resampled populations, where <cite>num_samples</cite> determines the number of
+times we resample.</p>
+<dl class="simple">
+<dt>scores_a: ArrayLike</dt><dd><p>Scores of algorithm A.</p>
+</dd>
+<dt>scores_b: ArrrayLike</dt><dd><p>Scores of algorithm B.</p>
+</dd>
+<dt>num_samples: int</dt><dd><p>Number of bootstrap samples used for estimation.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>float</dt><dd><p>Estimated p-value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-deepsig.correction"></span><p>This module contains methods to correct p-values in order to avoid the
+<a class="reference external" href="https://en.wikipedia.org/wiki/Multiple_comparisons_problem">Multiple comparisons problem</a>. The code is based on
+<a class="reference external" href="https://github.com/rtmdrr/replicability-analysis-NLP">this codebase</a> corresponding to the
+<a class="reference external" href="https://arxiv.org/abs/1709.09500">Dror et al. (2017)</a> publication.</p>
+<dl class="py function">
+<dt id="deepsig.correction.calculate_partial_conjunction">
+<code class="sig-prename descclassname"><span class="pre">deepsig.correction.</span></code><code class="sig-name descname"><span class="pre">calculate_partial_conjunction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sorted_p_values</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#deepsig.correction.calculate_partial_conjunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the partial conjunction p-value for u out of N.</p>
+<dl class="simple">
+<dt>sorted_p_values: np.array</dt><dd><p>Sorted p-values.</p>
+</dd>
+<dt>u: int</dt><dd><p>Number of null hypothesis.</p>
+</dd>
+<dt>method: str</dt><dd><p>Method used for correction. Has to be either “bonferroni” or “fisher”.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>float</dt><dd><p>p-value for the partial conjunction hypothesis for u out of N.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="deepsig.correction.correct_p_values">
+<code class="sig-prename descclassname"><span class="pre">deepsig.correction.</span></code><code class="sig-name descname"><span class="pre">correct_p_values</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_values</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'bonferroni'</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.array</span><a class="headerlink" href="#deepsig.correction.correct_p_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Correct p-values based on Bonferroni’s or Fisher’s method. Bonferroni’s method is most appropriate when data sets
+that the p-values originated from are dependent, and Fisher’s when they are independent.</p>
+<dl class="simple">
+<dt>p_values: ArrayLike</dt><dd><p>p-values to be corrected.</p>
+</dd>
+<dt>method: str</dt><dd><p>Method used for correction. Has to be either “bonferroni” or “fisher”.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>np.array</dt><dd><p>Corrected p-values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-deepsig.permutation"></span><p>Implementation of paired sign test.</p>
+<dl class="py function">
+<dt id="deepsig.permutation.permutation_test">
+<code class="sig-prename descclassname"><span class="pre">deepsig.permutation.</span></code><code class="sig-name descname"><span class="pre">permutation_test</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scores_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#deepsig.permutation.permutation_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implementation of a permutation-randomization test. Scores of A and B will be randomly swapped and the difference
+in samples is then compared to the original differece.</p>
+<dl class="simple">
+<dt>scores_a: ArrayLike</dt><dd><p>Scores of algorithm A.</p>
+</dd>
+<dt>scores_b: ArrayLike</dt><dd><p>Scores of algorithm B.</p>
+</dd>
+<dt>num_samples: int</dt><dd><p>Number of permutations used for estimation.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>float</dt><dd><p>Estimated p-value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+      <div class="clearer"></div>
+      </div>
+    </div>
+<footer class="footer d-flex justify-content-between flex-wrap">
+    <div class="copyright">
+        <div>&copy; Copyright 2021, Dennis Ulmer.</div>
+      <div>Generated by <a href="http://sphinx.pocoo.org/">Sphinx</a> 3.5.2 using <a href="https://github.com/myyasuda/sphinxbootstrap4theme">sphinxbootstrap4theme</a> 0.6.0.</div>
+    </div>
+    <div>
+        <a href="#" class="btn btn-primary btn-sm" role="botton">Back to top</a>
+    </div>
+</footer>
+  </body>
+</html>

@@ -6,7 +6,7 @@
 **Warning: This project is still under development. Code might be erroneous and breaking changes be introduced without 
 warning.**
 
-### :interrobang: Why?
+### |:interrobang:| Why?
 
 Although the field of Machine Learning and Deep Learning has undergone spectacular growth in the recent decade,
 a large portion of experimental evidence is not supported by statistical significance tests. Instead, 
@@ -31,7 +31,7 @@ All functions are fully tested and also compatible with common deep learning dat
 Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation here 
 (@TODO: Add link to docs) or the scenarios in the section [Examples](#examples).
 
-## :inbox_tray: Installation
+## |:inbox_tray:| Installation
 
 (**The package has not been released on pip yet**)
 
@@ -39,13 +39,13 @@ The package can simply be installed using `pip` by running
 
     pip3 install deepsig
 
-### :bulb: A short and gentle introduction to significance testing (for DNNs)
+### |:bulb:| A short and gentle introduction to significance testing (for DNNs)
 
 @TODO: Significant testing basic idea
 @TODO: Multiple comparisons
 @TODO: Significance testing for neural networks
 
-## :bookmark: Examples
+## |:bookmark:| Examples
 
 In the following, I will lay out three scenarios that describe common use cases for ML practitioners and how to apply 
 the methods implemented in this package accordingly.
@@ -76,7 +76,7 @@ the test becomes.
 
 @TODO: Comparison between two models, multiple seeds, sample-level
 
-### :mortar_board: Cite
+### |:mortar_board:| Cite
 
 If you use the ASO test via `aso()`, please cite the original work:
 
@@ -99,11 +99,11 @@ If you use the ASO test via `aso()`, please cite the original work:
       timestamp = {Tue, 28 Jan 2020 10:27:52 +0100},
     }
 
-### :medal_sports: Credit
+### |:medal_sports:| Credit
 
 @TODO
 
-### :books: Bibliography
+### |:books:| Bibliography
 
 Bonferroni, Carlo. "Teoria statistica delle classi e calcolo delle probabilita." Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.
 

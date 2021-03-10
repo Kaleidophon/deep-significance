@@ -1,6 +1,6 @@
 """
-Re-implementation of Almost Stochastic Order (ASO) by [Dror et al. (2019)](https://arxiv.org/pdf/2010.03039.pdf).
-The code here heavily borrows from their [original code base](https://github.com/rtmdrr/DeepComparison).
+Re-implementation of Almost Stochastic Order (ASO) by `Dror et al. (2019) <https://arxiv.org/pdf/2010.03039.pdf>`_.
+The code here heavily borrows from their `original code base <https://github.com/rtmdrr/DeepComparison>`_.
 """
 
 # STD

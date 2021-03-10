@@ -1,12 +1,9 @@
 """
 This module contains methods to correct p-values in order to avoid the
-[Multiple comparisons problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem). The code is based on
-[this codebase](https://github.com/rtmdrr/replicability-analysis-NLP) corresponding to the
-[Dror et al. (2017)](https://arxiv.org/abs/1709.09500) publication.
+`Multiple comparisons problem <https://en.wikipedia.org/wiki/Multiple_comparisons_problem>`_. The code is based on
+`this codebase <https://github.com/rtmdrr/replicability-analysis-NLP>`_ corresponding to the
+`Dror et al. (2017) <https://arxiv.org/abs/1709.09500>`_ publication.
 """
-
-# STD
-from typing import List
 
 # EXT
 import numpy as np

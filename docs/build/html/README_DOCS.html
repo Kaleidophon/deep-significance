@@ -1,0 +1,270 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    
+    <title>deep-significance: Easy Significance Testing for Deep Neural Networks &#8212; deep-significance 0.9 documentation</title>
+
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-4.3.1-dist/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinxbootstrap4.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/bootstrap-4.3.1-dist/js/bootstrap.min.js"></script>
+    <script src="_static/sphinxbootstrap4.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+  <nav class="navbar navbar-expand-md  fixed-top navbar-dark bg-dark flex-wrap">
+    <button class="navbar-toggler ml-auto py-2" type="button" data-toggle="collapse" data-target="#exCollapsingNavbar2">
+      &#9776;
+    </button>
+      <div class="navbar-collapse collapse" id="exCollapsingNavbar2">
+           <a class="navbar-brand py-1" href="index.html">
+                  deep-significance
+          </a>
+          <span class="navbar-text navbar-version pb-0 pt-1"><b>0.9</b></span>
+          <ul class="navbar-nav mr-auto">
+          
+              <li class="nav-item dropdown d-none d-sm-block" id="navbar-pages">
+                  <a class="nav-link dropdown-toggle" data-toggle="dropdown">Pages</a>
+                  <ul class="dropdown-menu">
+                  
+                  </ul>
+              </li>
+          </ul>
+          <div class="dropdown-divider d-block d-sm-none mb-4"></div>
+             
+<form class="form-inline" action="search.html" method="get">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      </div>
+
+      <!--<div class="row hidden-sm-up">
+          <div class="collapse navbar-toggleable-xs container" id="exCollapsingNavbar2">
+              <div class="container">
+             　　 <a class="navbar-brand" href="index.html">
+                      deep-significance
+                  </a>
+              </div>
+              <ul class="nav navbar-nav">
+              </ul>
+              <div class="dropdown-divider"></div>
+              <div class="navbar-text">search<div>
+              
+<form class="form-inline" action="search.html" method="get">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          </div>
+      </div>-->
+    </nav>
+  </div>
+
+    <div class="related d-flex justify-content-between bg-light flex-wrap" role="navigation" aria-label="related navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="index.html">deep-significance 0.9 documentation</a></li>
+            <li class="breadcrumb-item active">deep-significance: Easy Significance Testing for Deep Neural Networks</li>
+        </ol>
+       <div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+           </div>
+       </div>
+    </div>
+
+  <div class="main container-fluid">
+    <div class="row"> 
+      <div class="sphinxsidebar d-none d-md-block">
+        <div class="sphinxsidebarwrapper">          
+            <h4>Table Of Contents</h4>
+            
+            
+                <!-- Local TOC -->
+                <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">deep-significance: Easy Significance Testing for Deep Neural Networks</a><ul>
+<li><a class="reference internal" href="#interrobang-why">|:interrobang:| Why?</a></li>
+<li><a class="reference internal" href="#inbox-tray-installation">|:inbox_tray:| Installation</a><ul>
+<li><a class="reference internal" href="#bulb-a-short-and-gentle-introduction-to-significance-testing-for-dnns">|:bulb:| A short and gentle introduction to significance testing (for DNNs)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bookmark-examples">|:bookmark:| Examples</a><ul>
+<li><a class="reference internal" href="#scenario-1-comparing-multiple-runs-of-two-models">Scenario 1 - Comparing multiple runs of two models</a></li>
+<li><a class="reference internal" href="#scenario-2-comparing-multiple-runs-across-datasets">Scenario 2 - Comparing multiple runs across datasets</a></li>
+<li><a class="reference internal" href="#scenario-3-comparing-sample-level-scores">Scenario 3 - Comparing sample-level scores</a></li>
+<li><a class="reference internal" href="#mortar-board-cite">|:mortar_board:| Cite</a></li>
+<li><a class="reference internal" href="#medal-sports-credit">|:medal_sports:| Credit</a></li>
+<li><a class="reference internal" href="#books-bibliography">|:books:| Bibliography</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+<div id="searchbox" style="display: none">
+    <form class="form search" action="search.html" method="get">
+      <input type="text" name="q" class="form-control" placeholder="Search..." />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+
+<script type="text/javascript">$('#searchbox').show(0);</script>
+  <ul class="this-page-menu list-unstyled text-right">
+    <li><a href="_sources/README_DOCS.md.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+        </div>
+      </div> 
+
+      <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="deep-significance-easy-significance-testing-for-deep-neural-networks">
+<h1>deep-significance: Easy Significance Testing for Deep Neural Networks<a class="headerlink" href="#deep-significance-easy-significance-testing-for-deep-neural-networks" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://www.gnu.org/licenses/gpl-3.0"><img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
+<a class="reference external" href="https://github.com/python/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a></p>
+<p><strong>Warning: This project is still under development. Code might be erroneous and breaking changes be introduced without
+warning.</strong></p>
+<div class="section" id="interrobang-why">
+<h2>|:interrobang:| Why?<a class="headerlink" href="#interrobang-why" title="Permalink to this headline">¶</a></h2>
+<p>Although the field of Machine Learning and Deep Learning has undergone spectacular growth in the recent decade,
+a large portion of experimental evidence is not supported by statistical significance tests. Instead,
+conclusions are often drawn based on single performance scores.</p>
+<p>This is problematic: Neural network display highly non-convex
+loss surfaces (Li et al., 2018) and their performance depends on the specific hyperparameters that were found, or stochastic factors
+like Dropout masks, making comparisons more difficult. Based on comparing only (the mean of) a few scores, <strong>we cannot conclude that one model type is better than another</strong>.
+This endangers the progress in the field, as seeming success due to random chance might lead practicioners astray.
+For instance,
+a recent study in Natural Language Processing by Narang et al. (2021) has found that many modifications proposed to
+transformers do not actually improve performance. Similar issues are known to plague other fields like e.g.
+Reinforcement Learning (Henderson et al., 2018) and Computer Vision (Borji, 2017) as well.</p>
+<p>To help mitigate this problem, this package supplies fully-tested reimplementations of useful functions for significance
+testing:</p>
+<ul class="simple">
+<li><p>Non-parametic test such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron &amp; Tibshirani, 1994) and
+permutation-randomization.</p></li>
+<li><p>p-value corrections methods such as Bonferroni (Bonferroni, 1936) and Fisher (Fisher, 1992).</p></li>
+</ul>
+<p>All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch and
+Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation here
+(&#64;TODO: Add link to docs) or the scenarios in the section <a class="reference external" href="#examples">Examples</a>.</p>
+</div>
+<div class="section" id="inbox-tray-installation">
+<h2>|:inbox_tray:| Installation<a class="headerlink" href="#inbox-tray-installation" title="Permalink to this headline">¶</a></h2>
+<p>(<strong>The package has not been released on pip yet</strong>)</p>
+<p>The package can simply be installed using <code class="docutils literal notranslate"><span class="pre">pip</span></code> by running</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">deepsig</span>
+</pre></div>
+</div>
+<div class="section" id="bulb-a-short-and-gentle-introduction-to-significance-testing-for-dnns">
+<h3>|:bulb:| A short and gentle introduction to significance testing (for DNNs)<a class="headerlink" href="#bulb-a-short-and-gentle-introduction-to-significance-testing-for-dnns" title="Permalink to this headline">¶</a></h3>
+<p>&#64;TODO: Significant testing basic idea
+&#64;TODO: Multiple comparisons
+&#64;TODO: Significance testing for neural networks</p>
+</div>
+</div>
+<div class="section" id="bookmark-examples">
+<h2>|:bookmark:| Examples<a class="headerlink" href="#bookmark-examples" title="Permalink to this headline">¶</a></h2>
+<p>In the following, I will lay out three scenarios that describe common use cases for ML practitioners and how to apply
+the methods implemented in this package accordingly.</p>
+<div class="section" id="scenario-1-comparing-multiple-runs-of-two-models">
+<h3>Scenario 1 - Comparing multiple runs of two models<a class="headerlink" href="#scenario-1-comparing-multiple-runs-of-two-models" title="Permalink to this headline">¶</a></h3>
+<p>In the simplest scenario, we have retrieved a set of scores from a model A and a baseline B on a dataset, stemming from
+various model runs with different seeds. We can now simply apply the ASO test:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">deepsig</span> <span class="kn">import</span> <span class="n">aso</span>
+
+<span class="n">scores_a</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># TODO</span>
+<span class="n">scores_b</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># TODO</span>
+
+<span class="n">min_eps</span> <span class="o">=</span> <span class="n">aso</span><span class="p">(</span><span class="n">scores_a</span><span class="p">,</span> <span class="n">scores_b</span><span class="p">)</span>  <span class="c1"># min_eps = ..., so A is better</span>
+</pre></div>
+</div>
+<p>Because ASO is a non-parametric test, <strong>it does not make any assumptions about the distributions of the scores</strong>.
+This means that we can apply it to any kind of test metric. The scores of model runs are supplied, the more reliable
+the test becomes.</p>
+</div>
+<div class="section" id="scenario-2-comparing-multiple-runs-across-datasets">
+<h3>Scenario 2 - Comparing multiple runs across datasets<a class="headerlink" href="#scenario-2-comparing-multiple-runs-across-datasets" title="Permalink to this headline">¶</a></h3>
+<p>&#64;TODO: Comparison between two models, multiple datasets</p>
+</div>
+<div class="section" id="scenario-3-comparing-sample-level-scores">
+<h3>Scenario 3 - Comparing sample-level scores<a class="headerlink" href="#scenario-3-comparing-sample-level-scores" title="Permalink to this headline">¶</a></h3>
+<p>&#64;TODO: Comparison between two models, multiple seeds, sample-level</p>
+</div>
+<div class="section" id="mortar-board-cite">
+<h3>|:mortar_board:| Cite<a class="headerlink" href="#mortar-board-cite" title="Permalink to this headline">¶</a></h3>
+<p>If you use the ASO test via <code class="docutils literal notranslate"><span class="pre">aso()</span></code>, please cite the original work:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inproceedings</span><span class="p">{</span><span class="n">dror2019deep</span><span class="p">,</span>
+  <span class="n">author</span>    <span class="o">=</span> <span class="p">{</span><span class="n">Rotem</span> <span class="n">Dror</span> <span class="ow">and</span>
+               <span class="n">Segev</span> <span class="n">Shlomov</span> <span class="ow">and</span>
+               <span class="n">Roi</span> <span class="n">Reichart</span><span class="p">},</span>
+  <span class="n">editor</span>    <span class="o">=</span> <span class="p">{</span><span class="n">Anna</span> <span class="n">Korhonen</span> <span class="ow">and</span>
+               <span class="n">David</span> <span class="n">R</span><span class="o">.</span> <span class="n">Traum</span> <span class="ow">and</span>
+               <span class="n">Llu</span><span class="p">{</span>\<span class="s1">&#39;{\i}}s M{\`</span><span class="si">{a}</span><span class="s1">}rquez},</span>
+  <span class="n">title</span>     <span class="o">=</span> <span class="p">{</span><span class="n">Deep</span> <span class="n">Dominance</span> <span class="o">-</span> <span class="n">How</span> <span class="n">to</span> <span class="n">Properly</span> <span class="n">Compare</span> <span class="n">Deep</span> <span class="n">Neural</span> <span class="n">Models</span><span class="p">},</span>
+  <span class="n">booktitle</span> <span class="o">=</span> <span class="p">{</span><span class="n">Proceedings</span> <span class="n">of</span> <span class="n">the</span> <span class="mi">57</span><span class="n">th</span> <span class="n">Conference</span> <span class="n">of</span> <span class="n">the</span> <span class="n">Association</span> <span class="k">for</span> <span class="n">Computational</span>
+               <span class="n">Linguistics</span><span class="p">,</span> <span class="p">{</span><span class="n">ACL</span><span class="p">}</span> <span class="mi">2019</span><span class="p">,</span> <span class="n">Florence</span><span class="p">,</span> <span class="n">Italy</span><span class="p">,</span> <span class="n">July</span> <span class="mi">28</span><span class="o">-</span> <span class="n">August</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2019</span><span class="p">,</span>
+               <span class="n">Volume</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Long</span> <span class="n">Papers</span><span class="p">},</span>
+  <span class="n">pages</span>     <span class="o">=</span> <span class="p">{</span><span class="mi">2773</span><span class="o">--</span><span class="mi">2785</span><span class="p">},</span>
+  <span class="n">publisher</span> <span class="o">=</span> <span class="p">{</span><span class="n">Association</span> <span class="k">for</span> <span class="n">Computational</span> <span class="n">Linguistics</span><span class="p">},</span>
+  <span class="n">year</span>      <span class="o">=</span> <span class="p">{</span><span class="mi">2019</span><span class="p">},</span>
+  <span class="n">url</span>       <span class="o">=</span> <span class="p">{</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">doi</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="mf">10.18653</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">p19</span><span class="o">-</span><span class="mi">1266</span><span class="p">},</span>
+  <span class="n">doi</span>       <span class="o">=</span> <span class="p">{</span><span class="mf">10.18653</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">p19</span><span class="o">-</span><span class="mi">1266</span><span class="p">},</span>
+  <span class="n">timestamp</span> <span class="o">=</span> <span class="p">{</span><span class="n">Tue</span><span class="p">,</span> <span class="mi">28</span> <span class="n">Jan</span> <span class="mi">2020</span> <span class="mi">10</span><span class="p">:</span><span class="mi">27</span><span class="p">:</span><span class="mi">52</span> <span class="o">+</span><span class="mi">0100</span><span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="medal-sports-credit">
+<h3>|:medal_sports:| Credit<a class="headerlink" href="#medal-sports-credit" title="Permalink to this headline">¶</a></h3>
+<p>&#64;TODO</p>
+</div>
+<div class="section" id="books-bibliography">
+<h3>|:books:| Bibliography<a class="headerlink" href="#books-bibliography" title="Permalink to this headline">¶</a></h3>
+<p>Bonferroni, Carlo. “Teoria statistica delle classi e calcolo delle probabilita.” Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.</p>
+<p>Borji, Ali. “Negative results in computer vision: A perspective.” Image and Vision Computing 69 (2018): 1-8.</p>
+<p>Dror, Rotem, Segev Shlomov, and Roi Reichart. “Deep dominance-how to properly compare deep neural models.” Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics. 2019.</p>
+<p>Efron, Bradley, and Robert J. Tibshirani. An introduction to the bootstrap. CRC press, 1994.</p>
+<p>Fisher, Ronald Aylmer. “Statistical methods for research workers.” Breakthroughs in statistics. Springer, New York, NY, 1992. 66-70.</p>
+<p>Henderson, Peter, et al. “Deep reinforcement learning that matters.” Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 32. No. 1. 2018.</p>
+<p>Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein: Visualizing the Loss Landscape of Neural Nets. NeurIPS 2018: 6391-6401</p>
+<p>Narang, Sharan, et al. “Do Transformer Modifications Transfer Across Implementations and Applications?.” arXiv preprint arXiv:2102.11972 (2021).</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+      <div class="clearer"></div>
+      </div>
+    </div>
+<footer class="footer d-flex justify-content-between flex-wrap">
+    <div class="copyright">
+        <div>&copy; Copyright 2021, Dennis Ulmer.</div>
+      <div>Generated by <a href="http://sphinx.pocoo.org/">Sphinx</a> 3.5.2 using <a href="https://github.com/myyasuda/sphinxbootstrap4theme">sphinxbootstrap4theme</a> 0.6.0.</div>
+    </div>
+    <div>
+        <a href="#" class="btn btn-primary btn-sm" role="botton">Back to top</a>
+    </div>
+</footer>
+  </body>
+</html>
