@@ -1,5 +1,6 @@
 # deep-significance: Easy Significance Testing for Deep Neural Networks
 
+[![Compatibility](https://img.shields.io/badge/python-3.5%2B-blue)]()
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
@@ -9,12 +10,13 @@ warning.**
 ### :interrobang: Why?
 
 Although the field of Machine Learning and Deep Learning has undergone spectacular growth in the recent decade,
-a large portion of experimental evidence is not supported by statistical significance tests. Instead, 
+a large portion of experimental evidence is not supported by statistical hypothesis tests. Instead, 
 conclusions are often drawn based on single performance scores. 
 
 This is problematic: Neural network display highly non-convex
 loss surfaces (Li et al., 2018) and their performance depends on the specific hyperparameters that were found, or stochastic factors 
-like Dropout masks, making comparisons more difficult. Based on comparing only (the mean of) a few scores, **we cannot conclude that one model type is better than another**.
+like Dropout masks, making comparisons more difficult. Based on comparing only (the mean of) a few scores, **we cannot 
+conclude that one model type or algorithm is better than another**.
 This endangers the progress in the field, as seeming success due to random chance might lead practicioners astray. 
 For instance,
 a recent study in Natural Language Processing by Narang et al. (2021) has found that many modifications proposed to 
@@ -39,16 +41,13 @@ The package can simply be installed using `pip` by running
 
     pip3 install deepsig
 
-### :bulb: A short and gentle introduction to significance testing (for DNNs)
-
-@TODO: Significant testing basic idea
-@TODO: Multiple comparisons
-@TODO: Significance testing for neural networks
-
 ## :bookmark: Examples
 
 In the following, I will lay out three scenarios that describe common use cases for ML practitioners and how to apply 
-the methods implemented in this package accordingly.
+the methods implemented in this package accordingly. For an introduction into statistical hypothesis testing, please
+refer to resources such as [this blog post](https://machinelearningmastery.com/statistical-hypothesis-tests/) for a general
+overview or [Dror et al. (2018)](https://www.aclweb.org/anthology/P18-1128.pdf) for a NLP-specific point of view. 
+
 
 ### Scenario 1 - Comparing multiple runs of two models 
 
@@ -108,6 +107,8 @@ If you use the ASO test via `aso()`, please cite the original work:
 Bonferroni, Carlo. "Teoria statistica delle classi e calcolo delle probabilita." Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.
 
 Borji, Ali. "Negative results in computer vision: A perspective." Image and Vision Computing 69 (2018): 1-8.
+
+Dror, Rotem, et al. "The hitchhiker’s guide to testing statistical significance in natural language processing." Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2018.
 
 Dror, Rotem, Segev Shlomov, and Roi Reichart. "Deep dominance-how to properly compare deep neural models." Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics. 2019.
 
