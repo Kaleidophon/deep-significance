@@ -51,14 +51,14 @@ the methods implemented in this package accordingly.
 In the simplest scenario, we have retrieved a set of scores from a model A and a baseline B on a dataset, stemming from 
 various model runs with different seeds. We can now simply apply the ASO test:
 
-    ```python
-    from deepsig import aso
+```python
+from deepsig import aso
 
-    scores_a = ...  # TODO
-    scores_b = ...  # TODO
+scores_a = ...  # TODO
+scores_b = ...  # TODO
 
-    min_eps = aso(scores_a, scores_b)  # min_eps = ..., so A is better
-    ```
+min_eps = aso(scores_a, scores_b)  # min_eps = ..., so A is better
+```
 
 Because ASO is a non-parametric test, **it does not make any assumptions about the distributions of the scores**. 
 This means that we can apply it to any kind of test metric. The scores of model runs are supplied, the more reliable 
