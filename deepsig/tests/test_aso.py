@@ -127,7 +127,7 @@ class ASOTechnicalTests(unittest.TestCase):
                 build_quantile="fast",
                 show_progress=False,
             )
-            self.assertAlmostEqual(eps_min1, eps_min2, delta=0.05)
+            self.assertAlmostEqual(eps_min1, eps_min2, delta=0.06)
 
 
 class ASOSanityChecks(unittest.TestCase):
