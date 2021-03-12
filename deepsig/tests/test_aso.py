@@ -44,6 +44,9 @@ class ASOTechnicalTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             aso([1, 2, 3], [3, 4, 5], num_bootstrap_iterations=0)
 
+        with self.assertRaises(AssertionError):
+            aso([1, 2, 3], [3, 4, 5], build_quantile="foobar")
+
     def test_compute_violation_ratio(self):
         """
         Test whether violation ratio is being computed correctly.
@@ -88,6 +91,44 @@ class ASOTechnicalTests(unittest.TestCase):
         for prob, x in [(0.84, 1), (0.5, 0), (0.31, -0.5), (0.16, -1)]:
             self.assertAlmostEqual(x, quantile_func_normal(prob), delta=0.015)
 
+    def test_quantile_function_building(self):
+        """
+        Test whether building the quantile functions exactly or fast is sufficiently close enough.
+        """
+        # Define parameters of gaussian for which we will test if the two methods are sufficiently close.
+        parameters = [
+            ((5, 0.1), (0, 1)),
+            ((0, 0.5), (0, 1)),
+            ((2, 2), (1, 1)),
+            ((-0.5, 0.1), (-0.6, 0.2)),
+            ((0.5, 0.21), (0.7, 0.1)),
+            ((0.1, 0.3), (0.2, 0.1)),
+        ]
+
+        for (loc1, scale1), (loc2, scale2) in parameters:
+            samples_normal1 = np.random.normal(
+                loc=loc1, scale=scale1, size=10
+            )  # New scores for algorithm A
+            samples_normal2 = np.random.normal(
+                loc=loc2, scale=scale2, size=10
+            )  # Scores for algorithm B
+
+            eps_min1 = aso(
+                samples_normal1,
+                samples_normal2,
+                num_bootstrap_iterations=500,
+                build_quantile="exact",
+                show_progress=False,
+            )
+            eps_min2 = aso(
+                samples_normal1,
+                samples_normal2,
+                num_bootstrap_iterations=500,
+                build_quantile="fast",
+                show_progress=False,
+            )
+            self.assertAlmostEqual(eps_min1, eps_min2, delta=0.05)
+
 
 class ASOSanityChecks(unittest.TestCase):
     """
@@ -114,6 +155,7 @@ class ASOSanityChecks(unittest.TestCase):
             samples_normal1,
             samples_normal1 + 1e-8,
             num_bootstrap_iterations=self.num_bootstrap_iters,
+            show_progress=False,
         )
         self.assertAlmostEqual(eps_min, 1, delta=0.001)
 
@@ -125,6 +167,7 @@ class ASOSanityChecks(unittest.TestCase):
             samples_normal3,
             samples_normal2,
             num_bootstrap_iterations=self.num_bootstrap_iters,
+            show_progress=False,
         )
         self.assertAlmostEqual(eps_min2, 0, delta=0.01)
 
@@ -146,6 +189,7 @@ class ASOSanityChecks(unittest.TestCase):
                 samples_normal2,
                 confidence_level=alpha,
                 num_bootstrap_iterations=100,
+                show_progress=False,
             )
             min_epsilons.append(min_eps)
 

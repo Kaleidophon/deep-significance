@@ -4,5 +4,5 @@ from deepsig.bootstrap import bootstrap_test
 from deepsig.correction import correct_p_values
 from deepsig.permutation import permutation_test
 
-__version__ = "0.9"
+__version__ = "0.9.2"
 __author__ = "Dennis Ulmer"

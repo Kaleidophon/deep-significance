@@ -34,12 +34,12 @@ testing:
 * p-value corrections methods such as Bonferroni (Bonferroni, 1936) and Fisher (Fisher, 1992). 
 
 All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch / 
-Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation here 
-(@TODO: Add link to docs) or the scenarios in the section [Examples](#examples).
+Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation 
+[here](deep-significance.rtfd.io/en/latest/) or the scenarios in the section [Examples](#examples).
 
 ## |:inbox_tray:| Installation
 
-(**The package has not been released on pip yet**)
+(**The package has not been released on PyPI yet**)
 
 The package can simply be installed using `pip` by running
 
@@ -110,9 +110,14 @@ If you use the ASO test via `aso()`, please cite the original work:
       timestamp = {Tue, 28 Jan 2020 10:27:52 +0100},
     }
 
-### |:medal_sports:| Credit
+### |:medal_sports:| Acknowledgements
 
-@TODO
+This package was created out of discussions of the [NLPnorth group](https://nlpnorth.github.io/) at the IT University 
+Copenhagen. The code in this repository is in multiple places based on several of [Rotem Dror's](https://rtmdrr.github.io/) 
+repositories, namely [this](https://github.com/rtmdrr/replicability-analysis-NLP), [this](https://github.com/rtmdrr/testSignificanceNLP)
+and [this one](https://github.com/rtmdrr/DeepComparison).
+
+The commit message template used in this project can be found [here](https://github.com/Kaleidophon/commit-template-for-humans).
 
 ### |:books:| Bibliography
 

@@ -4,12 +4,13 @@ The code here heavily borrows from their `original code base <https://github.com
 """
 
 # STD
-from typing import List, Callable
+from typing import List, Callable, Optional
 from warnings import warn
 
 # EXT
 import numpy as np
 from scipy.stats import norm as normal
+from tqdm import tqdm
 
 # PKG
 from deepsig.conversion import ArrayLike, score_conversion
@@ -23,6 +24,8 @@ def aso(
     num_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
     dt: float = 0.005,
+    build_quantile: str = "fast",
+    show_progress: bool = True,
 ) -> float:
     """
     Performs the Almost Stochastic Order test by Dror et al. (2019). The function takes two list of scores as input
@@ -46,6 +49,12 @@ def aso(
         Number of bootstrap iterations when estimating sigma.
     dt: float
         Differential for t during integral calculation.
+    build_quantile: str
+        Indicate whether the quantile function during bootstrap iterations should be build from scratch
+        (build_quantile="exact") or reused from the original score distribution (build_quantile="fast"). The fast result
+        will vary slightly from the exact result, so use "exact" for eps_min close to 0.5.
+    show_progress: bool
+        Show progress bar. Default is True.
 
     Returns
     -------
@@ -61,6 +70,12 @@ def aso(
     assert (
         num_bootstrap_iterations > 0
     ), "num_samples must be positive, {} found.".format(num_bootstrap_iterations)
+    assert build_quantile in (
+        "fast",
+        "exact",
+    ), "'build_quantile' has to be eiter 'fast' or 'exact', {} found".format(
+        build_quantile
+    )
 
     violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
     const = np.sqrt(num_samples ** 2 / 2 * num_samples)
@@ -68,10 +83,21 @@ def aso(
     quantile_func_b = get_quantile_function(scores_b)
 
     samples = np.zeros(num_bootstrap_iterations)
-    for i in range(num_bootstrap_iterations):
+    iters = (
+        tqdm(range(num_bootstrap_iterations))
+        if show_progress
+        else range(num_bootstrap_iterations)
+    )
+    for i in iters:
         sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, num_samples))
         sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, num_samples))
-        samples[i] = compute_violation_ratio(sampled_scores_a, sampled_scores_b, dt)
+        samples[i] = compute_violation_ratio(
+            sampled_scores_a,
+            sampled_scores_b,
+            dt,
+            quantile_func_a if build_quantile == "fast" else None,
+            quantile_func_b if build_quantile == "fast" else None,
+        )
 
     sigma_hat = np.std(const * (samples - violation_ratio))
 
@@ -85,7 +111,13 @@ def aso(
     return min_epsilon
 
 
-def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -> float:
+def compute_violation_ratio(
+    scores_a: np.array,
+    scores_b: np.array,
+    dt: float,
+    quantile_func_a: Optional[Callable] = None,
+    quantile_func_b: Optional[Callable] = None,
+) -> float:
     """
     Compute the violation ration e_W2 (equation 4 + 5).
 
@@ -97,6 +129,10 @@ def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -
         Scores of algorithm B.
     dt: float
         Differential for t during integral calculation.
+    quantile_func_a: Optional[Callable]
+        If quantile_func_a is given, it will not be rebuild using scores_a. Used when build_quantile="fast".
+    quantile_func_b: Optional[Callable]
+        If quantile_func_b is given, it will not be rebuild using scores_b. Used when build_quantile="fast".
 
     Returns
     -------
@@ -105,8 +141,12 @@ def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -
     """
     squared_wasserstein_dist = 0
     int_violation_set = 0  # Integral over violation set A_X
-    quantile_func_a = get_quantile_function(scores_a)
-    quantile_func_b = get_quantile_function(scores_b)
+
+    if quantile_func_a is None:
+        quantile_func_a = get_quantile_function(scores_a)
+
+    if quantile_func_b is None:
+        quantile_func_b = get_quantile_function(scores_b)
 
     for p in np.arange(0, 1, dt):
         diff = quantile_func_b(p) - quantile_func_a(p)
