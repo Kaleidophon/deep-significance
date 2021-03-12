@@ -10,7 +10,12 @@ import numpy as np
 from scipy.stats import wasserstein_distance, pearsonr
 
 # PKG
-from deepsig.aso import aso, compute_violation_ratio, get_quantile_function
+from deepsig.aso import (
+    aso,
+    compute_violation_ratio,
+    get_quantile_function,
+    FAST_QUANTILE_WARN_INTERVAL,
+)
 
 
 class ASOTechnicalTests(unittest.TestCase):
@@ -33,19 +38,19 @@ class ASOTechnicalTests(unittest.TestCase):
             aso([3, 4], [])
 
         with self.assertRaises(AssertionError):
-            aso([1, 2, 3], [3, 4, 5], num_samples=-1)
+            aso([1, 2, 3], [3, 4, 5], num_samples=-1, show_progress=False)
 
         with self.assertRaises(AssertionError):
-            aso([1, 2, 3], [3, 4, 5], num_samples=0)
+            aso([1, 2, 3], [3, 4, 5], num_samples=0, show_progress=False)
 
         with self.assertRaises(AssertionError):
-            aso([1, 2, 3], [3, 4, 5], num_bootstrap_iterations=-1)
+            aso([1, 2, 3], [3, 4, 5], num_bootstrap_iterations=-1, show_progress=False)
 
         with self.assertRaises(AssertionError):
-            aso([1, 2, 3], [3, 4, 5], num_bootstrap_iterations=0)
+            aso([1, 2, 3], [3, 4, 5], num_bootstrap_iterations=0, show_progress=False)
 
         with self.assertRaises(AssertionError):
-            aso([1, 2, 3], [3, 4, 5], build_quantile="foobar")
+            aso([1, 2, 3], [3, 4, 5], build_quantile="foobar", show_progress=False)
 
     def test_compute_violation_ratio(self):
         """
@@ -127,7 +132,9 @@ class ASOTechnicalTests(unittest.TestCase):
                 build_quantile="fast",
                 show_progress=False,
             )
-            self.assertAlmostEqual(eps_min1, eps_min2, delta=0.06)
+            self.assertAlmostEqual(
+                eps_min1, eps_min2, delta=FAST_QUANTILE_WARN_INTERVAL
+            )
 
 
 class ASOSanityChecks(unittest.TestCase):

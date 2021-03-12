@@ -15,6 +15,12 @@ from tqdm import tqdm
 # PKG
 from deepsig.conversion import ArrayLike, score_conversion
 
+# CONST
+# Warn the user when min_eps score lands in [0.5 - FAST_QUANTILE_WARN_INTERVAL, 0.5]
+# build_quantile="fast" trades of precision for speed but could be misleading for close cases, where
+# build_quantile="exact" should be used instead.
+FAST_QUANTILE_WARN_INTERVAL = 0.08
+
 
 @score_conversion
 def aso(
@@ -107,6 +113,16 @@ def aso(
         ),
         1,
     )
+
+    if (
+        0.5 - FAST_QUANTILE_WARN_INTERVAL < min_epsilon < 0.5
+        and build_quantile == "fast"
+    ):
+        warn(
+            "min_epsilon was {:.4f}, but build_quantile='fast' is potentially inaccurate up to {:.2f}. Run the "
+            "aso() again with build_quantile='exact' to make sure the null hypothesis can be rejected "
+            "safely.".format(min_epsilon, FAST_QUANTILE_WARN_INTERVAL)
+        )
 
     return min_epsilon
 
