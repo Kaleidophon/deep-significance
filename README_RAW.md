@@ -83,7 +83,7 @@ $$
 
 Thus, we assume our algorithm A to be equally as good or worse than algorithm B and reject the null hypothesis if A 
 is better than B (what we is what we actually would like to see). Most statistical significance tests operate using 
-**p-values**, which define the probability that under the null-hypothesis, the true difference $\delta(X)$ is larger or e
+*p-values*, which define the probability that under the null-hypothesis, the true difference $\delta(X)$ is larger or e
 equal than the observed difference $\delta_{\text{obs}}$ (that is, for a one-sided test):
 
 $$
@@ -95,12 +95,39 @@ not better than B?** If this probability is high, it means that we're likely to 
 probability is low, that means that $\delta_\text{obs}$ is likely *larger* than $\delta(X)$ - indicating 
 that the null hypothesis might be wrong and that A is indeed better than B. 
 
-To decide when we think A to be better than B, we typically set a confidence threshold, often 0.05.
+To decide when we think A to be better than B, we typically set a confidence threshold $\alpha$, often 0.05.
 
 
 ### Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks
 
-@TODO 
+Deep neural networks are highly non-linear models, having their performance highly dependent on hyperparameters, random 
+seeds and other (stochastic) factors. Therefore, comparing the means of two models across several runs might not be 
+enough to decide if a model A is better than B. In fact, **even aggregating more statistics like standard deviation, minimum
+or maximum might not be enough** to make a decision. For this reason, Dror et al. (2019) introduced *Almost Stochastic 
+Order* (ASO), a test to compare two score distributions. 
+
+It builds on the concept of *stochastic order*: We can compare two distribution and declare one as *stochastically dominant*
+by comparing their cumulative distribution functions: 
+
+![](img/so.png)
+
+If the CDF of A is lower than B for every $x$, we know the corresponding to algorithm A scores higher. However, in practice
+these cases are rarely so clear-cut (imagine e.g. two normal distributions with the same mean but different variances).
+For this reason, Dror et al. (2019) consider the notion of *almost stochastic dominance* by quantifying the extent to 
+which stochastic order is being violated (red area):
+
+![](img/aso.png)
+
+ASO returns a value $\epsilon_\text{min}$, which expresses the amount of violation. If $\epsilon_\text{min} < 0.5$, A is 
+stochastically dominant over B in more cases than vice versa, and the corresponding algorithm can be declared as 
+superior. **ASO does not consider p-vales.** Instead, the null hypothesis formulated as 
+
+$$
+H_0: \epsilon_\text{min} \ge 0.5
+$$
+
+Furthermore, the confidence level $\alpha$ is determined as an input argument when running ASO and actively influence 
+the resulting $\epsilon_\text{min}$.
 
 
 ### Scenario 1 - Comparing multiple runs of two models 

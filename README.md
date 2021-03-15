@@ -79,7 +79,7 @@ where <img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" al
 
 Thus, we assume our algorithm A to be equally as good or worse than algorithm B and reject the null hypothesis if A 
 is better than B (what we is what we actually would like to see). Most statistical significance tests operate using 
-**p-values**, which define the probability that under the null-hypothesis, the true difference <img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> is larger or e
+*p-values*, which define the probability that under the null-hypothesis, the true difference <img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> is larger or e
 equal than the observed difference <img src="svgs/ecdae90a73f512871267f358443bd563.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/> (that is, for a one-sided test):
 
 <p align="center"><img src="svgs/6d2735c4e335ec03c8b45736da4531a3.svg?invert_in_darkmode" align=middle width=135.91559685pt height=16.438356pt/></p>
@@ -89,12 +89,37 @@ not better than B?** If this probability is high, it means that we're likely to 
 probability is low, that means that <img src="svgs/94ea44af3034479a1ba3f2f655bcec39.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/> is likely *larger* than <img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> - indicating 
 that the null hypothesis might be wrong and that A is indeed better than B. 
 
-To decide when we think A to be better than B, we typically set a confidence threshold, often 0.05.
+To decide when we think A to be better than B, we typically set a confidence threshold <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/>, often 0.05.
 
 
 ### Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks
 
-@TODO 
+Deep neural networks are highly non-linear models, having their performance highly dependent on hyperparameters, random 
+seeds and other (stochastic) factors. Therefore, comparing the means of two models across several runs might not be 
+enough to decide if a model A is better than B. In fact, **even aggregating more statistics like standard deviation, minimum
+or maximum might not be enough** to make a decision. For this reason, Dror et al. (2019) introduced *Almost Stochastic 
+Order* (ASO), a test to compare two score distributions. 
+
+It builds on the concept of *stochastic order*: We can compare two distribution and declare one as *stochastically dominant*
+by comparing their cumulative distribution functions: 
+
+![](img/so.png)
+
+If the CDF of A is lower than B for every <img src="svgs/332cc365a4987aacce0ead01b8bdcc0b.svg?invert_in_darkmode" align=middle width=9.39498779999999pt height=14.15524440000002pt/>, we know the corresponding to algorithm A scores higher. However, in practice
+these cases are rarely so clear-cut (imagine e.g. two normal distributions with the same mean but different variances).
+For this reason, Dror et al. (2019) consider the notion of *almost stochastic dominance* by quantifying the extent to 
+which stochastic order is being violated (red area):
+
+![](img/aso.png)
+
+ASO returns a value <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>, which expresses the amount of violation. If <img src="svgs/dabed7f05cf133d9eb92631d564a96a8.svg?invert_in_darkmode" align=middle width=72.19750559999999pt height=21.18721440000001pt/>, A is 
+stochastically dominant over B in more cases than vice versa, and the corresponding algorithm can be declared as 
+superior. **ASO does not consider p-vales.** Instead, the null hypothesis formulated as 
+
+<p align="center"><img src="svgs/69c5ac8ce10d0dbd0c2b915aaf0472c1.svg?invert_in_darkmode" align=middle width=106.93478895pt height=13.698590399999999pt/></p>
+
+Furthermore, the confidence level <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> is determined as an input argument when running ASO and actively influence 
+the resulting <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>.
 
 
 ### Scenario 1 - Comparing multiple runs of two models 
