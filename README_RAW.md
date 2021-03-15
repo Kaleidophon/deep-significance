@@ -9,7 +9,19 @@
 **Warning: This project is still under development. Code might be erroneous and breaking changes be introduced without 
 warning.**
 
-@TODO: Add shortcuts
+**Contents**
+
+* [:interrobang: Why](#interrobang-why)
+* [:inbox_tray: Installation](#inbox_tray-installation)
+* [:bookmark: Examples](#bookmark-examples)
+  * [Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks](#intermezzo-almost-stochastic-order---a-better-significance-test-for-deep-neural-networks)
+  * [Scenario 1: Comparing multiple runs of two models](#scenario-1---comparing-multiple-runs-of-two-models)
+  * [Scenario 2: Comparing multiple runs across datasets](#scenario-2---comparing-multiple-runs-across-datasets) 
+  * [Scenario 3: Comparing sample-level scores](#scenario-3---comparing-sample-level-scores)
+  * [Scenario 4: Comparing more than two models](#scenario-4---comparing-more-than-two-models)
+* [:mortar_board: Cite](#mortar_board-cite)
+* [:medal_sports: Acknowledgements](#medal_sports-acknowledgements)
+* [:books: Bibliography](#books-bibliography)
 
 ### :interrobang: Why?
 
@@ -120,7 +132,7 @@ which stochastic order is being violated (red area):
 
 ASO returns a value $\epsilon_\text{min}$, which expresses the amount of violation. If $\epsilon_\text{min} < 0.5$, A is 
 stochastically dominant over B in more cases than vice versa, and the corresponding algorithm can be declared as 
-superior. **ASO does not consider p-vales.** Instead, the null hypothesis formulated as 
+superior. **ASO does not consider p-values.** Instead, the null hypothesis formulated as 
 
 $$
 H_0: \epsilon_\text{min} \ge 0.5
@@ -155,6 +167,10 @@ the test becomes.
 ### Scenario 3 - Comparing sample-level scores
 
 @TODO: Comparison between two models, multiple seeds, sample-level
+
+### Scenario 4 - Comparing more than two models 
+
+@TODO
 
 ### :mortar_board: Cite
 

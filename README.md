@@ -9,7 +9,19 @@
 **Warning: This project is still under development. Code might be erroneous and breaking changes be introduced without 
 warning.**
 
-@TODO: Add shortcuts
+**Contents**
+
+* [:interrobang: Why](#interrobang-why)
+* [:inbox_tray: Installation](#inbox_tray-installation)
+* [:bookmark: Examples](#bookmark-examples)
+  * [Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks](#intermezzo-almost-stochastic-order---a-better-significance-test-for-deep-neural-networks)
+  * [Scenario 1: Comparing multiple runs of two models](#scenario-1---comparing-multiple-runs-of-two-models)
+  * [Scenario 2: Comparing multiple runs across datasets](#scenario-2---comparing-multiple-runs-across-datasets) 
+  * [Scenario 3: Comparing sample-level scores](#scenario-3---comparing-sample-level-scores)
+  * [Scenario 4: Comparing more than two models](#scenario-4---comparing-more-than-two-models)
+* [:mortar_board: Cite](#mortar_board-cite)
+* [:medal_sports: Acknowledgements](#medal_sports-acknowledgements)
+* [:books: Bibliography](#books-bibliography)
 
 ### :interrobang: Why?
 
@@ -114,7 +126,7 @@ which stochastic order is being violated (red area):
 
 ASO returns a value <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>, which expresses the amount of violation. If <img src="svgs/dabed7f05cf133d9eb92631d564a96a8.svg?invert_in_darkmode" align=middle width=72.19750559999999pt height=21.18721440000001pt/>, A is 
 stochastically dominant over B in more cases than vice versa, and the corresponding algorithm can be declared as 
-superior. **ASO does not consider p-vales.** Instead, the null hypothesis formulated as 
+superior. **ASO does not consider p-values.** Instead, the null hypothesis formulated as 
 
 <p align="center"><img src="svgs/69c5ac8ce10d0dbd0c2b915aaf0472c1.svg?invert_in_darkmode" align=middle width=106.93478895pt height=13.698590399999999pt/></p>
 
@@ -147,6 +159,10 @@ the test becomes.
 ### Scenario 3 - Comparing sample-level scores
 
 @TODO: Comparison between two models, multiple seeds, sample-level
+
+### Scenario 4 - Comparing more than two models 
+
+@TODO
 
 ### :mortar_board: Cite
 
