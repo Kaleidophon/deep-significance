@@ -9,6 +9,8 @@
 **Warning: This project is still under development. Code might be erroneous and breaking changes be introduced without 
 warning.**
 
+@TODO: Add shortcuts
+
 ### :interrobang: Why?
 
 Although Deep Learning has undergone spectacular growth in the recent decade,
@@ -55,10 +57,44 @@ Another option is to clone the repository and install the package locally:
 
 ## :bookmark: Examples
 
+---
+tl;dr: Use `aso()` to compare scores for two models. If the returned `eps_min < 0.5`, A is better than B. For
+more info, check @TODO.
+
+---
+
 In the following, I will lay out three scenarios that describe common use cases for ML practitioners and how to apply 
 the methods implemented in this package accordingly. For an introduction into statistical hypothesis testing, please
 refer to resources such as [this blog post](https://machinelearningmastery.com/statistical-hypothesis-tests/) for a general
 overview or [Dror et al. (2018)](https://www.aclweb.org/anthology/P18-1128.pdf) for a NLP-specific point of view. 
+
+In general, in statistical significance testing, we usually compare to algorithms <img src="https://rawgit.com/Kaleidophon/deep-significance/main/svgs/53d147e7f3fe6e47ee05b88b166bd3f6.svg?invert_in_darkmode" align=middle width=12.32879834999999pt height=22.465723500000017pt/> and <img src="https://rawgit.com/Kaleidophon/deep-significance/main/svgs/61e84f854bc6258d4108d08d4c4a0852.svg?invert_in_darkmode" align=middle width=13.29340979999999pt height=22.465723500000017pt/> on a dataset <img src="https://rawgit.com/Kaleidophon/deep-significance/main/svgs/cbfb1b2a33b28eab8a3e59464768e810.svg?invert_in_darkmode" align=middle width=14.908688849999992pt height=22.465723500000017pt/> using 
+some evaluation metric <img src="https://rawgit.com/Kaleidophon/deep-significance/main/svgs/b5eaea000e06d5cf2e882f8fdbc71e36.svg?invert_in_darkmode" align=middle width=19.740822749999992pt height=22.465723500000017pt/>. The difference between two algorithms on the data is then defined as 
+
+<p align="center"><img src="https://rawgit.com/Kaleidophon/deep-significance/main/svgs/9540dc879d2ecaa7cb245871b24f4e5d.svg?invert_in_darkmode" align=middle width=212.73480854999997pt height=16.438356pt/></p>
+
+where <img src="https://rawgit.com/Kaleidophon/deep-significance/main/svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> is our test statistic. We then test the following **null hypothesis**:
+
+<p align="center"><img src="https://rawgit.com/Kaleidophon/deep-significance/main/svgs/1d210dbbb93bbdc5a632b9443059499d.svg?invert_in_darkmode" align=middle width=100.49629589999999pt height=16.438356pt/></p>
+
+Thus, we assume our algorithm A to be equally as good or worse than algorithm B and reject the null hypothesis if A 
+is better than B (what we is what we actually would like to see). Most statistical significance tests operate using 
+**p-values**, which define the probability that under the null-hypothesis, the true difference <img src="https://rawgit.com/Kaleidophon/deep-significance/main/svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> is larger or e
+equal than the observed difference <img src="https://rawgit.com/Kaleidophon/deep-significance/main/svgs/ecdae90a73f512871267f358443bd563.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/> (that is, for a one-sided test):
+
+<p align="center"><img src="https://rawgit.com/Kaleidophon/deep-significance/main/svgs/6d2735c4e335ec03c8b45736da4531a3.svg?invert_in_darkmode" align=middle width=135.91559685pt height=16.438356pt/></p>
+
+Intuitively, the p-value is expressing: **How likely is it that the observed difference is up to what we expected, given that A is 
+not better than B?** If this probability is high, it means that we're likely to see A is not better than B. If the 
+probability is low, that means that <img src="https://rawgit.com/Kaleidophon/deep-significance/main/svgs/94ea44af3034479a1ba3f2f655bcec39.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/> is likely *larger* than <img src="https://rawgit.com/Kaleidophon/deep-significance/main/svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> - indicating 
+that the null hypothesis might be wrong and that A is indeed better than B. 
+
+To decide when we think A to be better than B, we typically set a confidence threshold, often 0.05.
+
+
+### Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks
+
+@TODO 
 
 
 ### Scenario 1 - Comparing multiple runs of two models 
