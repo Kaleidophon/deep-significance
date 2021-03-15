@@ -6,8 +6,10 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
+---
 **Warning: This project is still under development. Code might be erroneous and breaking changes be introduced without 
 warning.**
+---
 
 **Contents**
 
@@ -53,7 +55,10 @@ Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usag
 
 ## :inbox_tray: Installation
 
-(**The package has not been released on PyPI yet**)
+---
+**The package has not been released on PyPI yet. As of now, only the local installation is available.**
+
+---
 
 The package can simply be installed using `pip` by running
 
@@ -70,8 +75,8 @@ Another option is to clone the repository and install the package locally:
 ## :bookmark: Examples
 
 ---
-tl;dr: Use `aso()` to compare scores for two models. If the returned `eps_min < 0.5`, A is better than B. For
-more info, check @TODO.
+**tl;dr**: Use `aso()` to compare scores for two models. If the returned `eps_min < 0.5`, A is better than B.
+For more info, check @TODO.
 
 ---
 
@@ -130,14 +135,16 @@ which stochastic order is being violated (red area):
 
 ![](img/aso.png)
 
-ASO returns a value $\epsilon_\text{min}$, which expresses the amount of violation. If $\epsilon_\text{min} < 0.5$, A is 
-stochastically dominant over B in more cases than vice versa, and the corresponding algorithm can be declared as 
-superior. **ASO does not consider p-values.** Instead, the null hypothesis formulated as 
+ASO returns a value $\epsilon_\text{min}$, which expresses the amount of violation of stochastic order. If 
+$\epsilon_\text{min} < 0.5$, A is stochastically dominant over B in more cases than vice versa, and the corresponding algorithm can be declared as 
+superior. We can also interpret $\epsilon_\text{min}$ as a *confidence score*. The lower it is, the more sure we can be 
+that A is better than B. Note: **ASO does not consider p-values.** Instead, the null hypothesis formulated as 
 
 $$
 H_0: \epsilon_\text{min} \ge 0.5
 $$
 
+If we want to be more confident about the result of ASO, we can also set the rejection threshold to be lower than 0.5.
 Furthermore, the confidence level $\alpha$ is determined as an input argument when running ASO and actively influence 
 the resulting $\epsilon_\text{min}$.
 
@@ -148,21 +155,53 @@ In the simplest scenario, we have retrieved a set of scores from a model A and a
 various model runs with different seeds. We can now simply apply the ASO test:
 
 ```python
+import numpy as np
 from deepsig import aso
 
-scores_a = ...  # TODO
-scores_b = ...  # TODO
+# Simulate scores
+scores_a = np.random.normal(loc=0.9, scale=0.8, size=5)
+scores_b =  np.random.normal(loc=0, scale=1, size=5)
 
-min_eps = aso(scores_a, scores_b)  # min_eps = ..., so A is better
+min_eps = aso(scores_a, scores_b)  # min_eps = 0.0, so A is better
 ```
 
 Because ASO is a non-parametric test, **it does not make any assumptions about the distributions of the scores**. 
 This means that we can apply it to any kind of test metric. The scores of model runs are supplied, the more reliable 
-the test becomes.
+the test becomes. 
+
+`aso()` runs with `build_quantile="fast"` by default. This runs the test quicker, but trades speed of accuracy. Thus, 
+when obtaining $\epsilon_\text{min}$ scores that are not very clear-cut (as indicated by a warning), please run 
+the function again with `build_quantile="exact"`. 
 
 ### Scenario 2 - Comparing multiple runs across datasets
 
-@TODO: Comparison between two models, multiple datasets
+When comparing models across datasets, we formulate on null hypothesis per dataset. However, we have to make sure not to 
+fall prey to the [multiple comparisons problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem): In short, 
+the more comparisons between A and B we are conducting, the more likely gets is to reject a null-hypothesis accidentally.
+That is why we have to adjust our confidence threshold $\alpha$ accordingly by dividing it by the number of comparisons, 
+which corresponds to the Bonferroni correction (Bonferroni et al., 1936):
+
+```python 
+import numpy as np
+from deepsig import aso 
+
+# Simulate scores for three datasets
+N = 3
+scores_a = [np.random.normal(loc=0.3, scale=0.8, size=5) for _ in range(N)]
+scores_b = [np.random.normal(loc=0, scale=1, size=5) for _ in range(N)]
+
+eps_min = [aso(a, b, confidence_level=0.05/N, build_quantile="exact") for a, b in zip(scores_a, scores_b)]
+# eps_min = [0.1565800030782686, 1, 0.0]
+```
+
+---
+Note: When using another significance test like bootstrap (`from deepsig import bootstrap_test`), permutation-randomization
+(`from deepsig import permutation test`) or e.g. a t-test (not implemented here), you can use the p-value correction 
+implemented in `deep-significance` by `from deepsig import correct_p_value`. Call the function with `method="bonferroni"` 
+when the different comparisons are dependent (default) or `method="fisher"` in case of independence. When in doubt, 
+`"bonferroni"` will be a more conservative but safe correction. `correct_p_value()` is **not** compatible with `aso()`.
+
+---
 
 ### Scenario 3 - Comparing sample-level scores
 
