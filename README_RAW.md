@@ -21,6 +21,7 @@ warning.**
   * [Scenario 2: Comparing multiple runs across datasets](#scenario-2---comparing-multiple-runs-across-datasets) 
   * [Scenario 3: Comparing sample-level scores](#scenario-3---comparing-sample-level-scores)
   * [Scenario 4: Comparing more than two models](#scenario-4---comparing-more-than-two-models)
+  * [General Recommendations & other notes](#general-recommendations) 
 * [:mortar_board: Cite](#mortar_board-cite)
 * [:medal_sports: Acknowledgements](#medal_sports-acknowledgements)
 * [:books: Bibliography](#books-bibliography)
@@ -159,8 +160,9 @@ import numpy as np
 from deepsig import aso
 
 # Simulate scores
-scores_a = np.random.normal(loc=0.9, scale=0.8, size=5)
-scores_b =  np.random.normal(loc=0, scale=1, size=5)
+N = 5  # Number of random seeds
+scores_a = np.random.normal(loc=0.9, scale=0.8, size=N)
+scores_b =  np.random.normal(loc=0, scale=1, size=N)
 
 min_eps = aso(scores_a, scores_b)  # min_eps = 0.0, so A is better
 ```
@@ -186,16 +188,18 @@ import numpy as np
 from deepsig import aso 
 
 # Simulate scores for three datasets
-N = 3
-scores_a = [np.random.normal(loc=0.3, scale=0.8, size=5) for _ in range(N)]
-scores_b = [np.random.normal(loc=0, scale=1, size=5) for _ in range(N)]
+M = 3  # Number of datasets
+N = 5  # Number of random seeds
+scores_a = [np.random.normal(loc=0.3, scale=0.8, size=N) for _ in range(M)]
+scores_b = [np.random.normal(loc=0, scale=1, size=N) for _ in range(M)]
 
-eps_min = [aso(a, b, confidence_level=0.05/N, build_quantile="exact") for a, b in zip(scores_a, scores_b)]
+# epsilon_min values with Bonferroni correction 
+eps_min = [aso(a, b, confidence_level=0.05/M, build_quantile="exact") for a, b in zip(scores_a, scores_b)]
 # eps_min = [0.1565800030782686, 1, 0.0]
 ```
 
 ---
-Note: When using another significance test like bootstrap (`from deepsig import bootstrap_test`), permutation-randomization
+**Note**: When using another significance test like bootstrap (`from deepsig import bootstrap_test`), permutation-randomization
 (`from deepsig import permutation test`) or e.g. a t-test (not implemented here), you can use the p-value correction 
 implemented in `deep-significance` by `from deepsig import correct_p_value`. Call the function with `method="bonferroni"` 
 when the different comparisons are dependent (default) or `method="fisher"` in case of independence. When in doubt, 
@@ -205,11 +209,85 @@ when the different comparisons are dependent (default) or `method="fisher"` in c
 
 ### Scenario 3 - Comparing sample-level scores
 
-@TODO: Comparison between two models, multiple seeds, sample-level
+In previous examples, we have assumed that we compare two algorithms A and B based on their performance per run, i.e. 
+we run each algorithm once per random seed and obtain exactly one score on our test set. In some cases however, 
+we would like to compare two algorithms based on scores **for every point in the test set**. If we only use one seed
+per model, then this case is equivalent to scenario 1. But what if we also want to use multiple seeds per model?
+
+In this scenario, we can do pair-wise comparisons of the score distributions between A and B and use the Bonferroni 
+correction accordingly:
+
+```python 
+from itertools import product 
+
+import numpy as np
+from deepsig import aso 
+
+# Simulate scores for three datasets
+M = 40   # Number of data points
+N = 3  # Number of random seeds
+scores_a = [np.random.normal(loc=0.3, scale=0.8, size=M) for _ in range(N)]
+scores_b = [np.random.normal(loc=0, scale=1, size=M) for _ in range(N)]
+pairs = list(product(scores_a, scores_b))
+
+# epsilon_min values with Bonferroni correction 
+eps_min = [aso(a, b, confidence_level=0.05/len(pairs), build_quantile="exact") for a, b in pairs]
+```
 
 ### Scenario 4 - Comparing more than two models 
 
-@TODO
+Similarly, when comparing multiple models (now again on a per-seed basis), we can use a similar approach like in the 
+previous example. For instance, for three models, we can create a $3 \times 3$ matrix and fill the entries 
+with the corresponding $\epsilon_\text{min}$ values. The diagonal will naturally always be 1, but we can also restrict 
+ourself to only filling out one half of the matrix by making use of the following property of ASO:
+
+$$
+\text{ASO}(A, B, \alpha) = 1 - \text{ASO}(B, A, \alpha)
+$$
+
+The corresponding code can then look something like this:
+
+```python 
+import numpy as np 
+from deepsig import aso 
+ 
+N = 5  # Number of random seeds
+M = 3  # Number of different models / algorithms
+num_comparisons = M * (M - 1) / 2
+eps_min = np.eye(M)  # M x M matrix with ones on diagonal
+
+scores_a = [np.random.normal(loc=0.3, scale=0.8, size=N) for _ in range(M)]
+scores_b = [np.random.normal(loc=0, scale=1, size=N) for _ in range(M)]
+
+for i in range(M):
+  for j in range(M):
+    if i == j:
+      continue
+    
+    e_min = aso(scores_a[i], scores_b[j], confidence_level=0.05/num_comparisons, build_quantile="exact")
+    eps_min[i, j] = e_min
+    eps_min[j, i] = 1 - e_min
+    
+# eps_min =
+# [[1.        1.         0.96926677]
+# [0.         1.         0.71251641]
+# [0.03073323 0.28748359 1.        ]]
+```
+
+### General recommendations & other notes
+
+* `num_samples` and `num_bootstrap_iterations` can be reduced to increase the speed of `aso()`. However, this is not 
+recommended as the result of the test will also become less accurate. Technically, $\epsilon_\text{min}$ is a upper bound
+  that becomes tighter with the number of samples and bootstrap iterations (del Barrio et al., 2017). 
+  
+* ASO, bootstrap and permutation-randomization are all non-parametric tests, i.e. they don't make any assumptions about 
+the distribution of our test metric. Nevertheless, they differ in their *statistical power*, which is defined as the probability
+  that the null hypothesis is being rejected given that there is a difference between A and B. In other words, the more powerful 
+  a test, the less conservative it is and the more it is able to pick up on smaller difference between A and B. Therefore, 
+  if the distribution is known or found out why normality tests (like e.g. Anderson-Darling or Shapiro-Wilk), something like 
+  a parametric test like Student's or Welch's t-test is preferable to bootstrap or permutation-randomization. However, 
+  because these test are in turn less applicable in a Deep Learning setting due to the reasons elaborated on in 
+  [Why?](#interrobang-why), ASO is still a better choice, even if it is non-parametric.
 
 ### :mortar_board: Cite
 
@@ -244,6 +322,8 @@ and [this one](https://github.com/rtmdrr/DeepComparison).
 The commit message template used in this project can be found [here](https://github.com/Kaleidophon/commit-template-for-humans).
 
 ### :books: Bibliography
+
+del Barrio, Eustasio, Juan A. Cuesta-Albertos, and Carlos Matrán. "An optimal transportation approach for assessing almost stochastic order." The Mathematics of the Uncertain. Springer, Cham, 2018. 33-44.
 
 Bonferroni, Carlo. "Teoria statistica delle classi e calcolo delle probabilita." Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.
 
