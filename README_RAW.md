@@ -9,6 +9,7 @@
 ---
 **Warning: This project is still under development. Code might be erroneous and breaking changes be introduced without 
 warning.**
+
 ---
 
 **Contents**
@@ -77,7 +78,6 @@ Another option is to clone the repository and install the package locally:
 
 ---
 **tl;dr**: Use `aso()` to compare scores for two models. If the returned `eps_min < 0.5`, A is better than B.
-For more info, check @TODO.
 
 ---
 
@@ -260,9 +260,7 @@ scores_a = [np.random.normal(loc=0.3, scale=0.8, size=N) for _ in range(M)]
 scores_b = [np.random.normal(loc=0, scale=1, size=N) for _ in range(M)]
 
 for i in range(M):
-  for j in range(M):
-    if i == j:
-      continue
+  for j in range(i + 1, M):
     
     e_min = aso(scores_a[i], scores_b[j], confidence_level=0.05/num_comparisons, build_quantile="exact")
     eps_min[i, j] = e_min
@@ -275,6 +273,9 @@ for i in range(M):
 ```
 
 ### General recommendations & other notes
+
+* Naturally, the CDFs built from `scores_a` and `scores_b` can only be approximations of the true distributions. Therefore,
+as many scores as possible should be collected, especially if the variance between runs is high.
 
 * `num_samples` and `num_bootstrap_iterations` can be reduced to increase the speed of `aso()`. However, this is not 
 recommended as the result of the test will also become less accurate. Technically, $\epsilon_\text{min}$ is a upper bound
@@ -320,6 +321,7 @@ repositories, namely [this](https://github.com/rtmdrr/replicability-analysis-NLP
 and [this one](https://github.com/rtmdrr/DeepComparison).
 
 The commit message template used in this project can be found [here](https://github.com/Kaleidophon/commit-template-for-humans).
+The inline latex equations were rendered using [readme2latex](https://github.com/leegao/readme2tex).
 
 ### :books: Bibliography
 
