@@ -38,18 +38,18 @@ loss surfaces (Li et al., 2018) and their performance depends on the specific hy
 like Dropout masks, making comparisons between architectures more difficult. Based on comparing only (the mean of) a 
 few scores, **we often cannot 
 conclude that one model type or algorithm is better than another**.
-This endangers the progress in the field, as seeming success due to random chance might practitioners astray. 
+This endangers the progress in the field, as seeming success due to random chance might draw practitioners astray. 
 
 For instance,
 a recent study in Natural Language Processing by Narang et al. (2021) has found that many modifications proposed to 
-transformers do not actually improve performance. Similar issues are known to plague other fields like e.g. 
+transformers do not actually improve performance. Similar issues are known to plague other fields like e.g., 
 Reinforcement Learning (Henderson et al., 2018) and Computer Vision (Borji, 2017) as well. 
 
 To help mitigate this problem, this package supplies fully-tested re-implementations of useful functions for significance
 testing:
-* Non-parametric tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron & Tibshirani, 1994) and 
-  permutation-randomization.
-* p-value corrections methods such as Bonferroni (Bonferroni, 1936) and Fisher (Fisher, 1992). 
+* Statistical Significane tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron & Tibshirani, 1994) and 
+  permutation-randomization (Noreen, 1989).
+* p-value correction methods for multiplicity in datasets such as Bonferroni (Bonferroni, 1936) and Fisher (Fisher, 1992). 
 
 All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch / 
 Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation 
@@ -86,8 +86,8 @@ the methods implemented in this package accordingly. For an introduction into st
 refer to resources such as [this blog post](https://machinelearningmastery.com/statistical-hypothesis-tests/) for a general
 overview or [Dror et al. (2018)](https://www.aclweb.org/anthology/P18-1128.pdf) for a NLP-specific point of view. 
 
-In general, in statistical significance testing, we usually compare to algorithms <img src="svgs/53d147e7f3fe6e47ee05b88b166bd3f6.svg?invert_in_darkmode" align=middle width=12.32879834999999pt height=22.465723500000017pt/> and <img src="svgs/61e84f854bc6258d4108d08d4c4a0852.svg?invert_in_darkmode" align=middle width=13.29340979999999pt height=22.465723500000017pt/> on a dataset <img src="svgs/cbfb1b2a33b28eab8a3e59464768e810.svg?invert_in_darkmode" align=middle width=14.908688849999992pt height=22.465723500000017pt/> using 
-some evaluation metric <img src="svgs/b5eaea000e06d5cf2e882f8fdbc71e36.svg?invert_in_darkmode" align=middle width=19.740822749999992pt height=22.465723500000017pt/>. The difference between two algorithms on the data is then defined as 
+In general, in statistical significance testing, we usually compare two algorithms <img src="svgs/53d147e7f3fe6e47ee05b88b166bd3f6.svg?invert_in_darkmode" align=middle width=12.32879834999999pt height=22.465723500000017pt/> and <img src="svgs/61e84f854bc6258d4108d08d4c4a0852.svg?invert_in_darkmode" align=middle width=13.29340979999999pt height=22.465723500000017pt/> on a dataset <img src="svgs/cbfb1b2a33b28eab8a3e59464768e810.svg?invert_in_darkmode" align=middle width=14.908688849999992pt height=22.465723500000017pt/> using 
+some evaluation metric <img src="svgs/b5eaea000e06d5cf2e882f8fdbc71e36.svg?invert_in_darkmode" align=middle width=19.740822749999992pt height=22.465723500000017pt/>. The difference between the two algorithms on the data is then defined as 
 
 <p align="center"><img src="svgs/9540dc879d2ecaa7cb245871b24f4e5d.svg?invert_in_darkmode" align=middle width=212.73480854999997pt height=16.438356pt/></p>
 
@@ -315,7 +315,7 @@ The inline latex equations were rendered using [readme2latex](https://github.com
 
 ### :books: Bibliography
 
-del Barrio, Eustasio, Juan A. Cuesta-Albertos, and Carlos Matrán. "An optimal transportation approach for assessing almost stochastic order." The Mathematics of the Uncertain. Springer, Cham, 2018. 33-44.
+Del Barrio, Eustasio, Juan A. Cuesta-Albertos, and Carlos Matrán. "An optimal transportation approach for assessing almost stochastic order." The Mathematics of the Uncertain. Springer, Cham, 2018. 33-44.
 
 Bonferroni, Carlo. "Teoria statistica delle classi e calcolo delle probabilita." Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.
 
@@ -323,14 +323,16 @@ Borji, Ali. "Negative results in computer vision: A perspective." Image and Visi
 
 Dror, Rotem, et al. "The hitchhiker’s guide to testing statistical significance in natural language processing." Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2018.
 
-Dror, Rotem, Segev Shlomov, and Roi Reichart. "Deep dominance-how to properly compare deep neural models." Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics. 2019.
+Dror, Rotem, Shlomov, Segev, and Reichart, Roi. "Deep dominance-how to properly compare deep neural models." Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics. 2019.
 
-Efron, Bradley, and Robert J. Tibshirani. An introduction to the bootstrap. CRC press, 1994.
+Efron, Bradley, and Robert J. Tibshirani. "An introduction to the bootstrap." CRC press, 1994.
 
 Fisher, Ronald Aylmer. "Statistical methods for research workers." Breakthroughs in statistics. Springer, New York, NY, 1992. 66-70.
 
 Henderson, Peter, et al. "Deep reinforcement learning that matters." Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 32. No. 1. 2018.
 
-Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein: Visualizing the Loss Landscape of Neural Nets. NeurIPS 2018: 6391-6401
+Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein. "Visualizing the Loss Landscape of Neural Nets." NeurIPS 2018: 6391-6401
 
 Narang, Sharan, et al. "Do Transformer Modifications Transfer Across Implementations and Applications?." arXiv preprint arXiv:2102.11972 (2021).
+
+Noreen, Eric W. "Computer intensive methodsfor hypothesis testing: An introduction." Wiley,New York (1989).
