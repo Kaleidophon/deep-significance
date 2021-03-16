@@ -159,8 +159,8 @@ scores_b =  np.random.normal(loc=0, scale=1, size=N)
 min_eps = aso(scores_a, scores_b)  # min_eps = 0.0, so A is better
 ```
 
-Because ASO is a non-parametric test, **it does not make any assumptions about the distributions of the scores**. 
-This means that we can apply it to any kind of test metric. The scores of model runs are supplied, the more reliable 
+ASO **does not make any assumptions about the distributions of the scores**. 
+This means that we can apply it to any kind of test metric. The more scores of model runs is supplied, the more reliable 
 the test becomes. 
 
 `aso()` runs with `build_quantile="fast"` by default. This runs the test quicker, but trades speed of accuracy. Thus, 
@@ -172,7 +172,7 @@ the function again with `build_quantile="exact"`.
 When comparing models across datasets, we formulate on null hypothesis per dataset. However, we have to make sure not to 
 fall prey to the [multiple comparisons problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem): In short, 
 the more comparisons between A and B we are conducting, the more likely gets is to reject a null-hypothesis accidentally.
-That is why we have to adjust our confidence threshold <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> accordingly by dividing it by the number of comparisons, 
+That is why we have to adjust our significance threshold <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> accordingly by dividing it by the number of comparisons, 
 which corresponds to the Bonferroni correction (Bonferroni et al., 1936):
 
 ```python 
@@ -271,14 +271,14 @@ as many scores as possible should be collected, especially if the variance betwe
 recommended as the result of the test will also become less accurate. Technically, <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> is a upper bound
   that becomes tighter with the number of samples and bootstrap iterations (del Barrio et al., 2017). 
   
-* ASO, bootstrap and permutation-randomization are all non-parametric tests, i.e. they don't make any assumptions about 
+* Bootstrap and permutation-randomization are all non-parametric tests, i.e. they don't make any assumptions about 
 the distribution of our test metric. Nevertheless, they differ in their *statistical power*, which is defined as the probability
   that the null hypothesis is being rejected given that there is a difference between A and B. In other words, the more powerful 
   a test, the less conservative it is and the more it is able to pick up on smaller difference between A and B. Therefore, 
   if the distribution is known or found out why normality tests (like e.g. Anderson-Darling or Shapiro-Wilk), something like 
   a parametric test like Student's or Welch's t-test is preferable to bootstrap or permutation-randomization. However, 
   because these test are in turn less applicable in a Deep Learning setting due to the reasons elaborated on in 
-  [Why?](#interrobang-why), ASO is still a better choice, even if it is non-parametric.
+  [Why?](#interrobang-why), ASO is still a better choice.
 
 ### :mortar_board: Cite
 
