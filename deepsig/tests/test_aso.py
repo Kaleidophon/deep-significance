@@ -204,5 +204,37 @@ class ASOSanityChecks(unittest.TestCase):
             list(sorted(min_epsilons)), min_epsilons
         )  # Make sure min_epsilon decreases
 
+    def test_symmetry(self):
+        """
+        Test whether ASO(A, B, alpha) = 1 - ASO(B, A, alpha) holds.
+        """
+        parameters = [
+            ((5, 0.1), (0, 1)),
+            ((0, 0.5), (0, 1)),
+            ((2, 2), (1, 1)),
+            ((-0.5, 0.1), (-0.6, 0.2)),
+            ((0.5, 0.21), (0.7, 0.1)),
+            ((0.1, 0.3), (0.2, 0.1)),
+        ]
 
-# TODO: Sanity check ASO(A, B) = 1 - ASO(B, A)
+        for (loc1, scale1), (loc2, scale2) in parameters:
+            samples_normal1 = np.random.normal(
+                loc=loc1, scale=scale1, size=50
+            )  # New scores for algorithm A
+            samples_normal2 = np.random.normal(
+                loc=loc2, scale=scale2, size=50
+            )  # Scores for algorithm B
+
+            eps_min1 = aso(
+                samples_normal1,
+                samples_normal2,
+                build_quantile="fast",
+                show_progress=False,
+            )
+            eps_min2 = aso(
+                samples_normal2,
+                samples_normal1,
+                build_quantile="fast",
+                show_progress=False,
+            )
+            self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=0.01)

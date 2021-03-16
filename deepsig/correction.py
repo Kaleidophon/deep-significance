@@ -13,6 +13,9 @@ from scipy import stats
 from deepsig.conversion import p_value_conversion, ArrayLike
 
 
+# TODO: Change function name and doc
+
+
 @p_value_conversion
 def correct_p_values(p_values: ArrayLike, method: str = "bonferroni") -> np.array:
     """

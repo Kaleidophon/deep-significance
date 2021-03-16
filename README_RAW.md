@@ -38,18 +38,18 @@ loss surfaces (Li et al., 2018) and their performance depends on the specific hy
 like Dropout masks, making comparisons between architectures more difficult. Based on comparing only (the mean of) a 
 few scores, **we often cannot 
 conclude that one model type or algorithm is better than another**.
-This endangers the progress in the field, as seeming success due to random chance might practitioners astray. 
+This endangers the progress in the field, as seeming success due to random chance might draw practitioners astray. 
 
 For instance,
 a recent study in Natural Language Processing by Narang et al. (2021) has found that many modifications proposed to 
-transformers do not actually improve performance. Similar issues are known to plague other fields like e.g. 
+transformers do not actually improve performance. Similar issues are known to plague other fields like e.g., 
 Reinforcement Learning (Henderson et al., 2018) and Computer Vision (Borji, 2017) as well. 
 
 To help mitigate this problem, this package supplies fully-tested re-implementations of useful functions for significance
 testing:
-* Non-parametric tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron & Tibshirani, 1994) and 
-  permutation-randomization.
-* p-value corrections methods such as Bonferroni (Bonferroni, 1936) and Fisher (Fisher, 1992). 
+* Statistical Significane tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron & Tibshirani, 1994) and 
+  permutation-randomization (Noreen, 1989).
+* p-value correction methods for multiplicity in datasets such as Bonferroni (Bonferroni, 1936) and Fisher (Fisher, 1992). 
 
 All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch / 
 Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation 
@@ -86,8 +86,8 @@ the methods implemented in this package accordingly. For an introduction into st
 refer to resources such as [this blog post](https://machinelearningmastery.com/statistical-hypothesis-tests/) for a general
 overview or [Dror et al. (2018)](https://www.aclweb.org/anthology/P18-1128.pdf) for a NLP-specific point of view. 
 
-In general, in statistical significance testing, we usually compare to algorithms $A$ and $B$ on a dataset $X$ using 
-some evaluation metric $\mathcal{M}$. The difference between two algorithms on the data is then defined as 
+In general, in statistical significance testing, we usually compare two algorithms $A$ and $B$ on a dataset $X$ using 
+some evaluation metric $\mathcal{M}$. The difference between the two algorithms on the data is then defined as 
 
 $$
 \delta(X) = \mathcal{M}(A, X) - \mathcal{M}(B, X)
@@ -100,9 +100,9 @@ H_0: \delta(X) \le 0
 $$
 
 Thus, we assume our algorithm A to be equally as good or worse than algorithm B and reject the null hypothesis if A 
-is better than B (what we is what we actually would like to see). Most statistical significance tests operate using 
-*p-values*, which define the probability that under the null-hypothesis, the true difference $\delta(X)$ is larger or e
-equal than the observed difference $\delta_{\text{obs}}$ (that is, for a one-sided test):
+is better than B (what we actually would like to see). Most statistical significance tests operate using 
+*p-values*, which define the probability that under the null-hypothesis, the true difference $\delta(X)$ is larger than or
+equal to the observed difference $\delta_{\text{obs}}$ (that is, for a one-sided test):
 
 $$
 P(\delta(X) \ge \delta_\text{obs}| H_0)
@@ -113,7 +113,7 @@ not better than B?** If this probability is high, it means that we're likely to 
 probability is low, that means that $\delta_\text{obs}$ is likely *larger* than $\delta(X)$ - indicating 
 that the null hypothesis might be wrong and that A is indeed better than B. 
 
-To decide when we think A to be better than B, we typically set a confidence threshold $\alpha$, often 0.05.
+To decide when we think A to be better than B, we set a threshold that will determine when we reject the null hypothesis, this is called the significance level $\alpha$ and it is often set to be 0.05.
 
 
 ### Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks
@@ -137,16 +137,16 @@ which stochastic order is being violated (red area):
 ![](img/aso.png)
 
 ASO returns a value $\epsilon_\text{min}$, which expresses the amount of violation of stochastic order. If 
-$\epsilon_\text{min} < 0.5$, A is stochastically dominant over B in more cases than vice versa, and the corresponding algorithm can be declared as 
+$\epsilon_\text{min} < 0.5$, A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as 
 superior. We can also interpret $\epsilon_\text{min}$ as a *confidence score*. The lower it is, the more sure we can be 
-that A is better than B. Note: **ASO does not consider p-values.** Instead, the null hypothesis formulated as 
+that A is better than B. Note: **ASO does not compute p-values.** Instead, the null hypothesis formulated as 
 
 $$
 H_0: \epsilon_\text{min} \ge 0.5
 $$
 
 If we want to be more confident about the result of ASO, we can also set the rejection threshold to be lower than 0.5.
-Furthermore, the confidence level $\alpha$ is determined as an input argument when running ASO and actively influence 
+Furthermore, the significance level $\alpha$ is determined as an input argument when running ASO and actively influence 
 the resulting $\epsilon_\text{min}$.
 
 
@@ -167,8 +167,8 @@ scores_b =  np.random.normal(loc=0, scale=1, size=N)
 min_eps = aso(scores_a, scores_b)  # min_eps = 0.0, so A is better
 ```
 
-Because ASO is a non-parametric test, **it does not make any assumptions about the distributions of the scores**. 
-This means that we can apply it to any kind of test metric. The scores of model runs are supplied, the more reliable 
+ASO **does not make any assumptions about the distributions of the scores**. 
+This means that we can apply it to any kind of test metric. The more scores of model runs is supplied, the more reliable 
 the test becomes. 
 
 `aso()` runs with `build_quantile="fast"` by default. This runs the test quicker, but trades speed of accuracy. Thus, 
@@ -180,7 +180,7 @@ the function again with `build_quantile="exact"`.
 When comparing models across datasets, we formulate on null hypothesis per dataset. However, we have to make sure not to 
 fall prey to the [multiple comparisons problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem): In short, 
 the more comparisons between A and B we are conducting, the more likely gets is to reject a null-hypothesis accidentally.
-That is why we have to adjust our confidence threshold $\alpha$ accordingly by dividing it by the number of comparisons, 
+That is why we have to adjust our significance threshold $\alpha$ accordingly by dividing it by the number of comparisons, 
 which corresponds to the Bonferroni correction (Bonferroni et al., 1936):
 
 ```python 
@@ -281,14 +281,14 @@ as many scores as possible should be collected, especially if the variance betwe
 recommended as the result of the test will also become less accurate. Technically, $\epsilon_\text{min}$ is a upper bound
   that becomes tighter with the number of samples and bootstrap iterations (del Barrio et al., 2017). 
   
-* ASO, bootstrap and permutation-randomization are all non-parametric tests, i.e. they don't make any assumptions about 
+* Bootstrap and permutation-randomization are all non-parametric tests, i.e. they don't make any assumptions about 
 the distribution of our test metric. Nevertheless, they differ in their *statistical power*, which is defined as the probability
   that the null hypothesis is being rejected given that there is a difference between A and B. In other words, the more powerful 
   a test, the less conservative it is and the more it is able to pick up on smaller difference between A and B. Therefore, 
   if the distribution is known or found out why normality tests (like e.g. Anderson-Darling or Shapiro-Wilk), something like 
   a parametric test like Student's or Welch's t-test is preferable to bootstrap or permutation-randomization. However, 
   because these test are in turn less applicable in a Deep Learning setting due to the reasons elaborated on in 
-  [Why?](#interrobang-why), ASO is still a better choice, even if it is non-parametric.
+  [Why?](#interrobang-why), ASO is still a better choice.
 
 ### :mortar_board: Cite
 
@@ -325,7 +325,7 @@ The inline latex equations were rendered using [readme2latex](https://github.com
 
 ### :books: Bibliography
 
-del Barrio, Eustasio, Juan A. Cuesta-Albertos, and Carlos Matrán. "An optimal transportation approach for assessing almost stochastic order." The Mathematics of the Uncertain. Springer, Cham, 2018. 33-44.
+Del Barrio, Eustasio, Juan A. Cuesta-Albertos, and Carlos Matrán. "An optimal transportation approach for assessing almost stochastic order." The Mathematics of the Uncertain. Springer, Cham, 2018. 33-44.
 
 Bonferroni, Carlo. "Teoria statistica delle classi e calcolo delle probabilita." Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.
 
@@ -333,14 +333,16 @@ Borji, Ali. "Negative results in computer vision: A perspective." Image and Visi
 
 Dror, Rotem, et al. "The hitchhiker’s guide to testing statistical significance in natural language processing." Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2018.
 
-Dror, Rotem, Segev Shlomov, and Roi Reichart. "Deep dominance-how to properly compare deep neural models." Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics. 2019.
+Dror, Rotem, Shlomov, Segev, and Reichart, Roi. "Deep dominance-how to properly compare deep neural models." Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics. 2019.
 
-Efron, Bradley, and Robert J. Tibshirani. An introduction to the bootstrap. CRC press, 1994.
+Efron, Bradley, and Robert J. Tibshirani. "An introduction to the bootstrap." CRC press, 1994.
 
 Fisher, Ronald Aylmer. "Statistical methods for research workers." Breakthroughs in statistics. Springer, New York, NY, 1992. 66-70.
 
 Henderson, Peter, et al. "Deep reinforcement learning that matters." Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 32. No. 1. 2018.
 
-Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein: Visualizing the Loss Landscape of Neural Nets. NeurIPS 2018: 6391-6401
+Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein. "Visualizing the Loss Landscape of Neural Nets." NeurIPS 2018: 6391-6401
 
 Narang, Sharan, et al. "Do Transformer Modifications Transfer Across Implementations and Applications?." arXiv preprint arXiv:2102.11972 (2021).
+
+Noreen, Eric W. "Computer intensive methodsfor hypothesis testing: An introduction." Wiley,New York (1989).

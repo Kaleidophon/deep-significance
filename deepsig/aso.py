@@ -90,7 +90,7 @@ def aso(
 
     samples = np.zeros(num_bootstrap_iterations)
     iters = (
-        tqdm(range(num_bootstrap_iterations))
+        tqdm(range(num_bootstrap_iterations), desc="Bootstrap iterations")
         if show_progress
         else range(num_bootstrap_iterations)
     )
