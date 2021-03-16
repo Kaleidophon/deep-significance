@@ -107,7 +107,7 @@ not better than B?** If this probability is high, it means that we're likely to 
 probability is low, that means that <img src="svgs/94ea44af3034479a1ba3f2f655bcec39.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/> is likely *larger* than <img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> - indicating 
 that the null hypothesis might be wrong and that A is indeed better than B. 
 
-To decide when we think A to be better than B, we typically set a confidence threshold <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/>, often 0.95.
+To decide when we think A to be better than B, we set a threshold that will determine when we reject the null hypothesis, this is called the significance level <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> and it is often set to be 0.05.
 
 
 ### Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks
@@ -131,14 +131,14 @@ which stochastic order is being violated (red area):
 ![](img/aso.png)
 
 ASO returns a value <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>, which expresses the amount of violation of stochastic order. If 
-<img src="svgs/dabed7f05cf133d9eb92631d564a96a8.svg?invert_in_darkmode" align=middle width=72.19750559999999pt height=21.18721440000001pt/>, A is stochastically dominant over B in more cases than vice versa, and the corresponding algorithm can be declared as 
+<img src="svgs/dabed7f05cf133d9eb92631d564a96a8.svg?invert_in_darkmode" align=middle width=72.19750559999999pt height=21.18721440000001pt/>, A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as 
 superior. We can also interpret <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> as a *confidence score*. The lower it is, the more sure we can be 
-that A is better than B. Note: **ASO does not consider p-values.** Instead, the null hypothesis formulated as 
+that A is better than B. Note: **ASO does not compute p-values.** Instead, the null hypothesis formulated as 
 
 <p align="center"><img src="svgs/69c5ac8ce10d0dbd0c2b915aaf0472c1.svg?invert_in_darkmode" align=middle width=106.93478895pt height=13.698590399999999pt/></p>
 
 If we want to be more confident about the result of ASO, we can also set the rejection threshold to be lower than 0.5.
-Furthermore, the confidence level <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> is determined as an input argument when running ASO and actively influence 
+Furthermore, the significance level <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> is determined as an input argument when running ASO and actively influence 
 the resulting <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>.
 
 
