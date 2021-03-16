@@ -96,9 +96,9 @@ where <img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" al
 <p align="center"><img src="svgs/1d210dbbb93bbdc5a632b9443059499d.svg?invert_in_darkmode" align=middle width=100.49629589999999pt height=16.438356pt/></p>
 
 Thus, we assume our algorithm A to be equally as good or worse than algorithm B and reject the null hypothesis if A 
-is better than B (what we is what we actually would like to see). Most statistical significance tests operate using 
-*p-values*, which define the probability that under the null-hypothesis, the true difference <img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> is larger or e
-equal than the observed difference <img src="svgs/ecdae90a73f512871267f358443bd563.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/> (that is, for a one-sided test):
+is better than B (what we actually would like to see). Most statistical significance tests operate using 
+*p-values*, which define the probability that under the null-hypothesis, the true difference <img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> is larger than or
+equal to the observed difference <img src="svgs/ecdae90a73f512871267f358443bd563.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/> (that is, for a one-sided test):
 
 <p align="center"><img src="svgs/6d2735c4e335ec03c8b45736da4531a3.svg?invert_in_darkmode" align=middle width=135.91559685pt height=16.438356pt/></p>
 
@@ -107,7 +107,7 @@ not better than B?** If this probability is high, it means that we're likely to 
 probability is low, that means that <img src="svgs/94ea44af3034479a1ba3f2f655bcec39.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/> is likely *larger* than <img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> - indicating 
 that the null hypothesis might be wrong and that A is indeed better than B. 
 
-To decide when we think A to be better than B, we typically set a confidence threshold <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/>, often 0.05.
+To decide when we think A to be better than B, we typically set a confidence threshold <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/>, often 0.95.
 
 
 ### Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks
