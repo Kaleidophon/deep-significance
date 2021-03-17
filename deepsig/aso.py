@@ -115,7 +115,9 @@ def aso(
     )
 
     if (
-        0.5 - FAST_QUANTILE_WARN_INTERVAL < min_epsilon < 0.5
+        0.5 - FAST_QUANTILE_WARN_INTERVAL
+        < min_epsilon
+        < 0.5 + FAST_QUANTILE_WARN_INTERVAL
         and build_quantile == "fast"
     ):
         warn(

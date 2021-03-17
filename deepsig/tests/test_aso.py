@@ -86,11 +86,11 @@ class ASOTechnicalTests(unittest.TestCase):
         samples_uniform = np.random.uniform(size=self.num_samples)
         quantile_func_uniform = get_quantile_function(samples_uniform)
 
-        for x in np.arange(0, 1, 0.1):
-            self.assertAlmostEqual(x, quantile_func_uniform(x), delta=0.01)
+        for prob in np.arange(0, 1, 0.1):  # For uniform, prob == x
+            self.assertAlmostEqual(prob, quantile_func_uniform(prob), delta=0.01)
 
         # Test with normal distribution
-        samples_normal = np.random.normal(size=self.num_samples)
+        samples_normal = np.random.normal(size=5)
         quantile_func_normal = get_quantile_function(samples_normal)
 
         for prob, x in [(0.84, 1), (0.5, 0), (0.31, -0.5), (0.16, -1)]:
@@ -132,6 +132,7 @@ class ASOTechnicalTests(unittest.TestCase):
                 build_quantile="fast",
                 show_progress=False,
             )
+            print(eps_min1, eps_min2)
             self.assertAlmostEqual(
                 eps_min1, eps_min2, delta=FAST_QUANTILE_WARN_INTERVAL
             )
@@ -150,59 +151,64 @@ class ASOSanityChecks(unittest.TestCase):
         """
         Make sure the violation rate is sensible for extreme cases (same distribution and total stochastic order).
         """
-        # Extreme case 1: Distributions are basically the same, SO should be extremely violated
-        samples_normal2 = np.random.normal(
-            size=self.num_samples
-        )  # Scores for algorithm B
-        samples_normal1 = np.random.normal(
-            size=self.num_samples
-        )  # Scores for algorithm A
+        for build_quantile in ("fast", "exact"):
+            # Extreme case 1: Distributions are basically the same, SO should be extremely violated
+            samples_normal2 = np.random.normal(
+                size=self.num_samples
+            )  # Scores for algorithm B
+            samples_normal1 = np.random.normal(
+                size=self.num_samples
+            )  # Scores for algorithm A
 
-        eps_min = aso(
-            samples_normal1,
-            samples_normal1 + 1e-8,
-            num_bootstrap_iterations=self.num_bootstrap_iters,
-            show_progress=False,
-        )
-        self.assertAlmostEqual(eps_min, 1, delta=0.001)
+            eps_min = aso(
+                samples_normal1,
+                samples_normal1 + 1e-8,
+                num_bootstrap_iterations=self.num_bootstrap_iters,
+                show_progress=False,
+                build_quantile=build_quantile,
+            )
+            self.assertAlmostEqual(eps_min, 1, delta=0.001)
 
-        # Extreme case 2: Distribution for A is wayyy better, should basically be SO
-        samples_normal3 = np.random.normal(
-            loc=5, scale=0.1, size=self.num_samples
-        )  # New scores for algorithm A
-        eps_min2 = aso(
-            samples_normal3,
-            samples_normal2,
-            num_bootstrap_iterations=self.num_bootstrap_iters,
-            show_progress=False,
-        )
-        self.assertAlmostEqual(eps_min2, 0, delta=0.01)
+            # Extreme case 2: Distribution for A is wayyy better, should basically be SO
+            samples_normal3 = np.random.normal(
+                loc=5, scale=0.1, size=self.num_samples
+            )  # New scores for algorithm A
+            eps_min2 = aso(
+                samples_normal3,
+                samples_normal2,
+                num_bootstrap_iterations=self.num_bootstrap_iters,
+                show_progress=False,
+                build_quantile=build_quantile,
+            )
+            self.assertAlmostEqual(eps_min2, 0, delta=0.01)
 
     def test_dependency_on_alpha(self):
         """
         Make sure that the minimum epsilon threshold increases as we increase the confidence level.
         """
-        samples_normal1 = np.random.normal(
-            loc=0.1, size=self.num_samples
-        )  # Scores for algorithm A
-        samples_normal2 = np.random.normal(
-            scale=2, size=self.num_samples
-        )  # Scores for algorithm B
+        for build_quantile in ("fast", "exact"):
+            samples_normal1 = np.random.normal(
+                loc=0.1, size=self.num_samples
+            )  # Scores for algorithm A
+            samples_normal2 = np.random.normal(
+                scale=2, size=self.num_samples
+            )  # Scores for algorithm B
 
-        min_epsilons = []
-        for alpha in np.arange(0.8, 0.1, -0.1):
-            min_eps = aso(
-                samples_normal1,
-                samples_normal2,
-                confidence_level=alpha,
-                num_bootstrap_iterations=100,
-                show_progress=False,
-            )
-            min_epsilons.append(min_eps)
+            min_epsilons = []
+            for alpha in np.arange(0.8, 0.1, -0.1):
+                min_eps = aso(
+                    samples_normal1,
+                    samples_normal2,
+                    confidence_level=alpha,
+                    num_bootstrap_iterations=100,
+                    show_progress=False,
+                    build_quantile=build_quantile,
+                )
+                min_epsilons.append(min_eps)
 
-        self.assertEqual(
-            list(sorted(min_epsilons)), min_epsilons
-        )  # Make sure min_epsilon decreases
+            self.assertEqual(
+                list(sorted(min_epsilons)), min_epsilons
+            )  # Make sure min_epsilon decreases
 
     def test_symmetry(self):
         """
@@ -217,24 +223,26 @@ class ASOSanityChecks(unittest.TestCase):
             ((0.1, 0.3), (0.2, 0.1)),
         ]
 
-        for (loc1, scale1), (loc2, scale2) in parameters:
-            samples_normal1 = np.random.normal(
-                loc=loc1, scale=scale1, size=50
-            )  # New scores for algorithm A
-            samples_normal2 = np.random.normal(
-                loc=loc2, scale=scale2, size=50
-            )  # Scores for algorithm B
+        for build_quantile, tol in [("fast", 0.01), ("exact", 0.15)]:
 
-            eps_min1 = aso(
-                samples_normal1,
-                samples_normal2,
-                build_quantile="fast",
-                show_progress=False,
-            )
-            eps_min2 = aso(
-                samples_normal2,
-                samples_normal1,
-                build_quantile="fast",
-                show_progress=False,
-            )
-            self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=0.01)
+            for (loc1, scale1), (loc2, scale2) in parameters:
+                samples_normal1 = np.random.normal(
+                    loc=loc1, scale=scale1, size=50
+                )  # New scores for algorithm A
+                samples_normal2 = np.random.normal(
+                    loc=loc2, scale=scale2, size=50
+                )  # Scores for algorithm B
+
+                eps_min1 = aso(
+                    samples_normal1,
+                    samples_normal2,
+                    show_progress=True,
+                    build_quantile=build_quantile,
+                )
+                eps_min2 = aso(
+                    samples_normal2,
+                    samples_normal1,
+                    show_progress=True,
+                    build_quantile=build_quantile,
+                )
+                self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=tol)

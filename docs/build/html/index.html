@@ -94,17 +94,20 @@
                 <!-- Local TOC -->
                 <div class="local-toc"><ul>
 <li><a class="reference internal" href="#">deep-significance: Easy Significance Testing for Deep Neural Networks</a><ul>
-<li><a class="reference internal" href="#interrobang-why">⁉️ Why?</a><ul>
-<li><a class="reference internal" href="#inbox-tray-installation">📥 Installation</a></li>
-<li><a class="reference internal" href="#bookmark-examples">🔖 Examples</a></li>
+<li><a class="reference internal" href="#id1">⁉️ Why?</a><ul>
+<li><a class="reference internal" href="#id2">📥 Installation</a></li>
+<li><a class="reference internal" href="#id3">🔖 Examples</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#scenario-1-comparing-multiple-runs-of-two-models">Scenario 1 - Comparing multiple runs of two models</a></li>
-<li><a class="reference internal" href="#scenario-2-comparing-multiple-runs-across-datasets">Scenario 2 - Comparing multiple runs across datasets</a></li>
-<li><a class="reference internal" href="#scenario-3-comparing-sample-level-scores">Scenario 3 - Comparing sample-level scores</a></li>
-<li><a class="reference internal" href="#mortar-board-cite">🎓 Cite</a></li>
-<li><a class="reference internal" href="#medal-sports-acknowledgements">🏅 Acknowledgements</a></li>
-<li><a class="reference internal" href="#books-bibliography">📚 Bibliography</a></li>
+<li><a class="reference internal" href="#id4">Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks</a></li>
+<li><a class="reference internal" href="#id5">Scenario 1 - Comparing multiple runs of two models</a></li>
+<li><a class="reference internal" href="#id6">Scenario 2 - Comparing multiple runs across datasets</a></li>
+<li><a class="reference internal" href="#id7">Scenario 3 - Comparing sample-level scores</a></li>
+<li><a class="reference internal" href="#id8">Scenario 4 - Comparing more than two models</a></li>
+<li><a class="reference internal" href="#id9">General recommendations &amp; other notes</a></li>
+<li><a class="reference internal" href="#id10">🎓 Cite</a></li>
+<li><a class="reference internal" href="#id11">🏅 Acknowledgements</a></li>
+<li><a class="reference internal" href="#id14">📚 Bibliography</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-deepsig">Documentation</a></li>
@@ -135,13 +138,33 @@
             
   <div class="section" id="deep-significance-easy-significance-testing-for-deep-neural-networks">
 <h1>deep-significance: Easy Significance Testing for Deep Neural Networks<a class="headerlink" href="#deep-significance-easy-significance-testing-for-deep-neural-networks" title="Permalink to this headline">¶</a></h1>
-<a class="reference external image-reference" href="https://coveralls.io/github/Kaleidophon/deep-significance?branch=main"><img alt="Coverage Status" src="https://coveralls.io/repos/github/Kaleidophon/deep-significance/badge.svg?branch=main" /></a>
+<a class="reference external image-reference" href="https://coveralls.io/github/Kaleidophon/deep-significance?branch=main"><img alt="Coverage Status" src="https://coveralls.io/repos/github/Kaleidophon/deep-significance/badge.svg?branch=main&amp;service=github" /></a>
 <a class="reference external image-reference" href="https://www.gnu.org/licenses/gpl-3.0"><img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
 <a class="reference external image-reference" href="https://github.com/python/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a>
+<hr class="docutils" />
 <p><strong>Warning: This project is still under development. Code might be erroneous and breaking changes be introduced without
 warning.</strong></p>
-<div class="section" id="interrobang-why">
-<h2>⁉️ Why?<a class="headerlink" href="#interrobang-why" title="Permalink to this headline">¶</a></h2>
+<hr class="docutils" />
+<p><strong>Contents</strong></p>
+<ul class="simple">
+<li><p><a class="reference external" href="#interrobang-why">|:interrobang:| Why</a></p></li>
+<li><p><a class="reference external" href="#inbox_tray-installation">|:inbox_tray:| Installation</a></p></li>
+<li><p><a class="reference external" href="#bookmark-examples">|:bookmark:| Examples</a></p>
+<ul>
+<li><p><a class="reference external" href="#intermezzo-almost-stochastic-order---a-better-significance-test-for-deep-neural-networks">Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks</a></p></li>
+<li><p><a class="reference external" href="#scenario-1---comparing-multiple-runs-of-two-models">Scenario 1: Comparing multiple runs of two models</a></p></li>
+<li><p><a class="reference external" href="#scenario-2---comparing-multiple-runs-across-datasets">Scenario 2: Comparing multiple runs across datasets</a></p></li>
+<li><p><a class="reference external" href="#scenario-3---comparing-sample-level-scores">Scenario 3: Comparing sample-level scores</a></p></li>
+<li><p><a class="reference external" href="#scenario-4---comparing-more-than-two-models">Scenario 4: Comparing more than two models</a></p></li>
+<li><p><a class="reference external" href="#general-recommendations">General Recommendations &amp; other notes</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference external" href="#mortar_board-cite">|:mortar_board:| Cite</a></p></li>
+<li><p><a class="reference external" href="#medal_sports-acknowledgements">|:medal_sports:| Acknowledgements</a></p></li>
+<li><p><a class="reference external" href="#books-bibliography">|:books:| Bibliography</a></p></li>
+</ul>
+<div class="section" id="id1">
+<h2>⁉️ Why?<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>Although Deep Learning has undergone spectacular growth in the recent decade,
 a large portion of experimental evidence is not supported by statistical hypothesis tests. Instead,
 conclusions are often drawn based on single performance scores.</p>
@@ -150,24 +173,26 @@ loss surfaces (Li et al., 2018) and their performance depends on the specific hy
 like Dropout masks, making comparisons between architectures more difficult. Based on comparing only (the mean of) a
 few scores, <strong>we often cannot
 conclude that one model type or algorithm is better than another</strong>.
-This endangers the progress in the field, as seeming success due to random chance might practitioners astray.</p>
+This endangers the progress in the field, as seeming success due to random chance might draw practitioners astray.</p>
 <p>For instance,
 a recent study in Natural Language Processing by Narang et al. (2021) has found that many modifications proposed to
-transformers do not actually improve performance. Similar issues are known to plague other fields like e.g.
+transformers do not actually improve performance. Similar issues are known to plague other fields like e.g.,
 Reinforcement Learning (Henderson et al., 2018) and Computer Vision (Borji, 2017) as well.</p>
 <p>To help mitigate this problem, this package supplies fully-tested re-implementations of useful functions for significance
 testing:</p>
 <ul class="simple">
-<li><p>Non-parametric tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron &amp; Tibshirani, 1994) and
-permutation-randomization.</p></li>
-<li><p>p-value corrections methods such as Bonferroni (Bonferroni, 1936) and Fisher (Fisher, 1992).</p></li>
+<li><p>Statistical Significane tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron &amp; Tibshirani, 1994) and
+permutation-randomization (Noreen, 1989).</p></li>
+<li><p>p-value correction methods for multiplicity in datasets such as Bonferroni (Bonferroni, 1936) and Fisher (Fisher, 1992).</p></li>
 </ul>
 <p>All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch /
 Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation
 <a class="reference external" href="deep-significance.rtfd.io/en/latest/">here</a> or the scenarios in the section <a class="reference external" href="#examples">Examples</a>.</p>
-<div class="section" id="inbox-tray-installation">
-<h3>📥 Installation<a class="headerlink" href="#inbox-tray-installation" title="Permalink to this headline">¶</a></h3>
-<p>(<strong>The package has not been released on PyPI yet</strong>)</p>
+<div class="section" id="id2">
+<h3>📥 Installation<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<hr class="docutils" />
+<p><strong>The package has not been released on PyPI yet. As of now, only the local installation is available.</strong></p>
+<hr class="docutils" />
 <p>The package can simply be installed using <code class="docutils literal notranslate"><span class="pre">pip</span></code> by running</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">deepsig</span>
 </pre></div>
@@ -180,40 +205,186 @@ Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usag
 </div>
 <p><strong>Warning</strong>: Installed like this, imports will fail when the clones repository is moved.</p>
 </div>
-<div class="section" id="bookmark-examples">
-<h3>🔖 Examples<a class="headerlink" href="#bookmark-examples" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h3>🔖 Examples<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<hr class="docutils" />
+<p><strong>tl;dr</strong>: Use <code class="docutils literal notranslate"><span class="pre">aso()</span></code> to compare scores for two models. If the returned <code class="docutils literal notranslate"><span class="pre">eps_min</span> <span class="pre">&lt;</span> <span class="pre">0.5</span></code>, A is better than B.</p>
+<hr class="docutils" />
 <p>In the following, I will lay out three scenarios that describe common use cases for ML practitioners and how to apply
 the methods implemented in this package accordingly. For an introduction into statistical hypothesis testing, please
 refer to resources such as <a class="reference external" href="https://machinelearningmastery.com/statistical-hypothesis-tests/">this blog post</a> for a general
 overview or <a class="reference external" href="https://www.aclweb.org/anthology/P18-1128.pdf">Dror et al. (2018)</a> for a NLP-specific point of view.</p>
+<p>In general, in statistical significance testing, we usually compare two algorithms <span class="raw-html-m2r"><img src="svgs/53d147e7f3fe6e47ee05b88b166bd3f6.svg?invert_in_darkmode" align=middle width=12.32879834999999pt height=22.465723500000017pt/></span> and <span class="raw-html-m2r"><img src="svgs/61e84f854bc6258d4108d08d4c4a0852.svg?invert_in_darkmode" align=middle width=13.29340979999999pt height=22.465723500000017pt/></span> on a dataset <span class="raw-html-m2r"><img src="svgs/cbfb1b2a33b28eab8a3e59464768e810.svg?invert_in_darkmode" align=middle width=14.908688849999992pt height=22.465723500000017pt/></span> using
+some evaluation metric <span class="raw-html-m2r"><img src="svgs/b5eaea000e06d5cf2e882f8fdbc71e36.svg?invert_in_darkmode" align=middle width=19.740822749999992pt height=22.465723500000017pt/></span>. The difference between the two algorithms on the data is then defined as</p>
+<p align="center"><img src="svgs/9540dc879d2ecaa7cb245871b24f4e5d.svg?invert_in_darkmode" align=middle width=212.73480854999997pt height=16.438356pt/></p><p>where <span class="raw-html-m2r"><img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/></span> is our test statistic. We then test the following <strong>null hypothesis</strong>:</p>
+<p align="center"><img src="svgs/1d210dbbb93bbdc5a632b9443059499d.svg?invert_in_darkmode" align=middle width=100.49629589999999pt height=16.438356pt/></p><p>Thus, we assume our algorithm A to be equally as good or worse than algorithm B and reject the null hypothesis if A
+is better than B (what we actually would like to see). Most statistical significance tests operate using
+<em>p-values</em>, which define the probability that under the null-hypothesis, the true difference <span class="raw-html-m2r"><img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/></span> is larger than or
+equal to the observed difference <span class="raw-html-m2r"><img src="svgs/ecdae90a73f512871267f358443bd563.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/></span> (that is, for a one-sided test):</p>
+<p align="center"><img src="svgs/6d2735c4e335ec03c8b45736da4531a3.svg?invert_in_darkmode" align=middle width=135.91559685pt height=16.438356pt/></p><p>Intuitively, the p-value is expressing: <strong>How likely is it that the observed difference is up to what we expected, given that A is
+not better than B?</strong> If this probability is high, it means that we’re likely to see A is not better than B. If the
+probability is low, that means that <span class="raw-html-m2r"><img src="svgs/94ea44af3034479a1ba3f2f655bcec39.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/></span> is likely <em>larger</em> than <span class="raw-html-m2r"><img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/></span> - indicating
+that the null hypothesis might be wrong and that A is indeed better than B.</p>
+<p>To decide when we think A to be better than B, we set a threshold that will determine when we reject the null hypothesis, this is called the significance level <span class="raw-html-m2r"><img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/></span> and it is often set to be 0.05.</p>
 </div>
 </div>
-<div class="section" id="scenario-1-comparing-multiple-runs-of-two-models">
-<h2>Scenario 1 - Comparing multiple runs of two models<a class="headerlink" href="#scenario-1-comparing-multiple-runs-of-two-models" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id4">
+<h2>Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>Deep neural networks are highly non-linear models, having their performance highly dependent on hyperparameters, random
+seeds and other (stochastic) factors. Therefore, comparing the means of two models across several runs might not be
+enough to decide if a model A is better than B. In fact, <strong>even aggregating more statistics like standard deviation, minimum
+or maximum might not be enough</strong> to make a decision. For this reason, Dror et al. (2019) introduced <em>Almost Stochastic
+Order</em> (ASO), a test to compare two score distributions.</p>
+<p>It builds on the concept of <em>stochastic order</em>: We can compare two distribution and declare one as <em>stochastically dominant</em>
+by comparing their cumulative distribution functions:</p>
+<a class="reference external image-reference" href="img/so.png"><img alt="" src="_images/so.png" /></a>
+<p>If the CDF of A is lower than B for every <span class="raw-html-m2r"><img src="svgs/332cc365a4987aacce0ead01b8bdcc0b.svg?invert_in_darkmode" align=middle width=9.39498779999999pt height=14.15524440000002pt/></span>, we know the corresponding to algorithm A scores higher. However, in practice
+these cases are rarely so clear-cut (imagine e.g. two normal distributions with the same mean but different variances).
+For this reason, Dror et al. (2019) consider the notion of <em>almost stochastic dominance</em> by quantifying the extent to
+which stochastic order is being violated (red area):</p>
+<a class="reference external image-reference" href="img/aso.png"><img alt="" src="_images/aso.png" /></a>
+<p>ASO returns a value <span class="raw-html-m2r"><img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/></span>, which expresses the amount of violation of stochastic order. If
+<span class="raw-html-m2r"><img src="svgs/dabed7f05cf133d9eb92631d564a96a8.svg?invert_in_darkmode" align=middle width=72.19750559999999pt height=21.18721440000001pt/></span>, A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as
+superior. We can also interpret <span class="raw-html-m2r"><img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/></span> as a <em>confidence score</em>. The lower it is, the more sure we can be
+that A is better than B. Note: <strong>ASO does not compute p-values.</strong> Instead, the null hypothesis formulated as</p>
+<p align="center"><img src="svgs/69c5ac8ce10d0dbd0c2b915aaf0472c1.svg?invert_in_darkmode" align=middle width=106.93478895pt height=13.698590399999999pt/></p><p>If we want to be more confident about the result of ASO, we can also set the rejection threshold to be lower than 0.5.
+Furthermore, the significance level <span class="raw-html-m2r"><img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/></span> is determined as an input argument when running ASO and actively influence
+the resulting <span class="raw-html-m2r"><img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/></span>.</p>
+</div>
+<div class="section" id="id5">
+<h2>Scenario 1 - Comparing multiple runs of two models<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <p>In the simplest scenario, we have retrieved a set of scores from a model A and a baseline B on a dataset, stemming from
 various model runs with different seeds. We can now simply apply the ASO test:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">deepsig</span> <span class="kn">import</span> <span class="n">aso</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">deepsig</span> <span class="kn">import</span> <span class="n">aso</span>
 
-<span class="n">scores_a</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># TODO</span>
-<span class="n">scores_b</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># TODO</span>
+<span class="c1"># Simulate scores</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># Number of random seeds</span>
+<span class="n">scores_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+<span class="n">scores_b</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
 
-<span class="n">min_eps</span> <span class="o">=</span> <span class="n">aso</span><span class="p">(</span><span class="n">scores_a</span><span class="p">,</span> <span class="n">scores_b</span><span class="p">)</span>  <span class="c1"># min_eps = ..., so A is better</span>
+<span class="n">min_eps</span> <span class="o">=</span> <span class="n">aso</span><span class="p">(</span><span class="n">scores_a</span><span class="p">,</span> <span class="n">scores_b</span><span class="p">)</span>  <span class="c1"># min_eps = 0.0, so A is better</span>
 </pre></div>
 </div>
-<p>Because ASO is a non-parametric test, <strong>it does not make any assumptions about the distributions of the scores</strong>.
-This means that we can apply it to any kind of test metric. The scores of model runs are supplied, the more reliable
+<p>ASO <strong>does not make any assumptions about the distributions of the scores</strong>.
+This means that we can apply it to any kind of test metric. The more scores of model runs is supplied, the more reliable
 the test becomes.</p>
+<p><code class="docutils literal notranslate"><span class="pre">aso()</span></code> runs with <code class="docutils literal notranslate"><span class="pre">build_quantile=&quot;fast&quot;</span></code> by default. This runs the test quicker, but trades speed of accuracy. Thus,
+when obtaining <span class="raw-html-m2r"><img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/></span> scores that are not very clear-cut (as indicated by a warning), please run
+the function again with <code class="docutils literal notranslate"><span class="pre">build_quantile=&quot;exact&quot;</span></code>.</p>
 </div>
-<div class="section" id="scenario-2-comparing-multiple-runs-across-datasets">
-<h2>Scenario 2 - Comparing multiple runs across datasets<a class="headerlink" href="#scenario-2-comparing-multiple-runs-across-datasets" title="Permalink to this headline">¶</a></h2>
-<p>&#64;TODO: Comparison between two models, multiple datasets</p>
+<div class="section" id="id6">
+<h2>Scenario 2 - Comparing multiple runs across datasets<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>When comparing models across datasets, we formulate on null hypothesis per dataset. However, we have to make sure not to
+fall prey to the <a class="reference external" href="https://en.wikipedia.org/wiki/Multiple_comparisons_problem">multiple comparisons problem</a>: In short,
+the more comparisons between A and B we are conducting, the more likely gets is to reject a null-hypothesis accidentally.
+That is why we have to adjust our significance threshold <span class="raw-html-m2r"><img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/></span> accordingly by dividing it by the number of comparisons,
+which corresponds to the Bonferroni correction (Bonferroni et al., 1936):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">deepsig</span> <span class="kn">import</span> <span class="n">aso</span>
+
+<span class="c1"># Simulate scores for three datasets</span>
+<span class="n">M</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># Number of datasets</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># Number of random seeds</span>
+<span class="n">scores_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)]</span>
+<span class="n">scores_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)]</span>
+
+<span class="c1"># epsilon_min values with Bonferroni correction</span>
+<span class="n">eps_min</span> <span class="o">=</span> <span class="p">[</span><span class="n">aso</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span> <span class="o">/</span> <span class="n">M</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scores_a</span><span class="p">,</span> <span class="n">scores_b</span><span class="p">)]</span>
+<span class="c1"># eps_min = [0.1565800030782686, 1, 0.0]</span>
+</pre></div>
 </div>
-<div class="section" id="scenario-3-comparing-sample-level-scores">
-<h2>Scenario 3 - Comparing sample-level scores<a class="headerlink" href="#scenario-3-comparing-sample-level-scores" title="Permalink to this headline">¶</a></h2>
-<p>&#64;TODO: Comparison between two models, multiple seeds, sample-level</p>
+<hr class="docutils" />
+<p><strong>Note</strong>: When using another significance test like bootstrap (<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">deepsig</span> <span class="pre">import</span> <span class="pre">bootstrap_test</span></code>), permutation-randomization
+(<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">deepsig</span> <span class="pre">import</span> <span class="pre">permutation</span> <span class="pre">test</span></code>) or e.g. a t-test (not implemented here), you can use the p-value correction
+implemented in <code class="docutils literal notranslate"><span class="pre">deep-significance</span></code> by <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">deepsig</span> <span class="pre">import</span> <span class="pre">correct_p_value</span></code>. Call the function with <code class="docutils literal notranslate"><span class="pre">method=&quot;bonferroni&quot;</span></code>
+when the different comparisons are dependent (default) or <code class="docutils literal notranslate"><span class="pre">method=&quot;fisher&quot;</span></code> in case of independence. When in doubt,
+<code class="docutils literal notranslate"><span class="pre">&quot;bonferroni&quot;</span></code> will be a more conservative but safe correction. <code class="docutils literal notranslate"><span class="pre">correct_p_value()</span></code> is <strong>not</strong> compatible with <code class="docutils literal notranslate"><span class="pre">aso()</span></code>.</p>
 </div>
-<div class="section" id="mortar-board-cite">
-<h2>🎓 Cite<a class="headerlink" href="#mortar-board-cite" title="Permalink to this headline">¶</a></h2>
+<hr class="docutils" />
+<div class="section" id="id7">
+<h2>Scenario 3 - Comparing sample-level scores<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p>In previous examples, we have assumed that we compare two algorithms A and B based on their performance per run, i.e.
+we run each algorithm once per random seed and obtain exactly one score on our test set. In some cases however,
+we would like to compare two algorithms based on scores <strong>for every point in the test set</strong>. If we only use one seed
+per model, then this case is equivalent to scenario 1. But what if we also want to use multiple seeds per model?</p>
+<p>In this scenario, we can do pair-wise comparisons of the score distributions between A and B and use the Bonferroni
+correction accordingly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">deepsig</span> <span class="kn">import</span> <span class="n">aso</span>
+
+<span class="c1"># Simulate scores for three datasets</span>
+<span class="n">M</span> <span class="o">=</span> <span class="mi">40</span>   <span class="c1"># Number of data points</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># Number of random seeds</span>
+<span class="n">scores_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">M</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span>
+<span class="n">scores_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">M</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span>
+<span class="n">pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="n">scores_a</span><span class="p">,</span> <span class="n">scores_b</span><span class="p">))</span>
+
+<span class="c1"># epsilon_min values with Bonferroni correction</span>
+<span class="n">eps_min</span> <span class="o">=</span> <span class="p">[</span><span class="n">aso</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">pairs</span><span class="p">))</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id8">
+<h2>Scenario 4 - Comparing more than two models<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<p>Similarly, when comparing multiple models (now again on a per-seed basis), we can use a similar approach like in the
+previous example. For instance, for three models, we can create a <span class="raw-html-m2r"><img src="svgs/9f2b6b0a7f3d99fd3f396a1515926eb3.svg?invert_in_darkmode" align=middle width=36.52961069999999pt height=21.18721440000001pt/></span> matrix and fill the entries
+with the corresponding <span class="raw-html-m2r"><img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/></span> values. The diagonal will naturally always be 1, but we can also restrict
+ourself to only filling out one half of the matrix by making use of the following property of ASO:</p>
+<p align="center"><img src="svgs/19a0661139e4b089cac41a8a27b738e7.svg?invert_in_darkmode" align=middle width=245.9131653pt height=16.438356pt/></p><hr class="docutils" />
+<p><strong>Note</strong>: This property is known to hold more for <code class="docutils literal notranslate"><span class="pre">build_quantile=&quot;fast&quot;</span></code> (deviation of &lt; 0.01) and less for
+<code class="docutils literal notranslate"><span class="pre">build_quantile=&quot;exact&quot;</span></code> (deviation of &lt; 0.15). This is because the quantile function is built based on resampled scores
+during bootstrap iterations for the latter case, leading to more randomness when fever scores for A and B are available,
+but also a tighter bound for <span class="raw-html-m2r"><img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/></span> overall.</p>
+<hr class="docutils" />
+<p>The corresponding code can then look something like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">deepsig</span> <span class="kn">import</span> <span class="n">aso</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># Number of random seeds</span>
+<span class="n">M</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># Number of different models / algorithms</span>
+<span class="n">num_comparisons</span> <span class="o">=</span> <span class="n">M</span> <span class="o">*</span> <span class="p">(</span><span class="n">M</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+<span class="n">eps_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>  <span class="c1"># M x M matrix with ones on diagonal</span>
+
+<span class="n">scores_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)]</span>
+<span class="n">scores_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">):</span>
+  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">M</span><span class="p">):</span>
+
+    <span class="n">e_min</span> <span class="o">=</span> <span class="n">aso</span><span class="p">(</span><span class="n">scores_a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">scores_b</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span> <span class="o">/</span> <span class="n">num_comparisons</span><span class="p">)</span>
+    <span class="n">eps_min</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">e_min</span>
+    <span class="n">eps_min</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">e_min</span>
+
+<span class="c1"># eps_min =</span>
+<span class="c1"># [[1.        1.         0.96926677]</span>
+<span class="c1"># [0.         1.         0.71251641]</span>
+<span class="c1"># [0.03073323 0.28748359 1.        ]]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id9">
+<h2>General recommendations &amp; other notes<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Naturally, the CDFs built from <code class="docutils literal notranslate"><span class="pre">scores_a</span></code> and <code class="docutils literal notranslate"><span class="pre">scores_b</span></code> can only be approximations of the true distributions. Therefore,
+as many scores as possible should be collected, especially if the variance between runs is high.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_samples</span></code> and <code class="docutils literal notranslate"><span class="pre">num_bootstrap_iterations</span></code> can be reduced to increase the speed of <code class="docutils literal notranslate"><span class="pre">aso()</span></code>. However, this is not
+recommended as the result of the test will also become less accurate. Technically, <span class="raw-html-m2r"><img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/></span> is a upper bound
+that becomes tighter with the number of samples and bootstrap iterations (del Barrio et al., 2017).</p></li>
+<li><p>Bootstrap and permutation-randomization are all non-parametric tests, i.e. they don’t make any assumptions about
+the distribution of our test metric. Nevertheless, they differ in their <em>statistical power</em>, which is defined as the probability
+that the null hypothesis is being rejected given that there is a difference between A and B. In other words, the more powerful
+a test, the less conservative it is and the more it is able to pick up on smaller difference between A and B. Therefore,
+if the distribution is known or found out why normality tests (like e.g. Anderson-Darling or Shapiro-Wilk), something like
+a parametric test like Student’s or Welch’s t-test is preferable to bootstrap or permutation-randomization. However,
+because these test are in turn less applicable in a Deep Learning setting due to the reasons elaborated on in
+<a class="reference external" href="#interrobang-why">Why?</a>, ASO is still a better choice.</p></li>
+</ul>
+</div>
+<div class="section" id="id10">
+<h2>🎓 Cite<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
 <p>If you use the ASO test via <code class="docutils literal notranslate"><span class="pre">aso()</span></code>, please cite the original work:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inproceedings</span><span class="p">{</span><span class="n">dror2019deep</span><span class="p">,</span>
   <span class="n">author</span>    <span class="o">=</span> <span class="p">{</span><span class="n">Rotem</span> <span class="n">Dror</span> <span class="ow">and</span>
@@ -236,25 +407,28 @@ the test becomes.</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="medal-sports-acknowledgements">
-<h2>🏅 Acknowledgements<a class="headerlink" href="#medal-sports-acknowledgements" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id11">
+<h2>🏅 Acknowledgements<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
 <p>This package was created out of discussions of the <a class="reference external" href="https://nlpnorth.github.io/">NLPnorth group</a> at the IT University
 Copenhagen. The code in this repository is in multiple places based on several of <a class="reference external" href="https://rtmdrr.github.io/">Rotem Dror’s</a>
 repositories, namely <a class="reference external" href="https://github.com/rtmdrr/replicability-analysis-NLP">this</a>, <a class="reference external" href="https://github.com/rtmdrr/testSignificanceNLP">this</a>
 and <a class="reference external" href="https://github.com/rtmdrr/DeepComparison">this one</a>.</p>
-<p>The commit message template used in this project can be found <a class="reference external" href="https://github.com/Kaleidophon/commit-template-for-humans">here</a>.</p>
+<p>The commit message template used in this project can be found <a class="reference external" href="https://github.com/Kaleidophon/commit-template-for-humans">here</a>.
+The inline latex equations were rendered using <a class="reference external" href="https://github.com/leegao/readme2tex">readme2latex</a>.</p>
 </div>
-<div class="section" id="books-bibliography">
-<h2>📚 Bibliography<a class="headerlink" href="#books-bibliography" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id14">
+<h2>📚 Bibliography<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
+<p>Del Barrio, Eustasio, Juan A. Cuesta-Albertos, and Carlos Matrán. “An optimal transportation approach for assessing almost stochastic order.” The Mathematics of the Uncertain. Springer, Cham, 2018. 33-44.</p>
 <p>Bonferroni, Carlo. “Teoria statistica delle classi e calcolo delle probabilita.” Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.</p>
 <p>Borji, Ali. “Negative results in computer vision: A perspective.” Image and Vision Computing 69 (2018): 1-8.</p>
 <p>Dror, Rotem, et al. “The hitchhiker’s guide to testing statistical significance in natural language processing.” Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2018.</p>
-<p>Dror, Rotem, Segev Shlomov, and Roi Reichart. “Deep dominance-how to properly compare deep neural models.” Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics. 2019.</p>
-<p>Efron, Bradley, and Robert J. Tibshirani. An introduction to the bootstrap. CRC press, 1994.</p>
+<p>Dror, Rotem, Shlomov, Segev, and Reichart, Roi. “Deep dominance-how to properly compare deep neural models.” Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics. 2019.</p>
+<p>Efron, Bradley, and Robert J. Tibshirani. “An introduction to the bootstrap.” CRC press, 1994.</p>
 <p>Fisher, Ronald Aylmer. “Statistical methods for research workers.” Breakthroughs in statistics. Springer, New York, NY, 1992. 66-70.</p>
 <p>Henderson, Peter, et al. “Deep reinforcement learning that matters.” Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 32. No. 1. 2018.</p>
-<p>Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein: Visualizing the Loss Landscape of Neural Nets. NeurIPS 2018: 6391-6401</p>
+<p>Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein. “Visualizing the Loss Landscape of Neural Nets.” NeurIPS 2018: 6391-6401</p>
 <p>Narang, Sharan, et al. “Do Transformer Modifications Transfer Across Implementations and Applications?.” arXiv preprint arXiv:2102.11972 (2021).</p>
+<p>Noreen, Eric W. “Computer intensive methodsfor hypothesis testing: An introduction.” Wiley,New York (1989).</p>
 </div>
 </div>
 <div class="section" id="module-deepsig">
@@ -263,7 +437,7 @@ and <a class="reference external" href="https://github.com/rtmdrr/DeepComparison
 The code here heavily borrows from their <a class="reference external" href="https://github.com/rtmdrr/DeepComparison">original code base</a>.</p>
 <dl class="py function">
 <dt id="deepsig.aso.aso">
-<code class="sig-prename descclassname"><span class="pre">deepsig.aso.</span></code><code class="sig-name descname"><span class="pre">aso</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.LongTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scores_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.LongTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_bootstrap_iterations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_quantile</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'exact'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#deepsig.aso.aso" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">deepsig.aso.</span></code><code class="sig-name descname"><span class="pre">aso</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.LongTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scores_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.LongTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_bootstrap_iterations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_quantile</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'fast'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#deepsig.aso.aso" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs the Almost Stochastic Order test by Dror et al. (2019). The function takes two list of scores as input
 (they do not have to be of the same length) and returns an upper bound to the violation ratio - the minimum epsilon
 threshold. If the violation ratio is below 0.5, the null hypothesis can be rejected safely (and the model scores_a
@@ -286,7 +460,8 @@ The more scores and the higher num_samples / num_bootstrap_iterations, the more 
 <dt><strong>dt: float</strong></dt><dd><p>Differential for t during integral calculation.</p>
 </dd>
 <dt><strong>build_quantile: str</strong></dt><dd><p>Indicate whether the quantile function during bootstrap iterations should be build from scratch
-(build_quantile=”exact”) or reused from the original score distribution (build_quantile=”fast”).</p>
+(build_quantile=”exact”) or reused from the original score distribution (build_quantile=”fast”). The fast result
+will vary slightly from the exact result, so use “exact” for eps_min close to 0.5.</p>
 </dd>
 <dt><strong>show_progress: bool</strong></dt><dd><p>Show progress bar. Default is True.</p>
 </dd>

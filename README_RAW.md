@@ -194,7 +194,7 @@ scores_a = [np.random.normal(loc=0.3, scale=0.8, size=N) for _ in range(M)]
 scores_b = [np.random.normal(loc=0, scale=1, size=N) for _ in range(M)]
 
 # epsilon_min values with Bonferroni correction 
-eps_min = [aso(a, b, confidence_level=0.05/M, build_quantile="exact") for a, b in zip(scores_a, scores_b)]
+eps_min = [aso(a, b, confidence_level=0.05 / M) for a, b in zip(scores_a, scores_b)]
 # eps_min = [0.1565800030782686, 1, 0.0]
 ```
 
@@ -231,7 +231,7 @@ scores_b = [np.random.normal(loc=0, scale=1, size=M) for _ in range(N)]
 pairs = list(product(scores_a, scores_b))
 
 # epsilon_min values with Bonferroni correction 
-eps_min = [aso(a, b, confidence_level=0.05/len(pairs), build_quantile="exact") for a, b in pairs]
+eps_min = [aso(a, b, confidence_level=0.05 / len(pairs)) for a, b in pairs]
 ```
 
 ### Scenario 4 - Comparing more than two models 
@@ -244,6 +244,14 @@ ourself to only filling out one half of the matrix by making use of the followin
 $$
 \text{ASO}(A, B, \alpha) = 1 - \text{ASO}(B, A, \alpha)
 $$
+
+---
+**Note**: This property is known to hold more for `build_quantile="fast"` (deviation of < 0.01) and less for 
+`build_quantile="exact"` (deviation of < 0.15). This is because the quantile function is built based on resampled scores
+during bootstrap iterations for the latter case, leading to more randomness when fever scores for A and B are available, 
+but also a tighter bound for $\epsilon_\text{min}$ overall.
+
+---
 
 The corresponding code can then look something like this:
 
@@ -262,7 +270,7 @@ scores_b = [np.random.normal(loc=0, scale=1, size=N) for _ in range(M)]
 for i in range(M):
   for j in range(i + 1, M):
     
-    e_min = aso(scores_a[i], scores_b[j], confidence_level=0.05/num_comparisons, build_quantile="exact")
+    e_min = aso(scores_a[i], scores_b[j], confidence_level=0.05 / num_comparisons)
     eps_min[i, j] = e_min
     eps_min[j, i] = 1 - e_min
     
