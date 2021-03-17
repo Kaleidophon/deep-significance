@@ -247,7 +247,7 @@ $$
 
 ---
 **Note**: This property is known to hold more for `build_quantile="fast"` (deviation of < 0.01) and less for 
-`build_quantile="exact"` (deviation of < 0.15). This is because the quantile function is built based on resampled scores
+`build_quantile="exact"` (deviation of < 0.2). This is because the quantile function is built based on resampled scores
 during bootstrap iterations for the latter case, leading to more randomness when fever scores for A and B are available, 
 but also a tighter bound for $\epsilon_\text{min}$ overall.
 
@@ -283,7 +283,9 @@ for i in range(M):
 ### General recommendations & other notes
 
 * Naturally, the CDFs built from `scores_a` and `scores_b` can only be approximations of the true distributions. Therefore,
-as many scores as possible should be collected, especially if the variance between runs is high.
+as many scores as possible should be collected, especially if the variance between runs is high. If only one run is available,
+  comparing sample-wise score distributions like in scenario 3 can be an option, but comparing multiple runs will 
+  **always** be preferable.
 
 * `num_samples` and `num_bootstrap_iterations` can be reduced to increase the speed of `aso()`. However, this is not 
 recommended as the result of the test will also become less accurate. Technically, $\epsilon_\text{min}$ is a upper bound

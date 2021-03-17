@@ -273,7 +273,7 @@ for i in range(M):
 ### General recommendations & other notes
 
 * Naturally, the CDFs built from `scores_a` and `scores_b` can only be approximations of the true distributions. Therefore,
-as many scores as possible should be collected, especially if the variance between runs is high.
+as many scores as possible should be collected, especially if the variance between runs is high. 
 
 * `num_samples` and `num_bootstrap_iterations` can be reduced to increase the speed of `aso()`. However, this is not 
 recommended as the result of the test will also become less accurate. Technically, <img src="./svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> is a upper bound
