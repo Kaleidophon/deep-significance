@@ -175,6 +175,9 @@ texinfo_documents = [
     ),
 ]
 
+# Include svg. equations
+html_extra_path = ["../svgs"]
+
 
 def setup(app):
     config = {

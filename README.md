@@ -1,14 +1,14 @@
 # deep-significance: Easy Significance Testing for Deep Neural Networks
 
-[![Build Status](https://travis-ci.com/Kaleidophon/deep-significance.png?branch=main)]()
-[![Coverage Status](https://coveralls.io/repos/github/Kaleidophon/deep-significance/badge.png?branch=main&service=github)](https://coveralls.io/github/Kaleidophon/deep-significance?branch=main)
+[![Build Status](https://travis-ci.com/Kaleidophon/deep-significance.svg?branch=main)]()
+[![Coverage Status](https://coveralls.io/repos/github/Kaleidophon/deep-significance/badge.svg?branch=main&service=github)](https://coveralls.io/github/Kaleidophon/deep-significance?branch=main)
 [![Compatibility](https://img.shields.io/badge/python-3.5%2B-blue)]()
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.png)](https://www.gnu.org/licenses/gpl-3.0)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.png)](https://github.com/python/black)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
 ---
 **Warning: This project is still under development. Code might be erroneous and breaking changes be introduced without 
-warning.**
+warning.** Test
 
 ---
 
@@ -86,28 +86,28 @@ the methods implemented in this package accordingly. For an introduction into st
 refer to resources such as [this blog post](https://machinelearningmastery.com/statistical-hypothesis-tests/) for a general
 overview or [Dror et al. (2018)](https://www.aclweb.org/anthology/P18-1128.pdf) for a NLP-specific point of view. 
 
-In general, in statistical significance testing, we usually compare two algorithms <img src="img/53d147e7f3fe6e47ee05b88b166bd3f6.png?invert_in_darkmode" align=middle width=12.32879834999999pt height=22.465723500000017pt/> and <img src="img/61e84f854bc6258d4108d08d4c4a0852.png?invert_in_darkmode" align=middle width=13.29340979999999pt height=22.465723500000017pt/> on a dataset <img src="img/cbfb1b2a33b28eab8a3e59464768e810.png?invert_in_darkmode" align=middle width=14.908688849999992pt height=22.465723500000017pt/> using 
-some evaluation metric <img src="img/b5eaea000e06d5cf2e882f8fdbc71e36.png?invert_in_darkmode" align=middle width=19.740822749999992pt height=22.465723500000017pt/>. The difference between the two algorithms on the data is then defined as 
+In general, in statistical significance testing, we usually compare two algorithms <img src="svgs/53d147e7f3fe6e47ee05b88b166bd3f6.svg?invert_in_darkmode" align=middle width=12.32879834999999pt height=22.465723500000017pt/> and <img src="svgs/61e84f854bc6258d4108d08d4c4a0852.svg?invert_in_darkmode" align=middle width=13.29340979999999pt height=22.465723500000017pt/> on a dataset <img src="svgs/cbfb1b2a33b28eab8a3e59464768e810.svg?invert_in_darkmode" align=middle width=14.908688849999992pt height=22.465723500000017pt/> using 
+some evaluation metric <img src="svgs/b5eaea000e06d5cf2e882f8fdbc71e36.svg?invert_in_darkmode" align=middle width=19.740822749999992pt height=22.465723500000017pt/>. The difference between the two algorithms on the data is then defined as 
 
-<p align="center"><img src="img/9540dc879d2ecaa7cb245871b24f4e5d.png?invert_in_darkmode" align=middle width=212.73480854999997pt height=16.438356pt/></p>
+<p align="center"><img src="svgs/9540dc879d2ecaa7cb245871b24f4e5d.svg?invert_in_darkmode" align=middle width=212.73480854999997pt height=16.438356pt/></p>
 
-where <img src="img/6dea53e880ae565b82d6b4a6148a0012.png?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> is our test statistic. We then test the following **null hypothesis**:
+where <img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> is our test statistic. We then test the following **null hypothesis**:
 
-<p align="center"><img src="img/1d210dbbb93bbdc5a632b9443059499d.png?invert_in_darkmode" align=middle width=100.49629589999999pt height=16.438356pt/></p>
+<p align="center"><img src="svgs/1d210dbbb93bbdc5a632b9443059499d.svg?invert_in_darkmode" align=middle width=100.49629589999999pt height=16.438356pt/></p>
 
 Thus, we assume our algorithm A to be equally as good or worse than algorithm B and reject the null hypothesis if A 
 is better than B (what we actually would like to see). Most statistical significance tests operate using 
-*p-values*, which define the probability that under the null-hypothesis, the true difference <img src="img/6dea53e880ae565b82d6b4a6148a0012.png?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> is larger than or
-equal to the observed difference <img src="img/ecdae90a73f512871267f358443bd563.png?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/> (that is, for a one-sided test):
+*p-values*, which define the probability that under the null-hypothesis, the true difference <img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> is larger than or
+equal to the observed difference <img src="svgs/ecdae90a73f512871267f358443bd563.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/> (that is, for a one-sided test):
 
-<p align="center"><img src="img/6d2735c4e335ec03c8b45736da4531a3.png?invert_in_darkmode" align=middle width=135.91559685pt height=16.438356pt/></p>
+<p align="center"><img src="svgs/6d2735c4e335ec03c8b45736da4531a3.svg?invert_in_darkmode" align=middle width=135.91559685pt height=16.438356pt/></p>
 
 Intuitively, the p-value is expressing: **How likely is it that the observed difference is up to what we expected, given that A is 
 not better than B?** If this probability is high, it means that we're likely to see A is not better than B. If the 
-probability is low, that means that <img src="img/94ea44af3034479a1ba3f2f655bcec39.png?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/> is likely *larger* than <img src="img/6dea53e880ae565b82d6b4a6148a0012.png?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> - indicating 
+probability is low, that means that <img src="svgs/94ea44af3034479a1ba3f2f655bcec39.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/> is likely *larger* than <img src="svgs/6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/> - indicating 
 that the null hypothesis might be wrong and that A is indeed better than B. 
 
-To decide when we think A to be better than B, we set a threshold that will determine when we reject the null hypothesis, this is called the significance level <img src="img/c745b9b57c145ec5577b82542b2df546.png?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> and it is often set to be 0.05.
+To decide when we think A to be better than B, we set a threshold that will determine when we reject the null hypothesis, this is called the significance level <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> and it is often set to be 0.05.
 
 
 ### Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks
@@ -123,23 +123,23 @@ by comparing their cumulative distribution functions:
 
 ![](img/so.png)
 
-If the CDF of A is lower than B for every <img src="img/332cc365a4987aacce0ead01b8bdcc0b.png?invert_in_darkmode" align=middle width=9.39498779999999pt height=14.15524440000002pt/>, we know the corresponding to algorithm A scores higher. However, in practice
+If the CDF of A is lower than B for every <img src="svgs/332cc365a4987aacce0ead01b8bdcc0b.svg?invert_in_darkmode" align=middle width=9.39498779999999pt height=14.15524440000002pt/>, we know the corresponding to algorithm A scores higher. However, in practice
 these cases are rarely so clear-cut (imagine e.g. two normal distributions with the same mean but different variances).
 For this reason, Dror et al. (2019) consider the notion of *almost stochastic dominance* by quantifying the extent to 
 which stochastic order is being violated (red area):
 
 ![](img/aso.png)
 
-ASO returns a value <img src="img/70bcb72c245ba47b6fc7439da91ec6fc.png?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>, which expresses the amount of violation of stochastic order. If 
-<img src="img/dabed7f05cf133d9eb92631d564a96a8.png?invert_in_darkmode" align=middle width=72.19750559999999pt height=21.18721440000001pt/>, A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as 
-superior. We can also interpret <img src="img/70bcb72c245ba47b6fc7439da91ec6fc.png?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> as a *confidence score*. The lower it is, the more sure we can be 
+ASO returns a value <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>, which expresses the amount of violation of stochastic order. If 
+<img src="svgs/dabed7f05cf133d9eb92631d564a96a8.svg?invert_in_darkmode" align=middle width=72.19750559999999pt height=21.18721440000001pt/>, A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as 
+superior. We can also interpret <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> as a *confidence score*. The lower it is, the more sure we can be 
 that A is better than B. Note: **ASO does not compute p-values.** Instead, the null hypothesis formulated as 
 
-<p align="center"><img src="img/69c5ac8ce10d0dbd0c2b915aaf0472c1.png?invert_in_darkmode" align=middle width=106.93478895pt height=13.698590399999999pt/></p>
+<p align="center"><img src="svgs/69c5ac8ce10d0dbd0c2b915aaf0472c1.svg?invert_in_darkmode" align=middle width=106.93478895pt height=13.698590399999999pt/></p>
 
 If we want to be more confident about the result of ASO, we can also set the rejection threshold to be lower than 0.5.
-Furthermore, the significance level <img src="img/c745b9b57c145ec5577b82542b2df546.png?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> is determined as an input argument when running ASO and actively influence 
-the resulting <img src="img/70bcb72c245ba47b6fc7439da91ec6fc.png?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>.
+Furthermore, the significance level <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> is determined as an input argument when running ASO and actively influence 
+the resulting <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>.
 
 
 ### Scenario 1 - Comparing multiple runs of two models 
@@ -164,7 +164,7 @@ This means that we can apply it to any kind of test metric. The more scores of m
 the test becomes. 
 
 `aso()` runs with `build_quantile="fast"` by default. This runs the test quicker, but trades speed of accuracy. Thus, 
-when obtaining <img src="img/70bcb72c245ba47b6fc7439da91ec6fc.png?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> scores that are not very clear-cut (as indicated by a warning), please run 
+when obtaining <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> scores that are not very clear-cut (as indicated by a warning), please run 
 the function again with `build_quantile="exact"`. 
 
 ### Scenario 2 - Comparing multiple runs across datasets
@@ -172,7 +172,7 @@ the function again with `build_quantile="exact"`.
 When comparing models across datasets, we formulate on null hypothesis per dataset. However, we have to make sure not to 
 fall prey to the [multiple comparisons problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem): In short, 
 the more comparisons between A and B we are conducting, the more likely gets is to reject a null-hypothesis accidentally.
-That is why we have to adjust our significance threshold <img src="img/c745b9b57c145ec5577b82542b2df546.png?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> accordingly by dividing it by the number of comparisons, 
+That is why we have to adjust our significance threshold <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> accordingly by dividing it by the number of comparisons, 
 which corresponds to the Bonferroni correction (Bonferroni et al., 1936):
 
 ```python 
@@ -229,17 +229,17 @@ eps_min = [aso(a, b, confidence_level=0.05 / len(pairs)) for a, b in pairs]
 ### Scenario 4 - Comparing more than two models 
 
 Similarly, when comparing multiple models (now again on a per-seed basis), we can use a similar approach like in the 
-previous example. For instance, for three models, we can create a <img src="img/9f2b6b0a7f3d99fd3f396a1515926eb3.png?invert_in_darkmode" align=middle width=36.52961069999999pt height=21.18721440000001pt/> matrix and fill the entries 
-with the corresponding <img src="img/70bcb72c245ba47b6fc7439da91ec6fc.png?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> values. The diagonal will naturally always be 1, but we can also restrict 
+previous example. For instance, for three models, we can create a <img src="svgs/9f2b6b0a7f3d99fd3f396a1515926eb3.svg?invert_in_darkmode" align=middle width=36.52961069999999pt height=21.18721440000001pt/> matrix and fill the entries 
+with the corresponding <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> values. The diagonal will naturally always be 1, but we can also restrict 
 ourself to only filling out one half of the matrix by making use of the following property of ASO:
 
-<p align="center"><img src="img/19a0661139e4b089cac41a8a27b738e7.png?invert_in_darkmode" align=middle width=245.9131653pt height=16.438356pt/></p>
+<p align="center"><img src="svgs/19a0661139e4b089cac41a8a27b738e7.svg?invert_in_darkmode" align=middle width=245.9131653pt height=16.438356pt/></p>
 
 ---
 **Note**: This property is known to hold more for `build_quantile="fast"` (deviation of < 0.01) and less for 
 `build_quantile="exact"` (deviation of < 0.2). This is because the quantile function is built based on resampled scores
 during bootstrap iterations for the latter case, leading to more randomness when fever scores for A and B are available, 
-but also a tighter bound for <img src="img/70bcb72c245ba47b6fc7439da91ec6fc.png?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> overall.
+but also a tighter bound for <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> overall.
 
 ---
 
@@ -278,7 +278,7 @@ as many scores as possible should be collected, especially if the variance betwe
   **always** be preferable.
 
 * `num_samples` and `num_bootstrap_iterations` can be reduced to increase the speed of `aso()`. However, this is not 
-recommended as the result of the test will also become less accurate. Technically, <img src="img/70bcb72c245ba47b6fc7439da91ec6fc.png?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> is a upper bound
+recommended as the result of the test will also become less accurate. Technically, <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> is a upper bound
   that becomes tighter with the number of samples and bootstrap iterations (del Barrio et al., 2017). 
   
 * Bootstrap and permutation-randomization are all non-parametric tests, i.e. they don't make any assumptions about 
