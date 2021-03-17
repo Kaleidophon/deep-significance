@@ -238,11 +238,13 @@ class ASOSanityChecks(unittest.TestCase):
                     samples_normal2,
                     show_progress=False,
                     build_quantile=build_quantile,
+                    num_bootstrap_iterations=200,
                 )
                 eps_min2 = aso(
                     samples_normal2,
                     samples_normal1,
                     show_progress=False,
                     build_quantile=build_quantile,
+                    num_bootstrap_iterations=200,
                 )
                 self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=tol)
