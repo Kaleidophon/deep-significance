@@ -9,7 +9,7 @@ import unittest
 import numpy as np
 
 # PKG
-from deepsig import aso, bootstrap_test, permutation_test, correct_p_values
+from deepsig import aso, bootstrap_test, permutation_test, bonferroni_correction
 from deepsig.conversion import ArrayLike
 
 
@@ -25,7 +25,13 @@ class ConversionTests(unittest.TestCase):
 
     @staticmethod
     def _aso_wrapper(scores_a: ArrayLike, scores_b: ArrayLike):
-        return aso(scores_a, scores_b, num_samples=1, num_bootstrap_iterations=1)
+        return aso(
+            scores_a,
+            scores_b,
+            num_samples=1,
+            num_bootstrap_iterations=1,
+            show_progress=False,
+        )
 
     def test_python_compatability(self):
         """
@@ -39,9 +45,9 @@ class ConversionTests(unittest.TestCase):
             set(self.scores_b),
             num_samples=1,
             num_bootstrap_iterations=1,
+            show_progress=False,
         )
-        correct_p_values(set(self.p_values), method="bonferroni")
-        correct_p_values(set(self.p_values), method="fisher")
+        bonferroni_correction(set(self.p_values))
 
         bootstrap_test(tuple(self.scores_a), tuple(self.scores_b))
         permutation_test(tuple(self.scores_a), tuple(self.scores_b))
@@ -50,9 +56,9 @@ class ConversionTests(unittest.TestCase):
             tuple(self.scores_b),
             num_samples=1,
             num_bootstrap_iterations=1,
+            show_progress=False,
         )
-        correct_p_values(tuple(self.p_values), method="bonferroni")
-        correct_p_values(tuple(self.p_values), method="fisher")
+        bonferroni_correction(tuple(self.p_values))
 
     def test_numpy_array_shapes(self):
         """
@@ -74,10 +80,8 @@ class ConversionTests(unittest.TestCase):
         correct1_p_values = np.array(self.p_values)
         correct2_p_values = correct1_p_values[..., np.newaxis]
 
-        correct_p_values(correct1_p_values, method="bonferroni")
-        correct_p_values(correct1_p_values, method="fisher")
-        correct_p_values(correct2_p_values, method="bonferroni")
-        correct_p_values(correct2_p_values, method="fisher")
+        bonferroni_correction(correct1_p_values)
+        bonferroni_correction(correct2_p_values)
 
         # These should fail
         incorrect_scores_a = np.ones((2, 4)) * self.scores_a
@@ -89,10 +93,7 @@ class ConversionTests(unittest.TestCase):
                 test_func(incorrect_scores_a, incorrect_scores_b)
 
         with self.assertRaises(TypeError):
-            correct_p_values(incorrect_p_values, method="bonferroni")
-
-        with self.assertRaises(TypeError):
-            correct_p_values(incorrect_p_values, method="fisher")
+            bonferroni_correction(incorrect_p_values)
 
     def test_pytorch_compatibility(self):
         """
@@ -117,10 +118,8 @@ class ConversionTests(unittest.TestCase):
             correct1_p_values = torch.FloatTensor(self.p_values)
             correct2_p_values = correct1_p_values.unsqueeze(dim=1)
 
-            correct_p_values(correct1_p_values, method="bonferroni")
-            correct_p_values(correct1_p_values, method="fisher")
-            correct_p_values(correct2_p_values, method="bonferroni")
-            correct_p_values(correct2_p_values, method="fisher")
+            bonferroni_correction(correct1_p_values)
+            bonferroni_correction(correct2_p_values)
 
             # These shouldn't
             incorrect_scores_a = torch.ones((2, 4)) * correct1_scores_a
@@ -132,10 +131,7 @@ class ConversionTests(unittest.TestCase):
                     test_func(incorrect_scores_a, incorrect_scores_b)
 
             with self.assertRaises(TypeError):
-                correct_p_values(incorrect_p_values, method="bonferroni")
-
-            with self.assertRaises(TypeError):
-                correct_p_values(incorrect_p_values, method="fisher")
+                bonferroni_correction(incorrect_p_values)
 
         except ImportError:
             pass
@@ -163,10 +159,8 @@ class ConversionTests(unittest.TestCase):
             correct1_p_values = tf.convert_to_tensor(self.p_values)
             correct2_p_values = tf.expand_dims(correct1_p_values, axis=1)
 
-            correct_p_values(correct1_p_values, method="bonferroni")
-            correct_p_values(correct1_p_values, method="fisher")
-            correct_p_values(correct2_p_values, method="bonferroni")
-            correct_p_values(correct2_p_values, method="fisher")
+            bonferroni_correction(correct1_p_values)
+            bonferroni_correction(correct2_p_values)
 
             # These shouldn't
             incorrect_scores_a = tf.ones((2, 4)) * correct1_scores_a
@@ -178,10 +172,7 @@ class ConversionTests(unittest.TestCase):
                     test_func(incorrect_scores_a, incorrect_scores_b)
 
             with self.assertRaises(TypeError):
-                correct_p_values(incorrect_p_values, method="bonferroni")
-
-            with self.assertRaises(TypeError):
-                correct_p_values(incorrect_p_values, method="fisher")
+                bonferroni_correction(incorrect_p_values)
 
         except ImportError:
             pass
@@ -209,10 +200,8 @@ class ConversionTests(unittest.TestCase):
             correct1_p_values = jnp.asarray(self.p_values)
             correct2_p_values = correct1_p_values[..., jnp.newaxis]
 
-            correct_p_values(correct1_p_values, method="bonferroni")
-            correct_p_values(correct1_p_values, method="fisher")
-            correct_p_values(correct2_p_values, method="bonferroni")
-            correct_p_values(correct2_p_values, method="fisher")
+            bonferroni_correction(correct1_p_values)
+            bonferroni_correction(correct2_p_values)
 
             # These shouldn't
             incorrect_scores_a = jnp.ones((2, 4)) * correct1_scores_a
@@ -224,10 +213,7 @@ class ConversionTests(unittest.TestCase):
                     test_func(incorrect_scores_a, incorrect_scores_b)
 
             with self.assertRaises(TypeError):
-                correct_p_values(incorrect_p_values, method="bonferroni")
-
-            with self.assertRaises(TypeError):
-                correct_p_values(incorrect_p_values, method="fisher")
+                bonferroni_correction(incorrect_p_values)
 
         except ImportError:
             pass

@@ -94,7 +94,7 @@ class ASOTechnicalTests(unittest.TestCase):
         quantile_func_normal = get_quantile_function(samples_normal)
 
         for prob, x in [(0.84, 1), (0.5, 0), (0.31, -0.5), (0.16, -1)]:
-            self.assertAlmostEqual(x, quantile_func_normal(prob), delta=0.05)
+            self.assertAlmostEqual(x, quantile_func_normal(prob), delta=0.15)
 
     def test_quantile_function_building(self):
         """
@@ -132,7 +132,7 @@ class ASOTechnicalTests(unittest.TestCase):
                 build_quantile="fast",
                 show_progress=False,
             )
-            print(eps_min1, eps_min2)
+
             self.assertAlmostEqual(
                 eps_min1, eps_min2, delta=FAST_QUANTILE_WARN_INTERVAL
             )

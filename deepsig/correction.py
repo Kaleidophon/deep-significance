@@ -7,7 +7,6 @@ This module contains methods to correct p-values in order to avoid the
 
 # EXT
 import numpy as np
-from scipy import stats
 
 # PKD
 from deepsig.conversion import p_value_conversion, ArrayLike
@@ -17,24 +16,20 @@ from deepsig.conversion import p_value_conversion, ArrayLike
 
 
 @p_value_conversion
-def correct_p_values(p_values: ArrayLike, method: str = "bonferroni") -> np.array:
+def bonferroni_correction(p_values: ArrayLike) -> np.array:
     """
-    Correct p-values based on Bonferroni's or Fisher's method. Bonferroni's method is most appropriate when data sets
-    that the p-values originated from are dependent, and Fisher's when they are independent.
+    Correct p-values based on Bonferroni's method.
 
     Parameters
     ----------
     p_values: ArrayLike
         p-values to be corrected.
-    method: str
-        Method used for correction. Has to be either "bonferroni" or "fisher".
 
     Returns
     -------
     np.array
         Corrected p-values.
     """
-    assert method in ("bonferroni", "fisher")
     assert len(p_values) > 0, "List of p-values must not be empty."
     assert (0 <= p_values).all() and (
         p_values <= 1
@@ -55,7 +50,7 @@ def correct_p_values(p_values: ArrayLike, method: str = "bonferroni") -> np.arra
     corrected_p_values = np.ones(N)
 
     for u in range(N):
-        corrected_p_values[u] = calculate_partial_conjunction(p_values, u + 1, method)
+        corrected_p_values[u] = calculate_partial_conjunction(p_values, u + 1)
 
     # Make sure p-values never get correct above 1
     corrected_p_values = np.minimum(corrected_p_values, 1)
@@ -66,9 +61,7 @@ def correct_p_values(p_values: ArrayLike, method: str = "bonferroni") -> np.arra
     return corrected_p_values
 
 
-def calculate_partial_conjunction(
-    sorted_p_values: np.array, u: int, method: str
-) -> float:
+def calculate_partial_conjunction(sorted_p_values: np.array, u: int) -> float:
     """
     Calculate the partial conjunction p-value for u out of N.
 
@@ -78,8 +71,6 @@ def calculate_partial_conjunction(
         Sorted p-values.
     u: int
         Number of null hypothesis.
-    method: str
-        Method used for correction. Has to be either "bonferroni" or "fisher".
 
     Returns
     -------
@@ -87,15 +78,6 @@ def calculate_partial_conjunction(
         p-value for the partial conjunction hypothesis for u out of N.
     """
     N = len(sorted_p_values)
-    p_value_selection = sorted_p_values[: (N - u + 1)]
-    p_partial_u = 0
-
-    if method == "bonferroni":
-        p_partial_u = (N - u + 1) * sorted_p_values[u - 1]
-
-    elif method == "fisher":
-        p_partial_u = 1 - stats.chi2.cdf(
-            -2 * np.sum(np.log(p_value_selection)), 2 * (N - u + 1)
-        )
+    p_partial_u = (N - u + 1) * sorted_p_values[u - 1]
 
     return p_partial_u

@@ -49,7 +49,7 @@ To help mitigate this problem, this package supplies fully-tested re-implementat
 testing:
 * Statistical Significane tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron & Tibshirani, 1994) and 
   permutation-randomization (Noreen, 1989).
-* p-value correction methods for multiplicity in datasets such as Bonferroni (Bonferroni, 1936) and Fisher (Fisher, 1992). 
+* Bonferroni correction methods for multiplicity in datasets (Bonferroni, 1936). 
 
 All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch / 
 Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation 
@@ -201,9 +201,8 @@ eps_min = [aso(a, b, confidence_level=0.05 / M) for a, b in zip(scores_a, scores
 ---
 **Note**: When using another significance test like bootstrap (`from deepsig import bootstrap_test`), permutation-randomization
 (`from deepsig import permutation test`) or e.g. a t-test (not implemented here), you can use the p-value correction 
-implemented in `deep-significance` by `from deepsig import correct_p_value`. Call the function with `method="bonferroni"` 
-when the different comparisons are dependent (default) or `method="fisher"` in case of independence. When in doubt, 
-`"bonferroni"` will be a more conservative but safe correction. `correct_p_value()` is **not** compatible with `aso()`.
+implemented in `deep-significance` by `from deepsig import bonferroni_correcton`. `correct_p_value()` is **not** 
+compatible with `aso()`.
 
 ---
 
@@ -248,7 +247,7 @@ $$
 ---
 **Note**: This property is known to hold more for `build_quantile="fast"` (deviation of < 0.01) and less for 
 `build_quantile="exact"` (deviation of < 0.2). This is because the quantile function is built based on resampled scores
-during bootstrap iterations for the latter case, leading to more randomness when fever scores for A and B are available, 
+during bootstrap iterations for the latter case, leading to more randomness when fewer scores for A and B are available, 
 but also a tighter bound for $\epsilon_\text{min}$ overall.
 
 ---
@@ -346,8 +345,6 @@ Dror, Rotem, et al. "The hitchhiker’s guide to testing statistical significanc
 Dror, Rotem, Shlomov, Segev, and Reichart, Roi. "Deep dominance-how to properly compare deep neural models." Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics. 2019.
 
 Efron, Bradley, and Robert J. Tibshirani. "An introduction to the bootstrap." CRC press, 1994.
-
-Fisher, Ronald Aylmer. "Statistical methods for research workers." Breakthroughs in statistics. Springer, New York, NY, 1992. 66-70.
 
 Henderson, Peter, et al. "Deep reinforcement learning that matters." Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 32. No. 1. 2018.
 
