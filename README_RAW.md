@@ -324,9 +324,11 @@ If you use the ASO test via `aso()`, please cite the original work:
 ### :medal_sports: Acknowledgements
 
 This package was created out of discussions of the [NLPnorth group](https://nlpnorth.github.io/) at the IT University 
-Copenhagen. The code in this repository is in multiple places based on several of [Rotem Dror's](https://rtmdrr.github.io/) 
-repositories, namely [this](https://github.com/rtmdrr/replicability-analysis-NLP), [this](https://github.com/rtmdrr/testSignificanceNLP)
-and [this one](https://github.com/rtmdrr/DeepComparison).
+Copenhagen, whose members I want to thank for their feedback. The code in this repository is in multiple places based on
+several of [Rotem Dror's](https://rtmdrr.github.io/) repositories, namely 
+[this](https://github.com/rtmdrr/replicability-analysis-NLP), [this](https://github.com/rtmdrr/testSignificanceNLP)
+and [this one](https://github.com/rtmdrr/DeepComparison). Thanks also go out to her personally for being available to 
+answer questions and provide feedback to the implementation and documentation of this package.
 
 The commit message template used in this project can be found [here](https://github.com/Kaleidophon/commit-template-for-humans).
 The inline latex equations were rendered using [readme2latex](https://github.com/leegao/readme2tex).

@@ -40,8 +40,7 @@ few scores, **we often cannot
 conclude that one model type or algorithm is better than another**.
 This endangers the progress in the field, as seeming success due to random chance might draw practitioners astray. 
 
-For instance,
-a recent study in Natural Language Processing by Narang et al. (2021) has found that many modifications proposed to 
+For instance, a recent study in Natural Language Processing by Narang et al. (2021) has found that many modifications proposed to 
 transformers do not actually improve performance. Similar issues are known to plague other fields like e.g., 
 Reinforcement Learning (Henderson et al., 2018) and Computer Vision (Borji, 2017) as well. 
 
@@ -315,9 +314,11 @@ If you use the ASO test via `aso()`, please cite the original work:
 ### |:medal_sports:| Acknowledgements
 
 This package was created out of discussions of the [NLPnorth group](https://nlpnorth.github.io/) at the IT University 
-Copenhagen. The code in this repository is in multiple places based on several of [Rotem Dror's](https://rtmdrr.github.io/) 
-repositories, namely [this](https://github.com/rtmdrr/replicability-analysis-NLP), [this](https://github.com/rtmdrr/testSignificanceNLP)
-and [this one](https://github.com/rtmdrr/DeepComparison).
+Copenhagen, whose members I want to thank for their feedback. The code in this repository is in multiple places based on
+several of [Rotem Dror's](https://rtmdrr.github.io/) repositories, namely 
+[this](https://github.com/rtmdrr/replicability-analysis-NLP), [this](https://github.com/rtmdrr/testSignificanceNLP)
+and [this one](https://github.com/rtmdrr/DeepComparison). Thanks also go out to her personally for being available to 
+answer questions and provide feedback to the implementation and documentation of this package.
 
 The commit message template used in this project can be found [here](https://github.com/Kaleidophon/commit-template-for-humans).
 The inline latex equations were rendered using [readme2latex](https://github.com/leegao/readme2tex).
