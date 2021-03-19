@@ -84,7 +84,8 @@ def aso(
     )
 
     violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
-    const = np.sqrt(num_samples ** 2 / 2 * num_samples)
+    # Based on the actual number of samples
+    const1 = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
     quantile_func_a = get_quantile_function(scores_a)
     quantile_func_b = get_quantile_function(scores_b)
 
@@ -105,11 +106,14 @@ def aso(
             quantile_func_b if build_quantile == "fast" else None,
         )
 
-    sigma_hat = np.std(const * (samples - violation_ratio))
+    const2 = np.sqrt(
+        num_samples ** 2 / (2 * num_samples)
+    )  # This one is based on the number of re-sampled scores
+    sigma_hat = np.std(const2 * (samples - violation_ratio))
 
     min_epsilon = min(
         max(
-            violation_ratio - (1 / const) * sigma_hat * normal.ppf(confidence_level), 0
+            violation_ratio - (1 / const1) * sigma_hat * normal.ppf(confidence_level), 0
         ),
         1,
     )

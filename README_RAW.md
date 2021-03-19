@@ -40,8 +40,7 @@ few scores, **we often cannot
 conclude that one model type or algorithm is better than another**.
 This endangers the progress in the field, as seeming success due to random chance might draw practitioners astray. 
 
-For instance,
-a recent study in Natural Language Processing by Narang et al. (2021) has found that many modifications proposed to 
+For instance, a recent study in Natural Language Processing by Narang et al. (2021) has found that many modifications proposed to 
 transformers do not actually improve performance. Similar issues are known to plague other fields like e.g., 
 Reinforcement Learning (Henderson et al., 2018) and Computer Vision (Borji, 2017) as well. 
 

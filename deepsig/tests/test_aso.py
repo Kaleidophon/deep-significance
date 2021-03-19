@@ -210,6 +210,34 @@ class ASOSanityChecks(unittest.TestCase):
                 list(sorted(min_epsilons)), min_epsilons
             )  # Make sure min_epsilon decreases
 
+    def test_dependency_on_samples(self):
+        """
+        Make sure that the minimum epsilon threshold decreases as we increase the number of samples.
+        """
+        for build_quantile in ("fast", "exact"):
+            min_epsilons = []
+
+            for num_samples in [100, 500, 4000, 10000]:
+                samples_normal1 = np.random.normal(
+                    loc=0.2, scale=1, size=num_samples
+                )  # Scores for algorithm A
+                samples_normal2 = np.random.normal(
+                    loc=0, scale=1.1, size=num_samples
+                )  # Scores for algorithm B
+
+                min_eps = aso(
+                    samples_normal1,
+                    samples_normal2,
+                    num_bootstrap_iterations=10,
+                    show_progress=True,
+                    build_quantile=build_quantile,
+                )
+                min_epsilons.append(min_eps)
+
+            self.assertEqual(
+                list(sorted(min_epsilons, reverse=True)), min_epsilons
+            )  # Make sure min_epsilon decreases
+
     def test_symmetry(self):
         """
         Test whether ASO(A, B, alpha) = 1 - ASO(B, A, alpha) holds.
