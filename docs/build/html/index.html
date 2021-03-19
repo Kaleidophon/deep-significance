@@ -295,9 +295,8 @@ which corresponds to the Bonferroni correction (Bonferroni et al., 1936):</p>
 </div>
 <hr class="docutils" />
 <p><strong>Note</strong>: When using another significance test like bootstrap (<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">deepsig</span> <span class="pre">import</span> <span class="pre">bootstrap_test</span></code>), permutation-randomization
-(<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">deepsig</span> <span class="pre">import</span> <span class="pre">permutation</span> <span class="pre">test</span></code>) or e.g. a t-test (not implemented here), you can use the p-value correction
-implemented in <code class="docutils literal notranslate"><span class="pre">deep-significance</span></code> by <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">deepsig</span> <span class="pre">import</span> <span class="pre">bonferroni_correcton</span></code>. <code class="docutils literal notranslate"><span class="pre">correct_p_value()</span></code> is <strong>not</strong>
-compatible with <code class="docutils literal notranslate"><span class="pre">aso()</span></code>.</p>
+(<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">deepsig</span> <span class="pre">import</span> <span class="pre">permutation_test</span></code>) or e.g. a t-test (not implemented here), you can use <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">deepsig</span> <span class="pre">import</span>
+<span class="pre">bonferroni_correcton</span></code>. <code class="docutils literal notranslate"><span class="pre">bonferroni_correction()</span></code> is <strong>not</strong> compatible with <code class="docutils literal notranslate"><span class="pre">aso()</span></code>.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="id7">
@@ -560,7 +559,7 @@ times we resample.</p>
 <dl class="py function">
 <dt id="deepsig.correction.bonferroni_correction">
 <code class="sig-prename descclassname"><span class="pre">deepsig.correction.</span></code><code class="sig-name descname"><span class="pre">bonferroni_correction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_values</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.LongTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.array</span><a class="headerlink" href="#deepsig.correction.bonferroni_correction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Correct p-values based on Bonferroni’s method.</p>
+<dd><p>Correct for multiple comparisons based on Bonferroni’s method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">

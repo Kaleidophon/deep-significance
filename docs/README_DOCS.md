@@ -191,9 +191,8 @@ eps_min = [aso(a, b, confidence_level=0.05 / M) for a, b in zip(scores_a, scores
 
 ---
 **Note**: When using another significance test like bootstrap (`from deepsig import bootstrap_test`), permutation-randomization
-(`from deepsig import permutation test`) or e.g. a t-test (not implemented here), you can use the p-value correction 
-implemented in `deep-significance` by `from deepsig import bonferroni_correcton`. `correct_p_value()` is **not** 
-compatible with `aso()`.
+(`from deepsig import permutation_test`) or e.g. a t-test (not implemented here), you can use `from deepsig import 
+bonferroni_correcton`. `bonferroni_correction()` is **not** compatible with `aso()`.
 
 ---
 

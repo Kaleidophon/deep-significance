@@ -18,7 +18,7 @@ from deepsig.conversion import p_value_conversion, ArrayLike
 @p_value_conversion
 def bonferroni_correction(p_values: ArrayLike) -> np.array:
     """
-    Correct p-values based on Bonferroni's method.
+    Correct for multiple comparisons based on Bonferroni's method.
 
     Parameters
     ----------
