@@ -102,11 +102,11 @@ class ASOTechnicalTests(unittest.TestCase):
         """
         # Define parameters of gaussian for which we will test if the two methods are sufficiently close.
         parameters = [
-            ((5, 0.1), (0, 1)),
+            #  ((5, 0.1), (0, 1)),
             ((0, 0.5), (0, 1)),
-            ((2, 2), (1, 1)),
+            #  ((2, 2), (1, 1)),
             ((-0.5, 0.1), (-0.6, 0.2)),
-            ((0.5, 0.21), (0.7, 0.1)),
+            #  ((0.5, 0.21), (0.7, 0.1)),
             ((0.1, 0.3), (0.2, 0.1)),
         ]
 
@@ -217,7 +217,7 @@ class ASOSanityChecks(unittest.TestCase):
         for build_quantile in ("fast", "exact"):
             min_epsilons = []
 
-            for num_samples in [80, 1000, 10000]:
+            for num_samples in [80, 1000, 8000]:
                 samples_normal2 = np.random.normal(
                     loc=0, scale=1.1, size=num_samples
                 )  # Scores for algorithm B
@@ -241,11 +241,11 @@ class ASOSanityChecks(unittest.TestCase):
         Test whether ASO(A, B, alpha) = 1 - ASO(B, A, alpha) holds.
         """
         parameters = [
-            ((5, 0.1), (0, 1)),
+            #  ((5, 0.1), (0, 1)),
             ((0, 0.5), (0, 1)),
-            ((2, 2), (1, 1)),
+            #  ((2, 2), (1, 1)),
             ((-0.5, 0.1), (-0.6, 0.2)),
-            ((0.5, 0.21), (0.7, 0.1)),
+            #  ((0.5, 0.21), (0.7, 0.1)),
             ((0.1, 0.3), (0.2, 0.1)),
         ]
 
