@@ -1,4 +1,4 @@
-# deep-significance: Easy Significance Testing for Deep Neural Networks
+# deep-significance: Easy and Better Significance Testing for Deep Neural Networks
 
 [![Build Status](https://travis-ci.com/Kaleidophon/deep-significance.svg?branch=main)]()
 [![Coverage Status](https://coveralls.io/repos/github/Kaleidophon/deep-significance/badge.svg?branch=main&service=github)](https://coveralls.io/github/Kaleidophon/deep-significance?branch=main)
@@ -234,9 +234,9 @@ ourself to only filling out one half of the matrix by making use of the followin
 
 ---
 **Note**: This property is known to hold more for `build_quantile="fast"` (deviation of < 0.01) and less for 
-`build_quantile="exact"` (deviation of < 0.2). This is because the quantile function is built based on resampled scores
-during bootstrap iterations for the latter case, leading to more randomness when fewer scores for A and B are available, 
-but also a tighter bound for <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> overall.
+`build_quantile="exact"` (deviation of around < 0.2), also holding less the less scores are supplied. This is because 
+the quantile function is built based on resampled scores during bootstrap iterations for the latter case, leading to 
+more randomness when fewer scores for A and B are available, but also a tighter bound for <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> overall.
 
 ---
 

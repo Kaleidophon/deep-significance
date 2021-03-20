@@ -217,19 +217,17 @@ class ASOSanityChecks(unittest.TestCase):
         for build_quantile in ("fast", "exact"):
             min_epsilons = []
 
-            for num_samples in [100, 500, 4000, 10000]:
-                samples_normal1 = np.random.normal(
-                    loc=0.2, scale=1, size=num_samples
-                )  # Scores for algorithm A
+            for num_samples in [80, 1000, 10000]:
                 samples_normal2 = np.random.normal(
                     loc=0, scale=1.1, size=num_samples
                 )  # Scores for algorithm B
+                samples_normal1 = samples_normal2 + 1e-3
 
                 min_eps = aso(
                     samples_normal1,
                     samples_normal2,
                     num_bootstrap_iterations=10,
-                    show_progress=True,
+                    show_progress=False,
                     build_quantile=build_quantile,
                 )
                 min_epsilons.append(min_eps)
@@ -255,24 +253,25 @@ class ASOSanityChecks(unittest.TestCase):
 
             for (loc1, scale1), (loc2, scale2) in parameters:
                 samples_normal1 = np.random.normal(
-                    loc=loc1, scale=scale1, size=50
+                    loc=loc1, scale=scale1, size=1000
                 )  # New scores for algorithm A
                 samples_normal2 = np.random.normal(
-                    loc=loc2, scale=scale2, size=50
+                    loc=loc2, scale=scale2, size=1000
                 )  # Scores for algorithm B
 
                 eps_min1 = aso(
                     samples_normal1,
                     samples_normal2,
-                    show_progress=False,
+                    show_progress=True,  # Show progress so travis CI build doesn't time out
                     build_quantile=build_quantile,
-                    num_bootstrap_iterations=200,
+                    num_bootstrap_iterations=1000,
                 )
                 eps_min2 = aso(
                     samples_normal2,
                     samples_normal1,
-                    show_progress=False,
+                    show_progress=True,  # Show progress so travis CI build doesn't time out
                     build_quantile=build_quantile,
-                    num_bootstrap_iterations=200,
+                    num_bootstrap_iterations=1000,
                 )
+                print("Symmetry", eps_min1, 1 - eps_min2)
                 self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=tol)

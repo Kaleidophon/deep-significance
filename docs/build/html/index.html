@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     
-    <title>deep-significance: Easy Significance Testing for Deep Neural Networks &#8212; deep-significance 0.9 documentation</title>
+    <title>deep-significance: Easy and Better Significance Testing for Deep Neural Networks &#8212; deep-significance 0.9 documentation</title>
 
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/basic.css" type="text/css" />
@@ -76,7 +76,7 @@
     <div class="related d-flex justify-content-between bg-light flex-wrap" role="navigation" aria-label="related navigation">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="#">deep-significance 0.9 documentation</a></li>
-            <li class="breadcrumb-item active">deep-significance: Easy Significance Testing for Deep Neural Networks</li>
+            <li class="breadcrumb-item active">deep-significance: Easy and Better Significance Testing for Deep Neural Networks</li>
         </ol>
        <div>
           <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
@@ -93,7 +93,7 @@
             
                 <!-- Local TOC -->
                 <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">deep-significance: Easy Significance Testing for Deep Neural Networks</a><ul>
+<li><a class="reference internal" href="#">deep-significance: Easy and Better Significance Testing for Deep Neural Networks</a><ul>
 <li><a class="reference internal" href="#id1">⁉️ Why?</a><ul>
 <li><a class="reference internal" href="#id2">📥 Installation</a></li>
 <li><a class="reference internal" href="#id3">🔖 Examples</a></li>
@@ -136,8 +136,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="deep-significance-easy-significance-testing-for-deep-neural-networks">
-<h1>deep-significance: Easy Significance Testing for Deep Neural Networks<a class="headerlink" href="#deep-significance-easy-significance-testing-for-deep-neural-networks" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="deep-significance-easy-and-better-significance-testing-for-deep-neural-networks">
+<h1>deep-significance: Easy and Better Significance Testing for Deep Neural Networks<a class="headerlink" href="#deep-significance-easy-and-better-significance-testing-for-deep-neural-networks" title="Permalink to this headline">¶</a></h1>
 <a class="reference external image-reference" href="https://coveralls.io/github/Kaleidophon/deep-significance?branch=main"><img alt="Coverage Status" src="https://coveralls.io/repos/github/Kaleidophon/deep-significance/badge.svg?branch=main&amp;service=github" /></a>
 <a class="reference external image-reference" href="https://www.gnu.org/licenses/gpl-3.0"><img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
 <a class="reference external image-reference" href="https://github.com/python/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a>
@@ -332,9 +332,9 @@ with the corresponding <span class="raw-html-m2r"><img src="70bcb72c245ba47b6fc7
 ourself to only filling out one half of the matrix by making use of the following property of ASO:</p>
 <p align="center"><img src="19a0661139e4b089cac41a8a27b738e7.svg?invert_in_darkmode" align=middle width=245.9131653pt height=16.438356pt/></p><hr class="docutils" />
 <p><strong>Note</strong>: This property is known to hold more for <code class="docutils literal notranslate"><span class="pre">build_quantile=&quot;fast&quot;</span></code> (deviation of &lt; 0.01) and less for
-<code class="docutils literal notranslate"><span class="pre">build_quantile=&quot;exact&quot;</span></code> (deviation of &lt; 0.2). This is because the quantile function is built based on resampled scores
-during bootstrap iterations for the latter case, leading to more randomness when fewer scores for A and B are available,
-but also a tighter bound for <span class="raw-html-m2r"><img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/></span> overall.</p>
+<code class="docutils literal notranslate"><span class="pre">build_quantile=&quot;exact&quot;</span></code> (deviation of around &lt; 0.2), also holding less the less scores are supplied. This is because
+the quantile function is built based on resampled scores during bootstrap iterations for the latter case, leading to
+more randomness when fewer scores for A and B are available, but also a tighter bound for <span class="raw-html-m2r"><img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/></span> overall.</p>
 <hr class="docutils" />
 <p>The corresponding code can then look something like this:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
