@@ -19,7 +19,7 @@ from deepsig.conversion import ArrayLike, score_conversion
 # Warn the user when min_eps score lands in [0.5 - FAST_QUANTILE_WARN_INTERVAL, 0.5]
 # build_quantile="fast" trades of precision for speed but could be misleading for close cases, where
 # build_quantile="exact" should be used instead.
-FAST_QUANTILE_WARN_INTERVAL = 0.1
+FAST_QUANTILE_WARN_INTERVAL = 0.2
 
 
 @score_conversion
