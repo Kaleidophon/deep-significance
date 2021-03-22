@@ -90,7 +90,7 @@ class ASOTechnicalTests(unittest.TestCase):
             self.assertAlmostEqual(prob, quantile_func_uniform(prob), delta=0.01)
 
         # Test with normal distribution
-        samples_normal = np.random.normal(size=5)
+        samples_normal = np.random.normal(size=self.num_samples)
         quantile_func_normal = get_quantile_function(samples_normal)
 
         for prob, x in [(0.84, 1), (0.5, 0), (0.31, -0.5), (0.16, -1)]:
@@ -112,10 +112,10 @@ class ASOTechnicalTests(unittest.TestCase):
 
         for (loc1, scale1), (loc2, scale2) in parameters:
             samples_normal1 = np.random.normal(
-                loc=loc1, scale=scale1, size=10
+                loc=loc1, scale=scale1, size=500
             )  # New scores for algorithm A
             samples_normal2 = np.random.normal(
-                loc=loc2, scale=scale2, size=10
+                loc=loc2, scale=scale2, size=500
             )  # Scores for algorithm B
 
             eps_min1 = aso(
