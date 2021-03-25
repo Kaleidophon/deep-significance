@@ -102,9 +102,11 @@ $$
 We can interpret this equation as follows: Assuming that A is *not* better than B, the test assumes a corresponding distribution
 of differences that $\delta(X)$ is drawn from. How does our actually observed difference $\delta_\text{obs}$ fit in there?
 This is what the p-value is expressing: If this probability is high, $\delta_\text{obs}$ is in line with what we expected under 
-the null hypothesis, meaning that we're likely to see A is not better than B. If the 
-probability is low, that means that $\delta_\text{obs}$ is quite unlikely under the null hypothesis and that it is 
-likely *larger* than $\delta(X)$ - indicating that the null hypothesis might be wrong and that A is indeed better than B. 
+the null hypothesis, so we conclude A not to better than B. If the 
+probability is low, that means that $\delta_\text{obs}$ is quite unlikely under the null hypothesis and that the reverse 
+case is more likely - i.e. that it is 
+likely *larger* than $\delta(X)$ - and we conclude that A is indeed better than B. Note that **the p-value does not 
+express whether the null hypothesis is true**.
 
 To decide when we trust A to be better than B, we set a threshold that will determine when the p-value is small enough 
 for us to reject the null hypothesis, this is called the significance level $\alpha$ and it is often set to be 0.05.

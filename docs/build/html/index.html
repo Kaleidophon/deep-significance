@@ -220,9 +220,11 @@ equal to the observed difference <span class="raw-html-m2r"><img src="ecdae90a73
 <p align="center"><img src="6d2735c4e335ec03c8b45736da4531a3.svg?invert_in_darkmode" align=middle width=135.91559685pt height=16.438356pt/></p><p>We can interpret this equation as follows: Assuming that A is <em>not</em> better than B, the test assumes a corresponding distribution
 of differences that <span class="raw-html-m2r"><img src="6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/></span> is drawn from. How does our actually observed difference <span class="raw-html-m2r"><img src="94ea44af3034479a1ba3f2f655bcec39.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/></span> fit in there?
 This is what the p-value is expressing: If this probability is high, <span class="raw-html-m2r"><img src="94ea44af3034479a1ba3f2f655bcec39.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/></span> is in line with what we expected under
-the null hypothesis, meaning that we’re likely to see A is not better than B. If the
-probability is low, that means that <span class="raw-html-m2r"><img src="94ea44af3034479a1ba3f2f655bcec39.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/></span> is quite unlikely under the null hypothesis and that it is
-likely <em>larger</em> than <span class="raw-html-m2r"><img src="6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/></span> - indicating that the null hypothesis might be wrong and that A is indeed better than B.</p>
+the null hypothesis, so we conclude A not to better than B. If the
+probability is low, that means that <span class="raw-html-m2r"><img src="94ea44af3034479a1ba3f2f655bcec39.svg?invert_in_darkmode" align=middle width=26.32659479999999pt height=22.831056599999986pt/></span> is quite unlikely under the null hypothesis and that the reverse
+case is more likely - i.e. that it is
+likely <em>larger</em> than <span class="raw-html-m2r"><img src="6dea53e880ae565b82d6b4a6148a0012.svg?invert_in_darkmode" align=middle width=35.622171749999985pt height=24.65753399999998pt/></span> - and we conclude that A is indeed better than B. Note that <strong>the p-value does not
+express whether the null hypothesis is true</strong>.</p>
 <p>To decide when we trust A to be better than B, we set a threshold that will determine when the p-value is small enough
 for us to reject the null hypothesis, this is called the significance level <span class="raw-html-m2r"><img src="c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/></span> and it is often set to be 0.05.</p>
 </div>
