@@ -51,7 +51,7 @@ def bootstrap_test(
 
         new_delta = np.mean(resampled_scores_a - resampled_scores_b)
 
-        if new_delta < 2 * delta:
+        if new_delta >= 2 * delta:
             num_larger += 1
 
     p_value = num_larger / num_samples

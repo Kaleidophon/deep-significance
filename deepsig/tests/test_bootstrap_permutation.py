@@ -52,8 +52,8 @@ class BootstrapPermutationTests(unittest.TestCase):
         # Different uniform distributions
         samples_c1 = np.random.uniform(5, 10, self.num_samples)
 
-        p_value_perm2 = permutation_test(samples_a1, samples_c1)
-        p_value_boot2 = bootstrap_test(samples_a1, samples_c1)
+        p_value_perm2 = permutation_test(samples_c1, samples_a1)
+        p_value_boot2 = bootstrap_test(samples_c1, samples_a1)
 
         self.assertLessEqual(p_value_perm2, 0.05)
         self.assertLessEqual(p_value_boot2, 0.05)
@@ -74,8 +74,8 @@ class BootstrapPermutationTests(unittest.TestCase):
         # Different uniform distributions
         samples_c2 = np.random.normal(loc=5, size=self.num_samples)
 
-        p_value_perm4 = permutation_test(samples_a2, samples_c2)
-        p_value_boot4 = bootstrap_test(samples_a2, samples_c2)
+        p_value_perm4 = permutation_test(samples_c2, samples_a2)
+        p_value_boot4 = bootstrap_test(samples_c2, samples_a2)
 
         self.assertLessEqual(p_value_perm4, 0.05)
         self.assertLessEqual(p_value_boot4, 0.05)

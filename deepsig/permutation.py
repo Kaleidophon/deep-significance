@@ -56,7 +56,7 @@ def permutation_test(
         )
         swapped_a, swapped_b = np.array(swapped_a), np.array(swapped_b)
 
-        if np.mean(swapped_a - swapped_b) <= delta:
+        if np.mean(swapped_a - swapped_b) >= delta:
             num_larger += 1
 
     p_value = (num_larger + 1) / (num_samples + 1)

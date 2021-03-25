@@ -4,22 +4,17 @@ The code here heavily borrows from their `original code base <https://github.com
 """
 
 # STD
-from typing import List, Callable, Optional
+from typing import List, Callable
 from warnings import warn
 
 # EXT
+from joblib import Parallel, delayed
 import numpy as np
 from scipy.stats import norm as normal
 from tqdm import tqdm
 
 # PKG
 from deepsig.conversion import ArrayLike, score_conversion
-
-# CONST
-# Warn the user when min_eps score lands in [0.5 - FAST_QUANTILE_WARN_INTERVAL, 0.5]
-# build_quantile="fast" trades of precision for speed but could be misleading for close cases, where
-# build_quantile="exact" should be used instead.
-FAST_QUANTILE_WARN_INTERVAL = 0.2
 
 
 @score_conversion
@@ -30,7 +25,7 @@ def aso(
     num_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
     dt: float = 0.005,
-    build_quantile: str = "fast",
+    num_jobs: int = 1,
     show_progress: bool = True,
 ) -> float:
     """
@@ -55,10 +50,8 @@ def aso(
         Number of bootstrap iterations when estimating sigma.
     dt: float
         Differential for t during integral calculation.
-    build_quantile: str
-        Indicate whether the quantile function during bootstrap iterations should be build from scratch
-        (build_quantile="exact") or reused from the original score distribution (build_quantile="fast"). The fast result
-        will vary slightly from the exact result, so use "exact" for eps_min close to 0.5.
+    num_jobs: int
+        Number of threads that bootstrap iterations are divided among.
     show_progress: bool
         Show progress bar. Default is True.
 
@@ -76,11 +69,8 @@ def aso(
     assert (
         num_bootstrap_iterations > 0
     ), "num_samples must be positive, {} found.".format(num_bootstrap_iterations)
-    assert build_quantile in (
-        "fast",
-        "exact",
-    ), "'build_quantile' has to be eiter 'fast' or 'exact', {} found".format(
-        build_quantile
+    assert num_jobs > 0, "Number of jobs has to be at least 1, {} found.".format(
+        num_jobs
     )
 
     violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
@@ -89,28 +79,37 @@ def aso(
     quantile_func_a = get_quantile_function(scores_a)
     quantile_func_b = get_quantile_function(scores_b)
 
-    samples = np.zeros(num_bootstrap_iterations)
+    # Add progressbar if applicable
     iters = (
         tqdm(range(num_bootstrap_iterations), desc="Bootstrap iterations")
         if show_progress
         else range(num_bootstrap_iterations)
     )
-    for i in iters:
+
+    def _bootstrap_iter():
+        """
+        One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
+        """
         sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, num_samples))
         sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, num_samples))
-        samples[i] = compute_violation_ratio(
+        sample = compute_violation_ratio(
             sampled_scores_a,
             sampled_scores_b,
             dt,
-            quantile_func_a if build_quantile == "fast" else None,
-            quantile_func_b if build_quantile == "fast" else None,
         )
+
+        return sample
+
+    # Initialize worker pool and start iterations
+    parallel = Parallel(n_jobs=num_jobs)
+    samples = parallel(delayed(_bootstrap_iter)() for _ in iters)
 
     const2 = np.sqrt(
         num_samples ** 2 / (2 * num_samples)
     )  # This one is based on the number of re-sampled scores
     sigma_hat = np.std(const2 * (samples - violation_ratio))
 
+    # Compute eps_min and make sure it stays in [0, 1]
     min_epsilon = min(
         max(
             violation_ratio - (1 / const1) * sigma_hat * normal.ppf(confidence_level), 0
@@ -118,28 +117,10 @@ def aso(
         1,
     )
 
-    if (
-        0.5 - FAST_QUANTILE_WARN_INTERVAL
-        < min_epsilon
-        < 0.5 + FAST_QUANTILE_WARN_INTERVAL
-        and build_quantile == "fast"
-    ):
-        warn(
-            "min_epsilon was {:.4f}, but build_quantile='fast' is potentially inaccurate up to {:.2f}. Run the "
-            "aso() again with build_quantile='exact' to make sure the null hypothesis can be rejected "
-            "safely.".format(min_epsilon, FAST_QUANTILE_WARN_INTERVAL)
-        )
-
     return min_epsilon
 
 
-def compute_violation_ratio(
-    scores_a: np.array,
-    scores_b: np.array,
-    dt: float,
-    quantile_func_a: Optional[Callable] = None,
-    quantile_func_b: Optional[Callable] = None,
-) -> float:
+def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -> float:
     """
     Compute the violation ration e_W2 (equation 4 + 5).
 
@@ -151,10 +132,6 @@ def compute_violation_ratio(
         Scores of algorithm B.
     dt: float
         Differential for t during integral calculation.
-    quantile_func_a: Optional[Callable]
-        If quantile_func_a is given, it will not be rebuild using scores_a. Used when build_quantile="fast".
-    quantile_func_b: Optional[Callable]
-        If quantile_func_b is given, it will not be rebuild using scores_b. Used when build_quantile="fast".
 
     Returns
     -------
@@ -163,12 +140,8 @@ def compute_violation_ratio(
     """
     squared_wasserstein_dist = 0
     int_violation_set = 0  # Integral over violation set A_X
-
-    if quantile_func_a is None:
-        quantile_func_a = get_quantile_function(scores_a)
-
-    if quantile_func_b is None:
-        quantile_func_b = get_quantile_function(scores_b)
+    quantile_func_a = get_quantile_function(scores_a)
+    quantile_func_b = get_quantile_function(scores_b)
 
     for p in np.arange(0, 1, dt):
         diff = quantile_func_b(p) - quantile_func_a(p)

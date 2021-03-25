@@ -14,7 +14,6 @@ from deepsig.aso import (
     aso,
     compute_violation_ratio,
     get_quantile_function,
-    FAST_QUANTILE_WARN_INTERVAL,
 )
 
 
@@ -50,7 +49,7 @@ class ASOTechnicalTests(unittest.TestCase):
             aso([1, 2, 3], [3, 4, 5], num_bootstrap_iterations=0, show_progress=False)
 
         with self.assertRaises(AssertionError):
-            aso([1, 2, 3], [3, 4, 5], build_quantile="foobar", show_progress=False)
+            aso([1, 2, 3], [3, 4, 5], num_jobs=0, show_progress=False)
 
     def test_compute_violation_ratio(self):
         """
@@ -98,44 +97,41 @@ class ASOTechnicalTests(unittest.TestCase):
 
     def test_quantile_function_building(self):
         """
-        Test whether building the quantile functions exactly or fast is sufficiently close enough.
+        Test whether building the quantile functions with one or multiple jobs returns roughly the same value.
         """
         # Define parameters of gaussian for which we will test if the two methods are sufficiently close.
         parameters = [
-            #  ((5, 0.1), (0, 1)),
+            ((5, 0.1), (0, 1)),
             ((0, 0.5), (0, 1)),
-            #  ((2, 2), (1, 1)),
+            ((2, 2), (1, 1)),
             ((-0.5, 0.1), (-0.6, 0.2)),
-            #  ((0.5, 0.21), (0.7, 0.1)),
+            ((0.5, 0.21), (0.7, 0.1)),
             ((0.1, 0.3), (0.2, 0.1)),
         ]
 
         for (loc1, scale1), (loc2, scale2) in parameters:
             samples_normal1 = np.random.normal(
-                loc=loc1, scale=scale1, size=500
+                loc=loc1, scale=scale1, size=5
             )  # New scores for algorithm A
             samples_normal2 = np.random.normal(
-                loc=loc2, scale=scale2, size=500
+                loc=loc2, scale=scale2, size=5
             )  # Scores for algorithm B
 
             eps_min1 = aso(
                 samples_normal1,
                 samples_normal2,
                 num_bootstrap_iterations=500,
-                build_quantile="exact",
+                num_jobs=1,
                 show_progress=False,
             )
             eps_min2 = aso(
                 samples_normal1,
                 samples_normal2,
                 num_bootstrap_iterations=500,
-                build_quantile="fast",
+                num_jobs=4,
                 show_progress=False,
             )
-
-            self.assertAlmostEqual(
-                eps_min1, eps_min2, delta=FAST_QUANTILE_WARN_INTERVAL
-            )
+            self.assertAlmostEqual(eps_min1, eps_min2, delta=0.11)
 
 
 class ASOSanityChecks(unittest.TestCase):
@@ -151,7 +147,7 @@ class ASOSanityChecks(unittest.TestCase):
         """
         Make sure the violation rate is sensible for extreme cases (same distribution and total stochastic order).
         """
-        for build_quantile in ("fast", "exact"):
+        for num_jobs in (1, 4):
             # Extreme case 1: Distributions are basically the same, SO should be extremely violated
             samples_normal2 = np.random.normal(
                 size=self.num_samples
@@ -165,7 +161,7 @@ class ASOSanityChecks(unittest.TestCase):
                 samples_normal1 + 1e-8,
                 num_bootstrap_iterations=self.num_bootstrap_iters,
                 show_progress=False,
-                build_quantile=build_quantile,
+                num_jobs=num_jobs,
             )
             self.assertAlmostEqual(eps_min, 1, delta=0.001)
 
@@ -178,7 +174,7 @@ class ASOSanityChecks(unittest.TestCase):
                 samples_normal2,
                 num_bootstrap_iterations=self.num_bootstrap_iters,
                 show_progress=False,
-                build_quantile=build_quantile,
+                num_jobs=num_jobs,
             )
             self.assertAlmostEqual(eps_min2, 0, delta=0.01)
 
@@ -186,7 +182,7 @@ class ASOSanityChecks(unittest.TestCase):
         """
         Make sure that the minimum epsilon threshold increases as we increase the confidence level.
         """
-        for build_quantile in ("fast", "exact"):
+        for num_jobs in [1, 4]:
             samples_normal1 = np.random.normal(
                 loc=0.1, size=self.num_samples
             )  # Scores for algorithm A
@@ -202,7 +198,7 @@ class ASOSanityChecks(unittest.TestCase):
                     confidence_level=alpha,
                     num_bootstrap_iterations=100,
                     show_progress=False,
-                    build_quantile=build_quantile,
+                    num_jobs=num_jobs,
                 )
                 min_epsilons.append(min_eps)
 
@@ -214,7 +210,7 @@ class ASOSanityChecks(unittest.TestCase):
         """
         Make sure that the minimum epsilon threshold decreases as we increase the number of samples.
         """
-        for build_quantile in ("fast", "exact"):
+        for num_jobs in [1, 4]:
             min_epsilons = []
 
             for num_samples in [80, 1000, 8000]:
@@ -228,7 +224,7 @@ class ASOSanityChecks(unittest.TestCase):
                     samples_normal2,
                     num_bootstrap_iterations=10,
                     show_progress=False,
-                    build_quantile=build_quantile,
+                    num_jobs=num_jobs,
                 )
                 min_epsilons.append(min_eps)
 
@@ -241,37 +237,37 @@ class ASOSanityChecks(unittest.TestCase):
         Test whether ASO(A, B, alpha) = 1 - ASO(B, A, alpha) holds.
         """
         parameters = [
-            #  ((5, 0.1), (0, 1)),
+            ((5, 0.1), (0, 1)),
             ((0, 0.5), (0, 1)),
-            #  ((2, 2), (1, 1)),
+            ((2, 2), (1, 1)),
             ((-0.5, 0.1), (-0.6, 0.2)),
-            #  ((0.5, 0.21), (0.7, 0.1)),
+            ((0.5, 0.21), (0.7, 0.1)),
             ((0.1, 0.3), (0.2, 0.1)),
         ]
 
-        for build_quantile, tol in [("fast", 0.01), ("exact", 0.2)]:
+        for num_jobs in [1, 4]:
 
             for (loc1, scale1), (loc2, scale2) in parameters:
                 samples_normal1 = np.random.normal(
-                    loc=loc1, scale=scale1, size=1000
+                    loc=loc1, scale=scale1, size=5000
                 )  # New scores for algorithm A
                 samples_normal2 = np.random.normal(
-                    loc=loc2, scale=scale2, size=1000
+                    loc=loc2, scale=scale2, size=5000
                 )  # Scores for algorithm B
 
                 eps_min1 = aso(
                     samples_normal1,
                     samples_normal2,
                     show_progress=True,  # Show progress so travis CI build doesn't time out
-                    build_quantile=build_quantile,
+                    num_jobs=num_jobs,
                     num_bootstrap_iterations=1000,
                 )
                 eps_min2 = aso(
                     samples_normal2,
                     samples_normal1,
                     show_progress=True,  # Show progress so travis CI build doesn't time out
-                    build_quantile=build_quantile,
+                    num_jobs=num_jobs,
                     num_bootstrap_iterations=1000,
                 )
                 print("Symmetry", eps_min1, 1 - eps_min2)
-                self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=tol)
+                self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=0.2)

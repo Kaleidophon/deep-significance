@@ -6,12 +6,6 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
----
-**Warning: This project is still under development. Code might be erroneous and breaking changes be introduced without 
-warning.** 
-
----
-
 **Contents**
 
 * [:interrobang: Why](#interrobang-why)
@@ -22,6 +16,7 @@ warning.**
   * [Scenario 2: Comparing multiple runs across datasets](#scenario-2---comparing-multiple-runs-across-datasets) 
   * [Scenario 3: Comparing sample-level scores](#scenario-3---comparing-sample-level-scores)
   * [Scenario 4: Comparing more than two models](#scenario-4---comparing-more-than-two-models)
+  * [Other features](#sparkles-other-features)
   * [General Recommendations & other notes](#general-recommendations) 
 * [:mortar_board: Cite](#mortar_board-cite)
 * [:medal_sports: Acknowledgements](#medal_sports-acknowledgements)
@@ -38,7 +33,7 @@ loss surfaces (Li et al., 2018) and their performance depends on the specific hy
 like Dropout masks, making comparisons between architectures more difficult. Based on comparing only (the mean of) a 
 few scores, **we often cannot 
 conclude that one model type or algorithm is better than another**.
-This endangers the progress in the field, as seeming success due to random chance might draw practitioners astray. 
+This endangers the progress in the field, as seeming success due to random chance might lead practitioners astray. 
 
 For instance, a recent study in Natural Language Processing by Narang et al. (2021) has found that many modifications proposed to 
 transformers do not actually improve performance. Similar issues are known to plague other fields like e.g., 
@@ -46,7 +41,7 @@ Reinforcement Learning (Henderson et al., 2018) and Computer Vision (Borji, 2017
 
 To help mitigate this problem, this package supplies fully-tested re-implementations of useful functions for significance
 testing:
-* Statistical Significane tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron & Tibshirani, 1994) and 
+* Statistical Significance tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron & Tibshirani, 1994) and 
   permutation-randomization (Noreen, 1989).
 * Bonferroni correction methods for multiplicity in datasets (Bonferroni, 1936). 
 
@@ -55,11 +50,6 @@ Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usag
 [here](deep-significance.rtfd.io/en/latest/) or the scenarios in the section [Examples](#examples).
 
 ## :inbox_tray: Installation
-
----
-**The package has not been released on PyPI yet. As of now, only the local installation is available.**
-
----
 
 The package can simply be installed using `pip` by running
 
@@ -76,7 +66,8 @@ Another option is to clone the repository and install the package locally:
 ## :bookmark: Examples
 
 ---
-**tl;dr**: Use `aso()` to compare scores for two models. If the returned `eps_min < 0.5`, A is better than B.
+**tl;dr**: Use `aso()` to compare scores for two models. If the returned `eps_min < 0.5`, A is better than B. The lower
+`eps_min`, the more confident the result. 
 
 ---
 
@@ -86,7 +77,8 @@ refer to resources such as [this blog post](https://machinelearningmastery.com/s
 overview or [Dror et al. (2018)](https://www.aclweb.org/anthology/P18-1128.pdf) for a NLP-specific point of view. 
 
 In general, in statistical significance testing, we usually compare two algorithms $A$ and $B$ on a dataset $X$ using 
-some evaluation metric $\mathcal{M}$. The difference between the two algorithms on the data is then defined as 
+some evaluation metric $\mathcal{M}$ (we assume a higher = better). The difference between the two algorithms on the 
+data is then defined as 
 
 $$
 \delta(X) = \mathcal{M}(A, X) - \mathcal{M}(B, X)
@@ -100,19 +92,22 @@ $$
 
 Thus, we assume our algorithm A to be equally as good or worse than algorithm B and reject the null hypothesis if A 
 is better than B (what we actually would like to see). Most statistical significance tests operate using 
-*p-values*, which define the probability that under the null-hypothesis, the true difference $\delta(X)$ is larger than or
-equal to the observed difference $\delta_{\text{obs}}$ (that is, for a one-sided test):
+*p-values*, which define the probability that under the null-hypothesis, the $\delta(X)$ expected by the test is larger than or
+equal to the observed difference $\delta_{\text{obs}}$ (that is, for a one-sided test, i.e. we assume A to be better than B):
 
 $$
 P(\delta(X) \ge \delta_\text{obs}| H_0)
 $$
 
-Intuitively, the p-value is expressing: **How likely is it that the observed difference is up to what we expected, given that A is 
-not better than B?** If this probability is high, it means that we're likely to see A is not better than B. If the 
-probability is low, that means that $\delta_\text{obs}$ is likely *larger* than $\delta(X)$ - indicating 
-that the null hypothesis might be wrong and that A is indeed better than B. 
+We can interpret this equation as follows: Assuming that A is *not* better than B, the test assumes a corresponding distribution
+of differences that $\delta(X)$ is drawn from. How does our actually observed difference $\delta_\text{obs}$ fit in there?
+This is what the p-value is expressing: If this probability is high, $\delta_\text{obs}$ is in line with what we expected under 
+the null hypothesis, meaning that we're likely to see A is not better than B. If the 
+probability is low, that means that $\delta_\text{obs}$ is quite unlikely under the null hypothesis and that it is 
+likely *larger* than $\delta(X)$ - indicating that the null hypothesis might be wrong and that A is indeed better than B. 
 
-To decide when we think A to be better than B, we set a threshold that will determine when we reject the null hypothesis, this is called the significance level $\alpha$ and it is often set to be 0.05.
+To decide when we trust A to be better than B, we set a threshold that will determine when the p-value is small enough 
+for us to reject the null hypothesis, this is called the significance level $\alpha$ and it is often set to be 0.05.
 
 
 ### Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks
@@ -123,13 +118,14 @@ enough to decide if a model A is better than B. In fact, **even aggregating more
 or maximum might not be enough** to make a decision. For this reason, Dror et al. (2019) introduced *Almost Stochastic 
 Order* (ASO), a test to compare two score distributions. 
 
-It builds on the concept of *stochastic order*: We can compare two distribution and declare one as *stochastically dominant*
+It builds on the concept of *stochastic order*: We can compare two distributions and declare one as *stochastically dominant*
 by comparing their cumulative distribution functions: 
 
 ![](img/so.png)
 
-If the CDF of A is lower than B for every $x$, we know the corresponding to algorithm A scores higher. However, in practice
-these cases are rarely so clear-cut (imagine e.g. two normal distributions with the same mean but different variances).
+Here, the CDF of A is given in red and in green for B. If the CDF of A is lower than B for every $x$, we know the 
+algorithm A to score higher. However, in practice these cases are rarely so clear-cut (imagine e.g. two normal 
+distributions with the same mean but different variances).
 For this reason, Dror et al. (2019) consider the notion of *almost stochastic dominance* by quantifying the extent to 
 which stochastic order is being violated (red area):
 
@@ -168,15 +164,11 @@ min_eps = aso(scores_a, scores_b)  # min_eps = 0.0, so A is better
 
 ASO **does not make any assumptions about the distributions of the scores**. 
 This means that we can apply it to any kind of test metric. The more scores of model runs is supplied, the more reliable 
-the test becomes. 
-
-`aso()` runs with `build_quantile="fast"` by default. This runs the test quicker, but trades speed of accuracy. Thus, 
-when obtaining $\epsilon_\text{min}$ scores that are not very clear-cut (as indicated by a warning), please run 
-the function again with `build_quantile="exact"`. 
+the test becomes.
 
 ### Scenario 2 - Comparing multiple runs across datasets
 
-When comparing models across datasets, we formulate on null hypothesis per dataset. However, we have to make sure not to 
+When comparing models across datasets, we formulate one null hypothesis per dataset. However, we have to make sure not to 
 fall prey to the [multiple comparisons problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem): In short, 
 the more comparisons between A and B we are conducting, the more likely gets is to reject a null-hypothesis accidentally.
 That is why we have to adjust our significance threshold $\alpha$ accordingly by dividing it by the number of comparisons, 
@@ -196,13 +188,6 @@ scores_b = [np.random.normal(loc=0, scale=1, size=N) for _ in range(M)]
 eps_min = [aso(a, b, confidence_level=0.05 / M) for a, b in zip(scores_a, scores_b)]
 # eps_min = [0.1565800030782686, 1, 0.0]
 ```
-
----
-**Note**: When using another significance test like bootstrap (`from deepsig import bootstrap_test`), permutation-randomization
-(`from deepsig import permutation_test`) or e.g. a t-test (not implemented here), you can use `from deepsig import 
-bonferroni_correcton`. `bonferroni_correction()` is **not** compatible with `aso()`.
-
----
 
 ### Scenario 3 - Comparing sample-level scores
 
@@ -243,10 +228,9 @@ $$
 $$
 
 ---
-**Note**: This property is known to hold more for `build_quantile="fast"` (deviation of < 0.01) and less for 
-`build_quantile="exact"` (deviation of around < 0.2), also holding less the less scores are supplied. This is because 
-the quantile function is built based on resampled scores during bootstrap iterations for the latter case, leading to 
-more randomness when fewer scores for A and B are available, but also a tighter bound for $\epsilon_\text{min}$ overall.
+**Note**: While an appealing shortcut, it has been observed during testing this property, due to the random element
+of bootstrap iterations, might not always hold exactly - the difference between the two quantities has been seen to be 
+up to $0.2$ when the scores distributions of A and B are very similar.
 
 ---
 
@@ -277,6 +261,59 @@ for i in range(M):
 # [0.03073323 0.28748359 1.        ]]
 ```
 
+### :sparkles: Other features
+
+#### :rocket: For the impatient: ASO with multi-threading
+
+Waiting for all the bootstrap iterations to finish can feel tedious, especially when doing many comparisons. Therefore, 
+ASO supports multithreading using `joblib`
+via the `num_jobs` argument. 
+
+```python
+from deepsig import aso
+import numpy as np
+from timeit import timeit
+
+a = np.random.normal(size=5)
+b = np.random.normal(size=5)
+
+print(timeit(lambda: aso(a, b, num_jobs=1, show_progress=False), number=5))  # 146.6909574989986
+print(timeit(lambda: aso(a, b, num_jobs=4, show_progress=False), number=5))  # 50.416724971000804
+```
+
+#### :electric_plug: Compatibility with PyTorch, Tensorflow, Jax & Numpy
+
+All tests implemented in this package also can take PyTorch / Tensorflow tensors and Jax or NumPy arrays as arguments:
+
+```python
+from deepsig import aso 
+import torch
+
+a = torch.randn(5, 1)
+b = torch.randn(5, 1)
+
+aso(a, b)  # It just works!
+```
+
+#### :game_die: Permutation and bootstrap test 
+
+Should you be suspicious of ASO and want to revert to the good old faithful tests, this package also implements 
+the paired-bootstrap as well as the permutation randomization test. Note that as discussed in the next section, these 
+tests have less statistical power than ASO. Furthermore, a function for the Bonferroni-correction using 
+p-values can also be found using `from aso import bonferroni_correction`.
+
+```python3
+import numpy as np
+from deepsig import bootstrap_test, permutation_test
+
+a = np.random.normal(loc=0.8, size=10)
+b = np.random.normal(size=10)
+
+print(permutation_test(a, b))  # 0.16183816183816183
+print(bootstrap_test(a, b))    # 0.103
+```
+
+
 ### General recommendations & other notes
 
 * Naturally, the CDFs built from `scores_a` and `scores_b` can only be approximations of the true distributions. Therefore,
@@ -286,7 +323,8 @@ as many scores as possible should be collected, especially if the variance betwe
 
 * `num_samples` and `num_bootstrap_iterations` can be reduced to increase the speed of `aso()`. However, this is not 
 recommended as the result of the test will also become less accurate. Technically, $\epsilon_\text{min}$ is a upper bound
-  that becomes tighter with the number of samples and bootstrap iterations (del Barrio et al., 2017). 
+  that becomes tighter with the number of samples and bootstrap iterations (del Barrio et al., 2017). Thus, increasing 
+  the number of jobs with `num_jobs` instead is always preferred.
   
 * Bootstrap and permutation-randomization are all non-parametric tests, i.e. they don't make any assumptions about 
 the distribution of our test metric. Nevertheless, they differ in their *statistical power*, which is defined as the probability
@@ -352,4 +390,4 @@ Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein. "Visualizing th
 
 Narang, Sharan, et al. "Do Transformer Modifications Transfer Across Implementations and Applications?." arXiv preprint arXiv:2102.11972 (2021).
 
-Noreen, Eric W. "Computer intensive methodsfor hypothesis testing: An introduction." Wiley,New York (1989).
+Noreen, Eric W. "Computer intensive methods for hypothesis testing: An introduction." Wiley, New York (1989).

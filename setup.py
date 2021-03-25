@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="deep-signifcance",  # Replace with your own username
-    version="0.9.2",
+    version="1.0.0",
     author="Dennis Ulmer",
     description="Easy Significance Testing for Deep Neural Networks.",
     long_description=long_description,
@@ -30,6 +30,8 @@ setup(
         "cv",
         "statistical significance testing",
         "statistical hypothesis testing",
+        "significance test",
+        "statistical significance",
         "pytorch",
         "tensorflow",
         "numpy",
