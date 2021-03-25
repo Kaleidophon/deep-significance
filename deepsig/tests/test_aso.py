@@ -134,7 +134,7 @@ class ASOTechnicalTests(unittest.TestCase):
                 samples_normal1,
                 samples_normal2,
                 num_bootstrap_iterations=500,
-                num_jobs=4,
+                num_jobs=2,
                 show_progress=False,
             )
             self.assertAlmostEqual(eps_min1, eps_min2, delta=0.1)
@@ -166,7 +166,7 @@ class ASOSanityChecks(unittest.TestCase):
             samples_normal1 + 1e-8,
             num_bootstrap_iterations=self.num_bootstrap_iters,
             show_progress=False,
-            num_jobs=4,
+            num_jobs=2,
         )
         self.assertAlmostEqual(eps_min, 1, delta=0.001)
 
@@ -179,7 +179,7 @@ class ASOSanityChecks(unittest.TestCase):
             samples_normal2,
             num_bootstrap_iterations=self.num_bootstrap_iters,
             show_progress=False,
-            num_jobs=4,
+            num_jobs=2,
         )
         self.assertAlmostEqual(eps_min2, 0, delta=0.01)
 
@@ -202,7 +202,7 @@ class ASOSanityChecks(unittest.TestCase):
                 confidence_level=alpha,
                 num_bootstrap_iterations=100,
                 show_progress=False,
-                num_jobs=4,
+                num_jobs=2,
             )
             min_epsilons.append(min_eps)
 
@@ -227,7 +227,7 @@ class ASOSanityChecks(unittest.TestCase):
                 samples_normal2,
                 num_bootstrap_iterations=10,
                 show_progress=False,
-                num_jobs=4,
+                num_jobs=2,
             )
             min_epsilons.append(min_eps)
 
@@ -240,9 +240,7 @@ class ASOSanityChecks(unittest.TestCase):
         Test whether ASO(A, B, alpha) = 1 - ASO(B, A, alpha) holds.
         """
         parameters = [
-            ((5, 0.1), (0, 1)),
             ((0, 0.5), (0, 1)),
-            ((2, 2), (1, 1)),
             ((-0.5, 0.1), (-0.6, 0.2)),
             ((0.5, 0.21), (0.7, 0.1)),
             ((0.1, 0.3), (0.2, 0.1)),
@@ -250,24 +248,24 @@ class ASOSanityChecks(unittest.TestCase):
 
         for (loc1, scale1), (loc2, scale2) in parameters:
             samples_normal1 = np.random.normal(
-                loc=loc1, scale=scale1, size=5000
+                loc=loc1, scale=scale1, size=2000
             )  # New scores for algorithm A
             samples_normal2 = np.random.normal(
-                loc=loc2, scale=scale2, size=5000
+                loc=loc2, scale=scale2, size=2000
             )  # Scores for algorithm B
 
             eps_min1 = aso(
                 samples_normal1,
                 samples_normal2,
                 show_progress=True,  # Show progress so travis CI build doesn't time out
-                num_jobs=4,
+                num_jobs=2,
                 num_bootstrap_iterations=1000,
             )
             eps_min2 = aso(
                 samples_normal2,
                 samples_normal1,
                 show_progress=True,  # Show progress so travis CI build doesn't time out
-                num_jobs=4,
+                num_jobs=2,
                 num_bootstrap_iterations=1000,
             )
             self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=0.2)
