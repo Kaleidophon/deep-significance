@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="deep-signifcance",  # Replace with your own username
+    name="deepsig",
     version="1.0.0",
     author="Dennis Ulmer",
     description="Easy Significance Testing for Deep Neural Networks.",
