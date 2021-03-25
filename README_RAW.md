@@ -302,7 +302,7 @@ aso(a, b)  # It just works!
 Should you be suspicious of ASO and want to revert to the good old faithful tests, this package also implements 
 the paired-bootstrap as well as the permutation randomization test. Note that as discussed in the next section, these 
 tests have less statistical power than ASO. Furthermore, a function for the Bonferroni-correction using 
-p-values can also be found using `from aso import bonferroni_correction`.
+p-values can also be found using `from deepsig import bonferroni_correction`.
 
 ```python3
 import numpy as np
