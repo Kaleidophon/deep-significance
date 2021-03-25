@@ -16,6 +16,7 @@
   * [Scenario 2: Comparing multiple runs across datasets](#scenario-2---comparing-multiple-runs-across-datasets) 
   * [Scenario 3: Comparing sample-level scores](#scenario-3---comparing-sample-level-scores)
   * [Scenario 4: Comparing more than two models](#scenario-4---comparing-more-than-two-models)
+  * [Other features](#sparkles-other-features)
   * [General Recommendations & other notes](#general-recommendations) 
 * [:mortar_board: Cite](#mortar_board-cite)
 * [:medal_sports: Acknowledgements](#medal_sports-acknowledgements)
