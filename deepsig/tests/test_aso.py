@@ -117,6 +117,10 @@ class ASOTechnicalTests(unittest.TestCase):
                 loc=loc2, scale=scale2, size=5
             )  # Scores for algorithm B
 
+            # Set seed to make sure that any variance just comes from the difference between jobs
+            seed = np.random.randint(0, 10000)
+            np.random.seed(seed)
+
             eps_min1 = aso(
                 samples_normal1,
                 samples_normal2,
@@ -124,6 +128,8 @@ class ASOTechnicalTests(unittest.TestCase):
                 num_jobs=1,
                 show_progress=False,
             )
+
+            np.random.seed(seed)
             eps_min2 = aso(
                 samples_normal1,
                 samples_normal2,
@@ -131,7 +137,7 @@ class ASOTechnicalTests(unittest.TestCase):
                 num_jobs=4,
                 show_progress=False,
             )
-            self.assertAlmostEqual(eps_min1, eps_min2, delta=0.11)
+            self.assertAlmostEqual(eps_min1, eps_min2, delta=0.1)
 
 
 class ASOSanityChecks(unittest.TestCase):
@@ -147,90 +153,87 @@ class ASOSanityChecks(unittest.TestCase):
         """
         Make sure the violation rate is sensible for extreme cases (same distribution and total stochastic order).
         """
-        for num_jobs in (1, 4):
-            # Extreme case 1: Distributions are basically the same, SO should be extremely violated
-            samples_normal2 = np.random.normal(
-                size=self.num_samples
-            )  # Scores for algorithm B
-            samples_normal1 = np.random.normal(
-                size=self.num_samples
-            )  # Scores for algorithm A
+        # Extreme case 1: Distributions are basically the same, SO should be extremely violated
+        samples_normal2 = np.random.normal(
+            size=self.num_samples
+        )  # Scores for algorithm B
+        samples_normal1 = np.random.normal(
+            size=self.num_samples
+        )  # Scores for algorithm A
 
-            eps_min = aso(
-                samples_normal1,
-                samples_normal1 + 1e-8,
-                num_bootstrap_iterations=self.num_bootstrap_iters,
-                show_progress=False,
-                num_jobs=num_jobs,
-            )
-            self.assertAlmostEqual(eps_min, 1, delta=0.001)
+        eps_min = aso(
+            samples_normal1,
+            samples_normal1 + 1e-8,
+            num_bootstrap_iterations=self.num_bootstrap_iters,
+            show_progress=False,
+            num_jobs=4,
+        )
+        self.assertAlmostEqual(eps_min, 1, delta=0.001)
 
-            # Extreme case 2: Distribution for A is wayyy better, should basically be SO
-            samples_normal3 = np.random.normal(
-                loc=5, scale=0.1, size=self.num_samples
-            )  # New scores for algorithm A
-            eps_min2 = aso(
-                samples_normal3,
-                samples_normal2,
-                num_bootstrap_iterations=self.num_bootstrap_iters,
-                show_progress=False,
-                num_jobs=num_jobs,
-            )
-            self.assertAlmostEqual(eps_min2, 0, delta=0.01)
+        # Extreme case 2: Distribution for A is wayyy better, should basically be SO
+        samples_normal3 = np.random.normal(
+            loc=5, scale=0.1, size=self.num_samples
+        )  # New scores for algorithm A
+        eps_min2 = aso(
+            samples_normal3,
+            samples_normal2,
+            num_bootstrap_iterations=self.num_bootstrap_iters,
+            show_progress=False,
+            num_jobs=4,
+        )
+        self.assertAlmostEqual(eps_min2, 0, delta=0.01)
 
     def test_dependency_on_alpha(self):
         """
         Make sure that the minimum epsilon threshold increases as we increase the confidence level.
         """
-        for num_jobs in [1, 4]:
-            samples_normal1 = np.random.normal(
-                loc=0.1, size=self.num_samples
-            )  # Scores for algorithm A
-            samples_normal2 = np.random.normal(
-                scale=2, size=self.num_samples
-            )  # Scores for algorithm B
+        samples_normal1 = np.random.normal(
+            loc=0.1, size=self.num_samples
+        )  # Scores for algorithm A
+        samples_normal2 = np.random.normal(
+            scale=2, size=self.num_samples
+        )  # Scores for algorithm B
 
-            min_epsilons = []
-            for alpha in np.arange(0.8, 0.1, -0.1):
-                min_eps = aso(
-                    samples_normal1,
-                    samples_normal2,
-                    confidence_level=alpha,
-                    num_bootstrap_iterations=100,
-                    show_progress=False,
-                    num_jobs=num_jobs,
-                )
-                min_epsilons.append(min_eps)
+        min_epsilons = []
+        for alpha in np.arange(0.8, 0.1, -0.1):
+            min_eps = aso(
+                samples_normal1,
+                samples_normal2,
+                confidence_level=alpha,
+                num_bootstrap_iterations=100,
+                show_progress=False,
+                num_jobs=4,
+            )
+            min_epsilons.append(min_eps)
 
-            self.assertEqual(
-                list(sorted(min_epsilons)), min_epsilons
-            )  # Make sure min_epsilon decreases
+        self.assertEqual(
+            list(sorted(min_epsilons)), min_epsilons
+        )  # Make sure min_epsilon decreases
 
     def test_dependency_on_samples(self):
         """
         Make sure that the minimum epsilon threshold decreases as we increase the number of samples.
         """
-        for num_jobs in [1, 4]:
-            min_epsilons = []
+        min_epsilons = []
 
-            for num_samples in [80, 1000, 8000]:
-                samples_normal2 = np.random.normal(
-                    loc=0, scale=1.1, size=num_samples
-                )  # Scores for algorithm B
-                samples_normal1 = samples_normal2 + 1e-3
+        for num_samples in [80, 1000, 8000]:
+            samples_normal2 = np.random.normal(
+                loc=0, scale=1.1, size=num_samples
+            )  # Scores for algorithm B
+            samples_normal1 = samples_normal2 + 1e-3
 
-                min_eps = aso(
-                    samples_normal1,
-                    samples_normal2,
-                    num_bootstrap_iterations=10,
-                    show_progress=False,
-                    num_jobs=num_jobs,
-                )
-                min_epsilons.append(min_eps)
+            min_eps = aso(
+                samples_normal1,
+                samples_normal2,
+                num_bootstrap_iterations=10,
+                show_progress=False,
+                num_jobs=4,
+            )
+            min_epsilons.append(min_eps)
 
-            self.assertEqual(
-                list(sorted(min_epsilons, reverse=True)), min_epsilons
-            )  # Make sure min_epsilon decreases
+        self.assertEqual(
+            list(sorted(min_epsilons, reverse=True)), min_epsilons
+        )  # Make sure min_epsilon decreases
 
     def test_symmetry(self):
         """
@@ -245,29 +248,26 @@ class ASOSanityChecks(unittest.TestCase):
             ((0.1, 0.3), (0.2, 0.1)),
         ]
 
-        for num_jobs in [1, 4]:
+        for (loc1, scale1), (loc2, scale2) in parameters:
+            samples_normal1 = np.random.normal(
+                loc=loc1, scale=scale1, size=5000
+            )  # New scores for algorithm A
+            samples_normal2 = np.random.normal(
+                loc=loc2, scale=scale2, size=5000
+            )  # Scores for algorithm B
 
-            for (loc1, scale1), (loc2, scale2) in parameters:
-                samples_normal1 = np.random.normal(
-                    loc=loc1, scale=scale1, size=5000
-                )  # New scores for algorithm A
-                samples_normal2 = np.random.normal(
-                    loc=loc2, scale=scale2, size=5000
-                )  # Scores for algorithm B
-
-                eps_min1 = aso(
-                    samples_normal1,
-                    samples_normal2,
-                    show_progress=True,  # Show progress so travis CI build doesn't time out
-                    num_jobs=num_jobs,
-                    num_bootstrap_iterations=1000,
-                )
-                eps_min2 = aso(
-                    samples_normal2,
-                    samples_normal1,
-                    show_progress=True,  # Show progress so travis CI build doesn't time out
-                    num_jobs=num_jobs,
-                    num_bootstrap_iterations=1000,
-                )
-                print("Symmetry", eps_min1, 1 - eps_min2)
-                self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=0.2)
+            eps_min1 = aso(
+                samples_normal1,
+                samples_normal2,
+                show_progress=True,  # Show progress so travis CI build doesn't time out
+                num_jobs=4,
+                num_bootstrap_iterations=1000,
+            )
+            eps_min2 = aso(
+                samples_normal2,
+                samples_normal1,
+                show_progress=True,  # Show progress so travis CI build doesn't time out
+                num_jobs=4,
+                num_bootstrap_iterations=1000,
+            )
+            self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=0.2)
