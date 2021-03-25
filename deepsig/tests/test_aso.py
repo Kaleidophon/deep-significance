@@ -101,9 +101,7 @@ class ASOTechnicalTests(unittest.TestCase):
         """
         # Define parameters of gaussian for which we will test if the two methods are sufficiently close.
         parameters = [
-            ((5, 0.1), (0, 1)),
             ((0, 0.5), (0, 1)),
-            ((2, 2), (1, 1)),
             ((-0.5, 0.1), (-0.6, 0.2)),
             ((0.5, 0.21), (0.7, 0.1)),
             ((0.1, 0.3), (0.2, 0.1)),
