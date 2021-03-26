@@ -5,6 +5,7 @@
 [![Compatibility](https://img.shields.io/badge/python-3.5%2B-blue)]()
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
+[![DOI](https://zenodo.org/badge/341677886.svg)](https://zenodo.org/badge/latestdoi/341677886)
 
 **Contents**
 
@@ -348,6 +349,21 @@ If you use the ASO test via `aso()`, please cite the original work:
       url       = {https://doi.org/10.18653/v1/p19-1266},
       doi       = {10.18653/v1/p19-1266},
       timestamp = {Tue, 28 Jan 2020 10:27:52 +0100},
+    }
+
+Using this package in general, please cite the following:
+
+    @software{dennis_ulmer_2021_4638709,
+      author       = {Dennis Ulmer},
+      title        = {{deep-significance: Easy and Better Significance 
+                       Testing for Deep Neural Networks}},
+      month        = mar,
+      year         = 2021,
+      note         = {https://github.com/Kaleidophon/deep-significance},
+      publisher    = {Zenodo},
+      version      = {v1.0.0a},
+      doi          = {10.5281/zenodo.4638709},
+      url          = {https://doi.org/10.5281/zenodo.4638709}
     }
 
 ### :medal_sports: Acknowledgements
