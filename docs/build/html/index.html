@@ -105,10 +105,10 @@
 <li><a class="reference internal" href="#id7">Scenario 3 - Comparing sample-level scores</a></li>
 <li><a class="reference internal" href="#id8">Scenario 4 - Comparing more than two models</a></li>
 <li><a class="reference internal" href="#sparkles-other-features">✨ Other features</a></li>
-<li><a class="reference internal" href="#id9">General recommendations &amp; other notes</a></li>
-<li><a class="reference internal" href="#id10">🎓 Cite</a></li>
-<li><a class="reference internal" href="#id11">🏅 Acknowledgements</a></li>
-<li><a class="reference internal" href="#id14">📚 Bibliography</a></li>
+<li><a class="reference internal" href="#id11">General recommendations &amp; other notes</a></li>
+<li><a class="reference internal" href="#id12">🎓 Cite</a></li>
+<li><a class="reference internal" href="#id13">🏅 Acknowledgements</a></li>
+<li><a class="reference internal" href="#id16">📚 Bibliography</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-deepsig">Documentation</a></li>
@@ -257,21 +257,24 @@ the resulting <span class="raw-html-m2r"><img src="70bcb72c245ba47b6fc7439da91ec
 <div class="section" id="id5">
 <h2>Scenario 1 - Comparing multiple runs of two models<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <p>In the simplest scenario, we have retrieved a set of scores from a model A and a baseline B on a dataset, stemming from
-various model runs with different seeds. We can now simply apply the ASO test:</p>
+various model runs with different seeds. We want to test whether our model A is better than B (higher scores = better)-
+We can now simply apply the ASO test:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">deepsig</span> <span class="kn">import</span> <span class="n">aso</span>
 
 <span class="c1"># Simulate scores</span>
 <span class="n">N</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># Number of random seeds</span>
-<span class="n">scores_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
-<span class="n">scores_b</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+<span class="n">my_model_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+<span class="n">baseline_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
 
-<span class="n">min_eps</span> <span class="o">=</span> <span class="n">aso</span><span class="p">(</span><span class="n">scores_a</span><span class="p">,</span> <span class="n">scores_b</span><span class="p">)</span>  <span class="c1"># min_eps = 0.0, so A is better</span>
+<span class="n">min_eps</span> <span class="o">=</span> <span class="n">aso</span><span class="p">(</span><span class="n">my_model_scores</span><span class="p">,</span> <span class="n">baseline_scores</span><span class="p">)</span>  <span class="c1"># min_eps = 0.0, so A is better</span>
 </pre></div>
 </div>
-<p>ASO <strong>does not make any assumptions about the distributions of the scores</strong>.
-This means that we can apply it to any kind of test metric. The more scores of model runs is supplied, the more reliable
-the test becomes.</p>
+<p>Note that ASO <strong>does not make any assumptions about the distributions of the scores</strong>.
+This means that we can apply it to any kind of test metric, as long as a higher score indicates a better performance
+(to apply ASO to cases where lower scores indicate better performances, just multiple your scores by -1 before feeding
+them into the function). The more scores of model runs is supplied, the more reliable
+the test becomes, so try to collect scores from as many runs as possible to reject the null hypothesis confidently.</p>
 </div>
 <div class="section" id="id6">
 <h2>Scenario 2 - Comparing multiple runs across datasets<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
@@ -286,11 +289,11 @@ which corresponds to the Bonferroni correction (Bonferroni et al., 1936):</p>
 <span class="c1"># Simulate scores for three datasets</span>
 <span class="n">M</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># Number of datasets</span>
 <span class="n">N</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># Number of random seeds</span>
-<span class="n">scores_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)]</span>
-<span class="n">scores_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)]</span>
+<span class="n">my_model_scores_per_dataset</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)]</span>
+<span class="n">baseline_scores_per_dataset</span>  <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)]</span>
 
 <span class="c1"># epsilon_min values with Bonferroni correction</span>
-<span class="n">eps_min</span> <span class="o">=</span> <span class="p">[</span><span class="n">aso</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span> <span class="o">/</span> <span class="n">M</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scores_a</span><span class="p">,</span> <span class="n">scores_b</span><span class="p">)]</span>
+<span class="n">eps_min</span> <span class="o">=</span> <span class="p">[</span><span class="n">aso</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span> <span class="o">/</span> <span class="n">M</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">my_model_scores_per_dataset</span><span class="p">,</span> <span class="n">baseline_scores_per_dataset</span><span class="p">)]</span>
 <span class="c1"># eps_min = [0.1565800030782686, 1, 0.0]</span>
 </pre></div>
 </div>
@@ -311,9 +314,9 @@ correction accordingly:</p>
 <span class="c1"># Simulate scores for three datasets</span>
 <span class="n">M</span> <span class="o">=</span> <span class="mi">40</span>   <span class="c1"># Number of data points</span>
 <span class="n">N</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># Number of random seeds</span>
-<span class="n">scores_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">M</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span>
-<span class="n">scores_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">M</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span>
-<span class="n">pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="n">scores_a</span><span class="p">,</span> <span class="n">scores_b</span><span class="p">))</span>
+<span class="n">my_model_scored_samples_per_run</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">M</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span>
+<span class="n">baseline_scored_samples_per_run</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">M</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span>
+<span class="n">pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="n">my_model_scored_samples_per_run</span><span class="p">,</span> <span class="n">baseline_scored_samples_per_run</span><span class="p">))</span>
 
 <span class="c1"># epsilon_min values with Bonferroni correction</span>
 <span class="n">eps_min</span> <span class="o">=</span> <span class="p">[</span><span class="n">aso</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">pairs</span><span class="p">))</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">]</span>
@@ -328,8 +331,9 @@ with the corresponding <span class="raw-html-m2r"><img src="70bcb72c245ba47b6fc7
 ourself to only filling out one half of the matrix by making use of the following property of ASO:</p>
 <p align="center"><img src="19a0661139e4b089cac41a8a27b738e7.svg?invert_in_darkmode" align=middle width=245.9131653pt height=16.438356pt/></p><hr class="docutils" />
 <p><strong>Note</strong>: While an appealing shortcut, it has been observed during testing this property, due to the random element
-of bootstrap iterations, might not always hold exactly - the difference between the two quantities has been seen to be
-up to <span class="raw-html-m2r"><img src="358d4d0949e47523757b4bc797ab597e.svg?invert_in_darkmode" align=middle width=21.00464354999999pt height=21.18721440000001pt/></span> when the scores distributions of A and B are very similar.</p>
+of bootstrap iterations, might not always hold exactly - the difference between the two quantities has been seen to
+amount to up to <span class="raw-html-m2r"><img src="358d4d0949e47523757b4bc797ab597e.svg?invert_in_darkmode" align=middle width=21.00464354999999pt height=21.18721440000001pt/></span>* when the scores distributions of A and B are very similar.</p>
+<p><a href="#id9"><span class="problematic" id="id10">*</span></a>This is just an empirically observed value, not a tight bound.</p>
 <hr class="docutils" />
 <p>The corresponding code can then look something like this:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -340,20 +344,21 @@ up to <span class="raw-html-m2r"><img src="358d4d0949e47523757b4bc797ab597e.svg?
 <span class="n">num_comparisons</span> <span class="o">=</span> <span class="n">M</span> <span class="o">*</span> <span class="p">(</span><span class="n">M</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
 <span class="n">eps_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>  <span class="c1"># M x M matrix with ones on diagonal</span>
 
-<span class="n">scores_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)]</span>
-<span class="n">scores_b</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)]</span>
+<span class="c1"># Simulate different model scores by sampling from normal distributions with increasing means</span>
+<span class="c1"># Here, we will sample from N(0.1, 0.8), N(0.15, 0.8), N(0.2, 0.8)</span>
+<span class="n">my_models_scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span> <span class="o">+</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">M</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)]</span>
 
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">):</span>
   <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">M</span><span class="p">):</span>
 
-    <span class="n">e_min</span> <span class="o">=</span> <span class="n">aso</span><span class="p">(</span><span class="n">scores_a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">scores_b</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span> <span class="o">/</span> <span class="n">num_comparisons</span><span class="p">)</span>
+    <span class="n">e_min</span> <span class="o">=</span> <span class="n">aso</span><span class="p">(</span><span class="n">my_models_scores</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">my_models_scores</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span> <span class="o">/</span> <span class="n">num_comparisons</span><span class="p">)</span>
     <span class="n">eps_min</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">e_min</span>
     <span class="n">eps_min</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">e_min</span>
 
 <span class="c1"># eps_min =</span>
-<span class="c1"># [[1.        1.         0.96926677]</span>
-<span class="c1"># [0.         1.         0.71251641]</span>
-<span class="c1"># [0.03073323 0.28748359 1.        ]]</span>
+<span class="c1"># array([[1., 1., 1.],</span>
+<span class="c1">#        [0., 1., 1.],</span>
+<span class="c1">#        [0., 0., 1.]])</span>
 </pre></div>
 </div>
 </div>
@@ -398,8 +403,8 @@ p-values can also be found using <code class="docutils literal notranslate"><spa
 </pre></div>
 </div>
 </div>
-<div class="section" id="id9">
-<h2>General recommendations &amp; other notes<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id11">
+<h2>General recommendations &amp; other notes<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Naturally, the CDFs built from <code class="docutils literal notranslate"><span class="pre">scores_a</span></code> and <code class="docutils literal notranslate"><span class="pre">scores_b</span></code> can only be approximations of the true distributions. Therefore,
 as many scores as possible should be collected, especially if the variance between runs is high. If only one run is available,
@@ -419,8 +424,8 @@ because these test are in turn less applicable in a Deep Learning setting due to
 <a class="reference external" href="#interrobang-why">Why?</a>, ASO is still a better choice.</p></li>
 </ul>
 </div>
-<div class="section" id="id10">
-<h2>🎓 Cite<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id12">
+<h2>🎓 Cite<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
 <p>If you use the ASO test via <code class="docutils literal notranslate"><span class="pre">aso()</span></code>, please cite the original work:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inproceedings</span><span class="p">{</span><span class="n">dror2019deep</span><span class="p">,</span>
   <span class="n">author</span>    <span class="o">=</span> <span class="p">{</span><span class="n">Rotem</span> <span class="n">Dror</span> <span class="ow">and</span>
@@ -458,8 +463,8 @@ because these test are in turn less applicable in a Deep Learning setting due to
 </pre></div>
 </div>
 </div>
-<div class="section" id="id11">
-<h2>🏅 Acknowledgements<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id13">
+<h2>🏅 Acknowledgements<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
 <p>This package was created out of discussions of the <a class="reference external" href="https://nlpnorth.github.io/">NLPnorth group</a> at the IT University
 Copenhagen, whose members I want to thank for their feedback. The code in this repository is in multiple places based on
 several of <a class="reference external" href="https://rtmdrr.github.io/">Rotem Dror’s</a> repositories, namely
@@ -469,8 +474,8 @@ answer questions and provide feedback to the implementation and documentation of
 <p>The commit message template used in this project can be found <a class="reference external" href="https://github.com/Kaleidophon/commit-template-for-humans">here</a>.
 The inline latex equations were rendered using <a class="reference external" href="https://github.com/leegao/readme2tex">readme2latex</a>.</p>
 </div>
-<div class="section" id="id14">
-<h2>📚 Bibliography<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id16">
+<h2>📚 Bibliography<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
 <p>Del Barrio, Eustasio, Juan A. Cuesta-Albertos, and Carlos Matrán. “An optimal transportation approach for assessing almost stochastic order.” The Mathematics of the Uncertain. Springer, Cham, 2018. 33-44.</p>
 <p>Bonferroni, Carlo. “Teoria statistica delle classi e calcolo delle probabilita.” Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.</p>
 <p>Borji, Ali. “Negative results in computer vision: A perspective.” Image and Vision Computing 69 (2018): 1-8.</p>
@@ -492,10 +497,13 @@ The code here heavily borrows from their <a class="reference external" href="htt
 <code class="sig-prename descclassname"><span class="pre">deepsig.aso.</span></code><code class="sig-name descname"><span class="pre">aso</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.LongTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scores_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.LongTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_bootstrap_iterations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_jobs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#deepsig.aso.aso" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs the Almost Stochastic Order test by Dror et al. (2019). The function takes two list of scores as input
 (they do not have to be of the same length) and returns an upper bound to the violation ratio - the minimum epsilon
-threshold. If the violation ratio is below 0.5, the null hypothesis can be rejected safely (and the model scores_a
-belongs to is deemed better than the model of scores_b). Intuitively, the violation ratio denotes the degree to
-which total stochastic order (algorithm A is <em>always</em> better than B) is being violated.
-The more scores and the higher num_samples / num_bootstrap_iterations, the more reliable is the result.</p>
+threshold. <cite>scores_a</cite> should contain scores of the algorithm which we suspect to be better (in this setup,
+higher = better).</p>
+<p>The null hypothesis (which we would like to reject), is that the algorithm that generated <cite>scores_a</cite> is
+<em>not</em> better than the one <cite>scores_b</cite> originated from. If the violation ratio is below 0.5, the null hypothesis can
+be rejected safely (and the model scores_a belongs to is deemed better than the model of scores_b). Intuitively, the
+violation ratio denotes the degree to which total stochastic order (algorithm A is <em>always</em> better than B) is being
+violated. The more scores and the higher num_samples / num_bootstrap_iterations, the more reliable is the result.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
@@ -578,6 +586,8 @@ The more scores and the higher num_samples / num_bootstrap_iterations, the more 
 <dd><p>Implementation of paired bootstrap test. A p-value is being estimated by comparing the mean of scores
 for two algorithms to the means of resampled populations, where <cite>num_samples</cite> determines the number of
 times we resample.</p>
+<p>The test is single-tailed, where we want to verify that the algorithm corresponding to <cite>scores_a</cite> is better than
+the one <cite>scores_b</cite> originated from.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
@@ -649,7 +659,9 @@ times we resample.</p>
 <dt id="deepsig.permutation.permutation_test">
 <code class="sig-prename descclassname"><span class="pre">deepsig.permutation.</span></code><code class="sig-name descname"><span class="pre">permutation_test</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.LongTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scores_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.interpreters.xla._DeviceArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.EagerTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.LongTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#deepsig.permutation.permutation_test" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implementation of a permutation-randomization test. Scores of A and B will be randomly swapped and the difference
-in samples is then compared to the original differece.</p>
+in samples is then compared to the original difference.</p>
+<p>The test is single-tailed, where we want to verify that the algorithm corresponding to <cite>scores_a</cite> is better than
+the one <cite>scores_b</cite> originated from.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">

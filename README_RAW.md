@@ -151,7 +151,8 @@ the resulting $\epsilon_\text{min}$.
 ### Scenario 1 - Comparing multiple runs of two models 
 
 In the simplest scenario, we have retrieved a set of scores from a model A and a baseline B on a dataset, stemming from 
-various model runs with different seeds. We can now simply apply the ASO test:
+various model runs with different seeds. We want to test whether our model A is better than B (higher scores = better)- 
+We can now simply apply the ASO test:
 
 ```python
 import numpy as np
@@ -159,15 +160,17 @@ from deepsig import aso
 
 # Simulate scores
 N = 5  # Number of random seeds
-scores_a = np.random.normal(loc=0.9, scale=0.8, size=N)
-scores_b =  np.random.normal(loc=0, scale=1, size=N)
+my_model_scores = np.random.normal(loc=0.9, scale=0.8, size=N)
+baseline_scores = np.random.normal(loc=0, scale=1, size=N)
 
-min_eps = aso(scores_a, scores_b)  # min_eps = 0.0, so A is better
+min_eps = aso(my_model_scores, baseline_scores)  # min_eps = 0.0, so A is better
 ```
 
-ASO **does not make any assumptions about the distributions of the scores**. 
-This means that we can apply it to any kind of test metric. The more scores of model runs is supplied, the more reliable 
-the test becomes.
+Note that ASO **does not make any assumptions about the distributions of the scores**. 
+This means that we can apply it to any kind of test metric, as long as a higher score indicates a better performance 
+(to apply ASO to cases where lower scores indicate better performances, just multiple your scores by -1 before feeding
+them into the function). The more scores of model runs is supplied, the more reliable 
+the test becomes, so try to collect scores from as many runs as possible to reject the null hypothesis confidently.
 
 ### Scenario 2 - Comparing multiple runs across datasets
 
@@ -184,11 +187,11 @@ from deepsig import aso
 # Simulate scores for three datasets
 M = 3  # Number of datasets
 N = 5  # Number of random seeds
-scores_a = [np.random.normal(loc=0.3, scale=0.8, size=N) for _ in range(M)]
-scores_b = [np.random.normal(loc=0, scale=1, size=N) for _ in range(M)]
+my_model_scores_per_dataset = [np.random.normal(loc=0.3, scale=0.8, size=N) for _ in range(M)]
+baseline_scores_per_dataset  = [np.random.normal(loc=0, scale=1, size=N) for _ in range(M)]
 
 # epsilon_min values with Bonferroni correction 
-eps_min = [aso(a, b, confidence_level=0.05 / M) for a, b in zip(scores_a, scores_b)]
+eps_min = [aso(a, b, confidence_level=0.05 / M) for a, b in zip(my_model_scores_per_dataset, baseline_scores_per_dataset)]
 # eps_min = [0.1565800030782686, 1, 0.0]
 ```
 
@@ -211,9 +214,9 @@ from deepsig import aso
 # Simulate scores for three datasets
 M = 40   # Number of data points
 N = 3  # Number of random seeds
-scores_a = [np.random.normal(loc=0.3, scale=0.8, size=M) for _ in range(N)]
-scores_b = [np.random.normal(loc=0, scale=1, size=M) for _ in range(N)]
-pairs = list(product(scores_a, scores_b))
+my_model_scored_samples_per_run = [np.random.normal(loc=0.3, scale=0.8, size=M) for _ in range(N)]
+baseline_scored_samples_per_run = [np.random.normal(loc=0, scale=1, size=M) for _ in range(N)]
+pairs = list(product(my_model_scored_samples_per_run, baseline_scored_samples_per_run))
 
 # epsilon_min values with Bonferroni correction 
 eps_min = [aso(a, b, confidence_level=0.05 / len(pairs)) for a, b in pairs]
@@ -232,8 +235,10 @@ $$
 
 ---
 **Note**: While an appealing shortcut, it has been observed during testing this property, due to the random element
-of bootstrap iterations, might not always hold exactly - the difference between the two quantities has been seen to be 
-up to $0.2$ when the scores distributions of A and B are very similar.
+of bootstrap iterations, might not always hold exactly - the difference between the two quantities has been seen to 
+amount to up to $0.2$* when the scores distributions of A and B are very similar.
+
+*This is just an empirically observed value, not a tight bound.
 
 ---
 
@@ -248,20 +253,21 @@ M = 3  # Number of different models / algorithms
 num_comparisons = M * (M - 1) / 2
 eps_min = np.eye(M)  # M x M matrix with ones on diagonal
 
-scores_a = [np.random.normal(loc=0.3, scale=0.8, size=N) for _ in range(M)]
-scores_b = [np.random.normal(loc=0, scale=1, size=N) for _ in range(M)]
+# Simulate different model scores by sampling from normal distributions with increasing means
+# Here, we will sample from N(0.1, 0.8), N(0.15, 0.8), N(0.2, 0.8)
+my_models_scores = [np.random.normal(loc=loc, scale=0.8, size=N) for loc in np.arange(0.1, 0.1 + 0.05 * M, step=0.05)]
 
 for i in range(M):
   for j in range(i + 1, M):
     
-    e_min = aso(scores_a[i], scores_b[j], confidence_level=0.05 / num_comparisons)
+    e_min = aso(my_models_scores[i], my_models_scores[j], confidence_level=0.05 / num_comparisons)
     eps_min[i, j] = e_min
     eps_min[j, i] = 1 - e_min
     
 # eps_min =
-# [[1.        1.         0.96926677]
-# [0.         1.         0.71251641]
-# [0.03073323 0.28748359 1.        ]]
+# array([[1., 1., 1.],
+#        [0., 1., 1.],
+#        [0., 0., 1.]])
 ```
 
 ### :sparkles: Other features

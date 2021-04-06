@@ -31,10 +31,14 @@ def aso(
     """
     Performs the Almost Stochastic Order test by Dror et al. (2019). The function takes two list of scores as input
     (they do not have to be of the same length) and returns an upper bound to the violation ratio - the minimum epsilon
-    threshold. If the violation ratio is below 0.5, the null hypothesis can be rejected safely (and the model scores_a
-    belongs to is deemed better than the model of scores_b). Intuitively, the violation ratio denotes the degree to
-    which total stochastic order (algorithm A is *always* better than B) is being violated.
-    The more scores and the higher num_samples / num_bootstrap_iterations, the more reliable is the result.
+    threshold. `scores_a` should contain scores of the algorithm which we suspect to be better (in this setup,
+    higher = better).
+
+    The null hypothesis (which we would like to reject), is that the algorithm that generated `scores_a` is
+    *not* better than the one `scores_b` originated from. If the violation ratio is below 0.5, the null hypothesis can
+    be rejected safely (and the model scores_a belongs to is deemed better than the model of scores_b). Intuitively, the
+    violation ratio denotes the degree to which total stochastic order (algorithm A is *always* better than B) is being
+    violated. The more scores and the higher num_samples / num_bootstrap_iterations, the more reliable is the result.
 
     Parameters
     ----------

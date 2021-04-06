@@ -15,7 +15,10 @@ def permutation_test(
 ) -> float:
     """
     Implementation of a permutation-randomization test. Scores of A and B will be randomly swapped and the difference
-    in samples is then compared to the original differece.
+    in samples is then compared to the original difference.
+
+    The test is single-tailed, where we want to verify that the algorithm corresponding to `scores_a` is better than
+    the one `scores_b` originated from.
 
     Parameters
     ----------

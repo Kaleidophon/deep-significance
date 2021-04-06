@@ -19,6 +19,9 @@ def bootstrap_test(
     for two algorithms to the means of resampled populations, where `num_samples` determines the number of
     times we resample.
 
+    The test is single-tailed, where we want to verify that the algorithm corresponding to `scores_a` is better than
+    the one `scores_b` originated from.
+
     Parameters
     ----------
     scores_a: ArrayLike
