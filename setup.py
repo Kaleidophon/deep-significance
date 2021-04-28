@@ -3,6 +3,9 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+with open("requirements.txt") as f:
+    required = f.read().splitlines()
+
 setup(
     name="deepsig",
     version="1.0.0",
@@ -38,4 +41,5 @@ setup(
         "jax",
     ],
     packages=find_packages(exclude=["docs", "dist"]),
+    install_requires=required,
 )
