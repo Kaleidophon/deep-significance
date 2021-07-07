@@ -1,15 +1,26 @@
 """
 Re-implementation of Almost Stochastic Order (ASO) by `Dror et al. (2019) <https://arxiv.org/pdf/2010.03039.pdf>`_.
 The code here heavily borrows from their `original code base <https://github.com/rtmdrr/DeepComparison>`_.
+
+References:
+-----------
+[1] Dror, Rotem, Segev Shlomov, and Roi Reichart. "Deep dominance-how to properly compare deep neural models."
+Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics. 2019.
+[2] Hoffman, Matthew D., and Andrew Gelman. "The No-U-Turn sampler: adaptively setting path lengths in Hamiltonian
+Monte Carlo." J. Mach. Learn. Res. 15.1 (2014): 1593-1623.
 """
 
 # STD
-from typing import List, Callable
+from typing import List, Callable, Tuple, Type, Dict
 from warnings import warn
 
 # EXT
 from joblib import Parallel, delayed
 import numpy as np
+import pymc3.distributions.continuous as dists
+from pymc3.distributions.distribution import Distribution
+from pymc3.sampling import NUTS
+from pymc3.step_methods.hmc.base_hmc import BaseHMC
 from scipy.stats import norm as normal
 from tqdm import tqdm
 
@@ -42,9 +53,9 @@ def aso(
 
     Parameters
     ----------
-    scores_a: List[float]
+    scores_a: ArrayLike
         Scores of algorithm A.
-    scores_b: List[float]
+    scores_b: ArrayLike
         Scores of algorithm B.
     confidence_level: float
         Desired confidence level of test. Set to 0.05 by default.
@@ -77,9 +88,125 @@ def aso(
         num_jobs
     )
 
+    const1 = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
+
+    violation_ratio, sigma_hat = get_bootstrap_estimates(
+        scores_a,
+        scores_b,
+        num_samples,
+        num_bootstrap_iterations,
+        dt,
+        num_jobs,
+        show_progress,
+    )
+
+    # Compute eps_min and make sure it stays in [0, 1]
+    min_epsilon = min(
+        max(
+            violation_ratio - (1 / const1) * sigma_hat * normal.ppf(confidence_level), 0
+        ),
+        1,
+    )
+
+    return min_epsilon
+
+
+@score_conversion
+def bf_aso(
+    scores_a: ArrayLike,
+    scores_b: ArrayLike,
+    prior: Type = dists.Beta,
+    prior_args: Dict[str, float] = {"alpha": 1, "beta": 1},
+    num_samples: int = 1000,
+    num_bootstrap_iterations: int = 1000,
+    dt: float = 0.005,
+    sampler: BaseHMC = NUTS,
+    num_jobs: int = 1,
+    show_progress: bool = True,
+) -> float:
+    """
+    Compute the Bayes factor BF_01 for Almost stochastic order, where the null hypothesis H_0: e_W2 = 0.5 and the
+    alternate hypothesis H_1: e_W2 =/= 0.5.
+
+    Parameters
+    ----------
+    scores_a: ArrayLike
+        Scores of algorithm A.
+    scores_b: ArrayLike
+        Scores of algorithm B.
+    prior: Type
+        Prior distribution for the violation ratio. Set to a Beta(1, 1) by default (so a uniform prior; see prior_args).
+    prior_args: Dict[str, float]
+        Dictionary of arguments to instantiate prior.
+    num_samples: int
+        Number of samples from the score distributions during every bootstrap iteration when estimating sigma.
+    num_bootstrap_iterations: int
+        Number of bootstrap iterations when estimating sigma.
+    dt: float
+        Differential for t during integral calculation.
+    sampler: BaseHMC
+        MCMC sampler used. Defaults to the No-U-Turn-Sampler (NUTS) by [2].
+    num_jobs: int
+        Number of threads that bootstrap iterations are divided among. Also, number of chains used for the MCMC sampler.
+    show_progress: bool
+        Show progress bar. Default is True.
+
+    Returns
+    -------
+    float
+        Bayes factor BF_01.
+    """
+    assert (
+        len(scores_a) > 0 and len(scores_b) > 0
+    ), "Both lists of scores must be non-empty."
+    assert num_samples > 0, "num_samples must be positive, {} found.".format(
+        num_samples
+    )
+    assert (
+        num_bootstrap_iterations > 0
+    ), "num_samples must be positive, {} found.".format(num_bootstrap_iterations)
+    assert num_jobs > 0, "Number of jobs has to be at least 1, {} found.".format(
+        num_jobs
+    )
+    ...  # TODO: Implement
+
+
+def get_bootstrap_estimates(
+    scores_a: np.array,
+    scores_b: np.array,
+    num_samples: int,
+    num_bootstrap_iterations: int,
+    dt: float,
+    num_jobs: int,
+    show_progress: bool,
+):
+    """
+    Get the bootstrap estimates of the violation ratio and the associated variance sigma_hat.
+
+    Parameters
+    ----------
+    scores_a: ArrayLike
+        Scores of algorithm A.
+    scores_b: ArrayLike
+        Scores of algorithm B.
+    num_samples: int
+        Number of samples from the score distributions during every bootstrap iteration when estimating sigma.
+    num_bootstrap_iterations: int
+        Number of bootstrap iterations when estimating sigma.
+    dt: float
+        Differential for t during integral calculation.
+    num_jobs: int
+        Number of threads that bootstrap iterations are divided among.
+    show_progress: bool
+        Show progress bar. Default is True.
+
+    Returns
+    -------
+    Tuple[float, float]
+        Estimated violation ratio and associated variance.
+    """
     violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
     # Based on the actual number of samples
-    const1 = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
     quantile_func_a = get_quantile_function(scores_a)
     quantile_func_b = get_quantile_function(scores_b)
 
@@ -113,15 +240,7 @@ def aso(
     )  # This one is based on the number of re-sampled scores
     sigma_hat = np.std(const2 * (samples - violation_ratio))
 
-    # Compute eps_min and make sure it stays in [0, 1]
-    min_epsilon = min(
-        max(
-            violation_ratio - (1 / const1) * sigma_hat * normal.ppf(confidence_level), 0
-        ),
-        1,
-    )
-
-    return min_epsilon
+    return violation_ratio, sigma_hat
 
 
 def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -> float:
