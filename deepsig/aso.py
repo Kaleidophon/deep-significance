@@ -17,8 +17,9 @@ from warnings import warn
 # EXT
 from joblib import Parallel, delayed
 import numpy as np
+import pymc3
+import pymc3.backends.base as pymc3_base
 import pymc3.distributions.continuous as dists
-from pymc3.distributions.distribution import Distribution
 from pymc3.sampling import NUTS
 from pymc3.step_methods.hmc.base_hmc import BaseHMC
 from scipy.stats import norm as normal
@@ -90,7 +91,7 @@ def aso(
 
     const1 = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
 
-    violation_ratio, sigma_hat = get_bootstrap_estimates(
+    violation_ratio, sigma_hat, _ = get_bootstrap_estimates(
         scores_a,
         scores_b,
         num_samples,
@@ -115,18 +116,23 @@ def aso(
 def bf_aso(
     scores_a: ArrayLike,
     scores_b: ArrayLike,
-    prior: Type = dists.Beta,
-    prior_args: Dict[str, float] = {"alpha": 1, "beta": 1},
-    num_samples: int = 1000,
+    prior_class: Type = dists.Beta,
+    prior_kwargs: Dict[str, float] = {"alpha": 1, "beta": 1},
+    rope: Tuple[float, float] = (0.45, 0.55),
+    num_bootstrap_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
+    num_mcmc_samples: int = 500,
+    num_chains: int = 2,
+    num_tune_samples: int = 3000,
     dt: float = 0.005,
-    sampler: BaseHMC = NUTS,
+    epsilon: float = 1e-6,
+    sampler_class: Type = NUTS,
     num_jobs: int = 1,
     show_progress: bool = True,
 ) -> float:
     """
     Compute the Bayes factor BF_01 for Almost stochastic order, where the null hypothesis H_0: e_W2 = 0.5 and the
-    alternate hypothesis H_1: e_W2 =/= 0.5.
+    alternate hypothesis H_1: e_W2 =/= 0.5. The Bayes factor is computed using the Savage-Dickey ratio.
 
     Parameters
     ----------
@@ -134,20 +140,31 @@ def bf_aso(
         Scores of algorithm A.
     scores_b: ArrayLike
         Scores of algorithm B.
-    prior: Type
+    prior_class: Type
         Prior distribution for the violation ratio. Set to a Beta(1, 1) by default (so a uniform prior; see prior_args).
-    prior_args: Dict[str, float]
+    prior_kwargs: Dict[str, float]
         Dictionary of arguments to instantiate prior.
-    num_samples: int
+    rope: Tuple[float, float]
+        Region of practical equivalence. Used instead of a single point of interest for null hypothesis when computing
+        the Savage-Dickey ratio.
+    num_bootstrap_samples: int
         Number of samples from the score distributions during every bootstrap iteration when estimating sigma.
     num_bootstrap_iterations: int
         Number of bootstrap iterations when estimating sigma.
+    num_mcmc_samples: int
+        Number of MCMC samples from the prior / posterior.
+    num_chains: int
+        Number of independent chains for MCMC sampling.
+    num_tune_samples: int
+        Number of MCMC samples to discard in the beginning as a "warm-up" phase.
+    num_jobs: int
+        Number of threads that bootstrap iterations and MCMC samples are divided among.
     dt: float
         Differential for t during integral calculation.
-    sampler: BaseHMC
+    epsilon: float
+        Epsilon term to be used to avoid division by zero in some places.
+    sampler_class: BaseHMC
         MCMC sampler used. Defaults to the No-U-Turn-Sampler (NUTS) by [2].
-    num_jobs: int
-        Number of threads that bootstrap iterations are divided among. Also, number of chains used for the MCMC sampler.
     show_progress: bool
         Show progress bar. Default is True.
 
@@ -159,8 +176,8 @@ def bf_aso(
     assert (
         len(scores_a) > 0 and len(scores_b) > 0
     ), "Both lists of scores must be non-empty."
-    assert num_samples > 0, "num_samples must be positive, {} found.".format(
-        num_samples
+    assert num_bootstrap_samples > 0, "num_samples must be positive, {} found.".format(
+        num_bootstrap_samples
     )
     assert (
         num_bootstrap_iterations > 0
@@ -168,7 +185,65 @@ def bf_aso(
     assert num_jobs > 0, "Number of jobs has to be at least 1, {} found.".format(
         num_jobs
     )
-    ...  # TODO: Implement
+    # TODO: Add more cases here
+
+    violation_ratio, sigma_hat, samples = get_bootstrap_estimates(
+        scores_a,
+        scores_b,
+        num_bootstrap_samples,
+        num_bootstrap_iterations,
+        dt,
+        num_jobs,
+        show_progress,
+    )
+    const = np.sqrt(len(scores_a) + len(scores_b) / (len(scores_a) * len(scores_b)))
+
+    with pymc3.Model() as prior_model:
+
+        prior = prior_class(**prior_kwargs, name="mu")
+        prior_trace = pymc3.sample(
+            return_inferencedata=False,
+            model=prior_model,
+            draws=num_mcmc_samples,
+            chains=num_chains,
+            step=sampler_class(),
+            cores=num_jobs,
+            tune=num_tune_samples,
+            progressbar=show_progress,
+        )
+
+    with pymc3.Model() as posterior_model:
+        prior = prior_class(name="mu", **prior_kwargs, shape=len(samples))
+
+        # Add observations
+        dists.Normal(
+            name="violation_ratio",
+            mu=prior,
+            sigma=np.sqrt(const) * sigma_hat + epsilon,
+            observed=samples,  # TODO: Should samples or actual violation ratio be used here?
+        )
+
+        # TODO: PyMC3 often states that model might be misspecified / that number of tuning steps should be increased
+        posterior_trace = pymc3.sample(
+            init="adapt_diag",
+            return_inferencedata=False,
+            model=posterior_model,
+            draws=num_mcmc_samples,
+            chains=num_chains,
+            step=sampler_class(),
+            cores=num_jobs,
+            tune=num_tune_samples,
+            progressbar=show_progress,
+        )
+
+    prior_rope_prob = estimate_interval_prob(prior_trace, "mu", *rope)
+    posterior_rope_prob = estimate_interval_prob(posterior_trace, "mu", *rope)
+    bf = posterior_rope_prob / (
+        prior_rope_prob + epsilon
+    )  # Savage-Dickey density ratio
+    # bf *= (1 - prior_rope_prob) / (1 - posterior_rope_prob)  # TODO: Use Erfan's "correction" here?
+
+    return bf
 
 
 def get_bootstrap_estimates(
@@ -202,8 +277,8 @@ def get_bootstrap_estimates(
 
     Returns
     -------
-    Tuple[float, float]
-        Estimated violation ratio and associated variance.
+    Tuple[float, float, np.array]
+        Estimated violation ratio, associated variance and produced samples.
     """
     violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
     # Based on the actual number of samples
@@ -240,7 +315,7 @@ def get_bootstrap_estimates(
     )  # This one is based on the number of re-sampled scores
     sigma_hat = np.std(const2 * (samples - violation_ratio))
 
-    return violation_ratio, sigma_hat
+    return violation_ratio, sigma_hat, samples
 
 
 def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -> float:
@@ -304,3 +379,32 @@ def get_quantile_function(scores: np.array) -> Callable:
         return cdf[min(num - 1, max(0, index - 1))]
 
     return np.vectorize(_quantile_function)
+
+
+def estimate_interval_prob(
+    trace: pymc3_base.MultiTrace,
+    parameter: str,
+    interval_begin: float,
+    interval_end: float,
+):
+    """
+    Estimating probability of an interval, used in calculation of Bayes_factor for a specific parameter
+    :param trace: an object containing the samples, i.e., output of pymc3's sampling
+    :param parameter: (str) the parameter of interest for calculating Bayes Factor,
+                        most commonly mu or any centrality parameter.
+    :param interval_begin: (float)
+    :param interval_end: (float)
+    """
+    # TODO: Re-write doc, cite erfan
+    diff = trace[parameter][0] - trace[parameter][1]
+    numerator = np.logical_and(diff > interval_begin, diff < interval_end).sum()
+    denominator = diff.size
+
+    return numerator / denominator
+
+
+# TODO: Debug
+if __name__ == "__main__":
+    scores_a = np.random.randn(10)
+    scores_b = np.random.randn(10) + 0.15
+    print(bf_aso(scores_a, scores_b, num_jobs=2))
