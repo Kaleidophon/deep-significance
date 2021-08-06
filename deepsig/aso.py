@@ -11,7 +11,7 @@ Monte Carlo." J. Mach. Learn. Res. 15.1 (2014): 1593-1623.
 """
 
 # STD
-from typing import List, Callable, Tuple, Type, Dict
+from typing import List, Callable, Tuple, Type, Dict, Any
 from warnings import warn
 
 # EXT
@@ -27,6 +27,9 @@ from tqdm import tqdm
 
 # PKG
 from deepsig.conversion import ArrayLike, score_conversion
+
+# TODO: Make BF work
+# TODO: Add convenience function to easily compare multiple models
 
 
 @score_conversion
@@ -123,10 +126,11 @@ def bf_aso(
     num_bootstrap_iterations: int = 1000,
     num_mcmc_samples: int = 500,
     num_chains: int = 2,
-    num_tune_samples: int = 3000,
+    num_tune_samples: int = 1000,
     dt: float = 0.005,
-    epsilon: float = 1e-6,
+    epsilon: float = 1e-3,
     sampler_class: Type = NUTS,
+    sampler_kwargs: Dict[str, Any] = {"target_accept": 0.99},
     num_jobs: int = 1,
     show_progress: bool = True,
 ) -> float:
@@ -165,6 +169,8 @@ def bf_aso(
         Epsilon term to be used to avoid division by zero in some places.
     sampler_class: BaseHMC
         MCMC sampler used. Defaults to the No-U-Turn-Sampler (NUTS) by [2].
+    sampler_kwargs: Dict[str, Any]
+        Key-word arguments used to initialize the sampler.
     show_progress: bool
         Show progress bar. Default is True.
 
@@ -173,6 +179,7 @@ def bf_aso(
     float
         Bayes factor BF_01.
     """
+
     assert (
         len(scores_a) > 0 and len(scores_b) > 0
     ), "Both lists of scores must be non-empty."
@@ -198,39 +205,44 @@ def bf_aso(
     )
     const = np.sqrt(len(scores_a) + len(scores_b) / (len(scores_a) * len(scores_b)))
 
+    # Fix problems wirth progressbar not showing up during PyMC3 sampling
+    from fastprogress import fastprogress
+
+    fastprogress.printing = lambda: True
+
     with pymc3.Model() as prior_model:
 
-        prior = prior_class(**prior_kwargs, name="mu")
+        prior_class(**prior_kwargs, name="mu")
         prior_trace = pymc3.sample(
+            init="adapt_diag",
             return_inferencedata=False,
             model=prior_model,
             draws=num_mcmc_samples,
             chains=num_chains,
-            step=sampler_class(),
+            step=sampler_class(**sampler_kwargs),
             cores=num_jobs,
             tune=num_tune_samples,
             progressbar=show_progress,
         )
 
     with pymc3.Model() as posterior_model:
-        prior = prior_class(name="mu", **prior_kwargs, shape=len(samples))
+        prior = prior_class(name="mu", **prior_kwargs)
 
         # Add observations
         dists.Normal(
             name="violation_ratio",
             mu=prior,
-            sigma=np.sqrt(const) * sigma_hat + epsilon,
-            observed=samples,  # TODO: Should samples or actual violation ratio be used here?
+            sigma=pymc3.math.sqrt(const) * sigma_hat + epsilon,
+            observed=samples,
         )
 
-        # TODO: PyMC3 often states that model might be misspecified / that number of tuning steps should be increased
         posterior_trace = pymc3.sample(
             init="adapt_diag",
             return_inferencedata=False,
             model=posterior_model,
             draws=num_mcmc_samples,
             chains=num_chains,
-            step=sampler_class(),
+            step=sampler_class(**sampler_kwargs),
             cores=num_jobs,
             tune=num_tune_samples,
             progressbar=show_progress,
@@ -241,7 +253,7 @@ def bf_aso(
     bf = posterior_rope_prob / (
         prior_rope_prob + epsilon
     )  # Savage-Dickey density ratio
-    # bf *= (1 - prior_rope_prob) / (1 - posterior_rope_prob)  # TODO: Use Erfan's "correction" here?
+    # bf *= (1 - prior_rope_prob) / (1 - posterior_rope_prob)  # TODO: Use Erfan's correction here?
 
     return bf
 
@@ -308,7 +320,7 @@ def get_bootstrap_estimates(
 
     # Initialize worker pool and start iterations
     parallel = Parallel(n_jobs=num_jobs)
-    samples = parallel(delayed(_bootstrap_iter)() for _ in iters)
+    samples = np.array(parallel(delayed(_bootstrap_iter)() for _ in iters))
 
     const2 = np.sqrt(
         num_samples ** 2 / (2 * num_samples)
@@ -396,15 +408,16 @@ def estimate_interval_prob(
     :param interval_end: (float)
     """
     # TODO: Re-write doc, cite erfan
-    diff = trace[parameter][0] - trace[parameter][1]
-    numerator = np.logical_and(diff > interval_begin, diff < interval_end).sum()
-    denominator = diff.size
+    numerator = np.logical_and(
+        trace[parameter] > interval_begin, trace[parameter] < interval_end
+    ).sum()
+    denominator = trace[parameter].size
 
     return numerator / denominator
 
 
 # TODO: Debug
 if __name__ == "__main__":
-    scores_a = np.random.randn(10)
-    scores_b = np.random.randn(10) + 0.15
-    print(bf_aso(scores_a, scores_b, num_jobs=2))
+    scores_a = np.random.randn(10) * 10 + 10
+    scores_b = np.random.randn(10)
+    print(bf_aso(scores_a, scores_a + 2, num_jobs=1))
