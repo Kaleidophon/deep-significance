@@ -3,7 +3,7 @@ scipy==1.5.4
 tqdm==4.59.0
 joblib==1.0.1
 jax==0.2.9
-tensorflow==2.4.1
+tensorflow==2.4.2
 torch==1.8.0
 coverage==5.5
 coveralls==3.0.1
