@@ -17,6 +17,7 @@
   * [Scenario 2: Comparing multiple runs across datasets](#scenario-2---comparing-multiple-runs-across-datasets) 
   * [Scenario 3: Comparing sample-level scores](#scenario-3---comparing-sample-level-scores)
   * [Scenario 4: Comparing more than two models](#scenario-4---comparing-more-than-two-models)
+  * [How to report results](#newspaper-how-to-report-results)
   * [Other features](#sparkles-other-features)
   * [General Recommendations & other notes](#general-recommendations) 
 * [|:mortar_board:| Cite](#mortar_board-cite)
@@ -69,6 +70,9 @@ Another option is to clone the repository and install the package locally:
 ---
 **tl;dr**: Use `aso()` to compare scores for two models. If the returned `eps_min < 0.5`, A is better than B. The lower
 `eps_min`, the more confident the result. 
+
+|:warning:| Testing models with only one set of hyperparameters and only one test set will be able to guarantee superiority
+in all settings. See [General Recommendations & other notes](#general-recommendations).
 
 ---
 
@@ -260,6 +264,18 @@ for i in range(M):
 #        [0., 0., 1.]])
 ```
 
+### |:newspaper:| How to report results
+
+When ASO used, two important details have to be reported, namely the confidence level <img src="c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> and the <img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>
+score. Below lists some example snippets reporting the results of scenarios 1 and 4:
+
+    Using ASO with a confidence level $\alpha = 0.05$, we found the score distribution of algorithm A based on three 
+    random seeds to be stochastically dominant over B ($\epsilon_\text{min} = 0$).
+
+    We compared all pairs of models based on five random seeds each using ASO with a confidence level of 
+    $\alpha = 0.05$ (before adjusting for all pair-wise comparisons using the Bonferroni correction). Almost stochastic 
+    dominance ($\epsilon_\text{min} < 0.5)$ is indicated in table X.
+
 ### |:sparkles:| Other features
 
 #### |:rocket:| For the impatient: ASO with multi-threading
@@ -318,7 +334,9 @@ print(bootstrap_test(a, b))    # 0.103
 * Naturally, the CDFs built from `scores_a` and `scores_b` can only be approximations of the true distributions. Therefore,
 as many scores as possible should be collected, especially if the variance between runs is high. If only one run is available,
   comparing sample-wise score distributions like in scenario 3 can be an option, but comparing multiple runs will 
-  **always** be preferable.
+  **always** be preferable. Ideally, scores should be obtained even using different sets of hyperparameters per model.
+  Because this is usually infeasible in practice, Bouthilier et al. (2020) recommend to **vary all other sources of variation**
+  between runs to obtain the most trustworthy estimate of the "true" performance, such as data shuffling, weight initialization etc.
 
 * `num_samples` and `num_bootstrap_iterations` can be reduced to increase the speed of `aso()`. However, this is not 
 recommended as the result of the test will also become less accurate. Technically, <img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> is a upper bound
@@ -391,6 +409,8 @@ Del Barrio, Eustasio, Juan A. Cuesta-Albertos, and Carlos Matrán. "An optimal t
 Bonferroni, Carlo. "Teoria statistica delle classi e calcolo delle probabilita." Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.
 
 Borji, Ali. "Negative results in computer vision: A perspective." Image and Vision Computing 69 (2018): 1-8.
+
+Bouthillier, Xavier, et al. "Accounting for variance in machine learning benchmarks." Proceedings of Machine Learning and Systems 3 (2021).
 
 Dror, Rotem, et al. "The hitchhiker’s guide to testing statistical significance in natural language processing." Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2018.
 
