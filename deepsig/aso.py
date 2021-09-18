@@ -131,7 +131,7 @@ def aso(
     return min_epsilon
 
 
-def multiple_aso(
+def multi_aso(
     scores: ScoreCollection,
     confidence_level: float = 0.05,
     use_bonferroni: bool = True,
@@ -214,7 +214,7 @@ def multiple_aso(
             if use_symmetry:
                 eps_min[j, i] = eps_min[i, j]
 
-            # Compute ASO(B, A, alpha) separatelys
+            # Compute ASO(B, A, alpha) separately
             else:
                 eps_min[i, j] = aso(
                     scores_b,

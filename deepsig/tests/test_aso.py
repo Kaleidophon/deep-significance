@@ -138,6 +138,39 @@ class ASOTechnicalTests(unittest.TestCase):
             self.assertAlmostEqual(eps_min1, eps_min2, delta=0.1)
 
 
+class MultiASOTests(unittest.TestCase):
+    """
+    Test different aspects of multi_aso().
+    """
+
+    def setUp(self) -> None:
+        ...  # TODO
+
+    def test_score_types(self):
+        """
+        Test different types for the scores argument.
+        """
+        ...  # TODO
+
+    def test_bonferroni_correction(self):
+        """
+        Test flag that toggles the use of the Bonferroni correction.
+        """
+        ...  # TODO
+
+    def test_symmetry(self):
+        """
+        Test flag that toggles the use of the symmetry property.
+        """
+        ...  # TODO
+
+    def test_result_df(self):
+        """
+        Test the creation of a results DataFrame.
+        """
+        ...  # TODO
+
+
 class ASOSanityChecks(unittest.TestCase):
     """
     Sanity checks to test whether the ASO test behaves as expected.
