@@ -153,7 +153,8 @@ class MultiASOTests(unittest.TestCase):
         self.aso_kwargs = {
             "num_samples": 100,
             "num_bootstrap_iterations": 100,
-            # "num_jobs": 1,  TODO: Debug
+            "num_jobs": 2,
+            "show_progress": False,
         }
         self.num_models = 3
         self.num_seeds = 100
@@ -181,7 +182,7 @@ class MultiASOTests(unittest.TestCase):
         Test different types for the scores argument.
         """
         for scores in self.all_score_types:
-            multi_aso(scores, **self.aso_kwargs, num_jobs=2)
+            multi_aso(scores, **self.aso_kwargs)
 
     '''
     def test_bonferroni_correction(self):

@@ -198,7 +198,12 @@ def multi_aso(
         list(range(num_models)) if type(scores) is not dict else list(scores.keys())
     )
 
-    # TODO: Add custom progress bar
+    # Add progressbar if applicable
+    if show_progress:
+        progress_bar = tqdm(
+            range(num_models) if use_symmetry else range(num_models * 2),
+            desc="Model comparisons",
+        )
 
     for i, key_i in enumerate(indices):
         for j, key_j in enumerate(indices[(i + 1) :]):
@@ -212,8 +217,11 @@ def multi_aso(
                 num_bootstrap_iterations=num_bootstrap_iterations,
                 dt=dt,
                 num_jobs=num_jobs,
-                show_progress=show_progress,
+                show_progress=False,
             )
+
+            if show_progress:
+                progress_bar.update(1)
 
             # Use ASO(A, B, alpha) = 1 - ASO(B, A, alpha)
             if use_symmetry:
@@ -229,8 +237,11 @@ def multi_aso(
                     num_bootstrap_iterations=num_bootstrap_iterations,
                     dt=dt,
                     num_jobs=num_jobs,
-                    show_progress=show_progress,
+                    show_progress=False,
                 )
+
+                if show_progress:
+                    progress_bar.update(1)
 
     # TODO: Convert to DataFrame if necessary
 
