@@ -194,6 +194,7 @@ def multi_aso(
     )
 
     # TODO: Add custom progress bar
+    # TODO: Increasing the number of jobs crashes everything
 
     for i, key_i in enumerate(indices):
         for j, key_j in enumerate(indices[(i + 1) :]):

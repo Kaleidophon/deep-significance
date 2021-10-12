@@ -7,16 +7,21 @@ import unittest
 
 # EXT
 import numpy as np
+import torch
+import tensorflow as tf
+
+# import jax.numpy as jnp
 from scipy.stats import wasserstein_distance, pearsonr
 
 # PKG
 from deepsig.aso import (
     aso,
+    multi_aso,
     compute_violation_ratio,
     get_quantile_function,
 )
 
-
+'''
 class ASOTechnicalTests(unittest.TestCase):
     """
     Check technical aspects of ASO: Is the quantile function and the computation of the violation ratio
@@ -136,6 +141,7 @@ class ASOTechnicalTests(unittest.TestCase):
                 show_progress=False,
             )
             self.assertAlmostEqual(eps_min1, eps_min2, delta=0.1)
+'''
 
 
 class MultiASOTests(unittest.TestCase):
@@ -144,25 +150,65 @@ class MultiASOTests(unittest.TestCase):
     """
 
     def setUp(self) -> None:
-        ...  # TODO
+        self.aso_kwargs = {
+            "num_samples": 100,
+            "num_bootstrap_iterations": 100,
+            "num_jobs": 1,
+        }
+        self.num_models = 3
+        self.num_seeds = 100
+        self.scores = [
+            np.random.normal(loc=0.3, scale=0.2, size=self.num_seeds).tolist()
+            #    0.1, 0.1 + 0.02 * self.num_models,
+            #    step=(0.1 + 0.02 * self.num_models - 0.1) / self.num_models
+            # )
+            for _ in range(self.num_models)
+        ]
+        self.scores_dict = {
+            "model{}".format(i): scores for i, scores in enumerate(self.scores)
+        }
+        self.scores_numpy = np.array(self.scores)
+        self.scores_torch = torch.from_numpy(self.scores_numpy)
+        self.scores_tensorflow = tf.convert_to_tensor(self.scores_numpy)
+        self.all_score_types = [
+            self.scores,
+            self.scores_dict,
+            self.scores_numpy,
+            self.scores_torch,
+            self.scores_tensorflow,
+        ]
+        # self.scores_jax = jnp.array(self.scores_numpy)
 
+    '''
     def test_score_types(self):
         """
         Test different types for the scores argument.
         """
-        ...  # TODO
+        for scores in self.all_score_types:
+            multi_aso(scores, **self.aso_kwargs)
 
     def test_bonferroni_correction(self):
         """
         Test flag that toggles the use of the Bonferroni correction.
         """
-        ...  # TODO
+        np.random.seed(123)
+        corrected_scores = multi_aso(self.scores_numpy, **self.aso_kwargs)
+        np.random.seed(123)
+        uncorrected_scores = multi_aso(self.scores_numpy, use_bonferroni=False, **self.aso_kwargs)
+        self.assertTrue(np.all(corrected_scores >= uncorrected_scores))
 
     def test_symmetry(self):
         """
         Test flag that toggles the use of the symmetry property.
         """
-        ...  # TODO
+        np.random.seed(4321)
+        asymmetric_scores = multi_aso(self.scores_numpy, use_symmetry=False, **self.aso_kwargs)
+        np.random.seed(4321)
+        symmetric_scores = multi_aso(self.scores_numpy, **self.aso_kwargs)
+
+        self.assertTrue(np.all(symmetric_scores == symmetric_scores.T))
+        self.assertTrue(np.any(asymmetric_scores != asymmetric_scores.T))
+    '''
 
     def test_result_df(self):
         """
@@ -171,6 +217,7 @@ class MultiASOTests(unittest.TestCase):
         ...  # TODO
 
 
+'''
 class ASOSanityChecks(unittest.TestCase):
     """
     Sanity checks to test whether the ASO test behaves as expected.
@@ -300,3 +347,4 @@ class ASOSanityChecks(unittest.TestCase):
                 num_bootstrap_iterations=1000,
             )
             self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=0.2)
+'''
