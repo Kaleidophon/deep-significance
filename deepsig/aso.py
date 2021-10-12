@@ -9,6 +9,8 @@ from warnings import warn
 
 # EXT
 from joblib import Parallel, delayed
+from joblib.externals.loky import set_loky_pickler
+from joblib import wrap_non_picklable_objects
 import numpy as np
 import pandas as pd
 from scipy.stats import norm as normal
@@ -22,6 +24,9 @@ from deepsig.conversion import (
     ALLOWED_TYPES,
     CONVERSIONS,
 )
+
+# MISC
+set_loky_pickler("dill")  # Avoid weird joblib error with multi_aso
 
 
 @score_conversion
@@ -194,7 +199,6 @@ def multi_aso(
     )
 
     # TODO: Add custom progress bar
-    # TODO: Increasing the number of jobs crashes everything
 
     for i, key_i in enumerate(indices):
         for j, key_j in enumerate(indices[(i + 1) :]):

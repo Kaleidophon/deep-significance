@@ -153,15 +153,12 @@ class MultiASOTests(unittest.TestCase):
         self.aso_kwargs = {
             "num_samples": 100,
             "num_bootstrap_iterations": 100,
-            "num_jobs": 1,
+            # "num_jobs": 1,  TODO: Debug
         }
         self.num_models = 3
         self.num_seeds = 100
         self.scores = [
             np.random.normal(loc=0.3, scale=0.2, size=self.num_seeds).tolist()
-            #    0.1, 0.1 + 0.02 * self.num_models,
-            #    step=(0.1 + 0.02 * self.num_models - 0.1) / self.num_models
-            # )
             for _ in range(self.num_models)
         ]
         self.scores_dict = {
@@ -179,14 +176,14 @@ class MultiASOTests(unittest.TestCase):
         ]
         # self.scores_jax = jnp.array(self.scores_numpy)
 
-    '''
     def test_score_types(self):
         """
         Test different types for the scores argument.
         """
         for scores in self.all_score_types:
-            multi_aso(scores, **self.aso_kwargs)
+            multi_aso(scores, **self.aso_kwargs, num_jobs=2)
 
+    '''
     def test_bonferroni_correction(self):
         """
         Test flag that toggles the use of the Bonferroni correction.
