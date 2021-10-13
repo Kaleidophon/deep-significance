@@ -177,14 +177,14 @@ class MultiASOTests(unittest.TestCase):
         ]
         # self.scores_jax = jnp.array(self.scores_numpy)
 
+    '''
     def test_score_types(self):
         """
         Test different types for the scores argument.
         """
         for scores in self.all_score_types:
-            multi_aso(scores, **self.aso_kwargs)
+            print(multi_aso(scores, **self.aso_kwargs))
 
-    '''
     def test_bonferroni_correction(self):
         """
         Test flag that toggles the use of the Bonferroni correction.
@@ -212,7 +212,14 @@ class MultiASOTests(unittest.TestCase):
         """
         Test the creation of a results DataFrame.
         """
-        ...  # TODO
+        np.random.seed(5555)
+        eps_min = multi_aso(self.scores_dict, **self.aso_kwargs)
+        np.random.seed(5555)
+        eps_min_df = multi_aso(self.scores_dict, **self.aso_kwargs, return_df=True)
+
+        self.assertEqual(list(self.scores_dict.keys()), list(eps_min_df.columns))
+        self.assertEqual(list(self.scores_dict.keys()), list(eps_min_df.index))
+        self.assertTrue(np.all(eps_min == eps_min_df.to_numpy()))
 
 
 '''

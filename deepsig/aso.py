@@ -194,9 +194,9 @@ def multi_aso(
         confidence_level /= num_comparisons
 
     # Iterate over simple indices or dictionary keys depending on type of scores argument
-    indices = (
-        list(range(num_models)) if type(scores) is not dict else list(scores.keys())
-    )
+    indices = list(range(num_models)) if type(scores) != dict else list(scores.keys())
+
+    # TODO: Improve progressbar
 
     # Add progressbar if applicable
     if show_progress:
@@ -243,7 +243,9 @@ def multi_aso(
                 if show_progress:
                     progress_bar.update(1)
 
-    # TODO: Convert to DataFrame if necessary
+    if type(scores) == dict and return_df:
+        eps_min = pd.DataFrame(data=eps_min, index=list(scores.keys()))
+        eps_min = eps_min.rename(dict(enumerate(scores.keys())), axis=1)
 
     return eps_min
 
