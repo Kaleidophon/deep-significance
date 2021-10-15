@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-with open("README.md", "r") as fh:
+with open("README_RAW.md", "r") as fh:
     long_description = fh.read()
 
 with open("requirements.txt") as f:
@@ -8,7 +8,7 @@ with open("requirements.txt") as f:
 
 setup(
     name="deepsig",
-    version="1.0.2",
+    version="1.1.0",
     author="Dennis Ulmer",
     description="Easy Significance Testing for Deep Neural Networks.",
     long_description=long_description,
