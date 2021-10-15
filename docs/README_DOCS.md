@@ -223,7 +223,7 @@ eps_min = [aso(a, b, confidence_level=0.05 / len(pairs)) for a, b in pairs]
 Similarly, when comparing multiple models (now again on a per-seed basis), we can use a similar approach like in the 
 previous example. For instance, for three models, we can create a <img src="9f2b6b0a7f3d99fd3f396a1515926eb3.svg?invert_in_darkmode" align=middle width=36.52961069999999pt height=21.18721440000001pt/> matrix and fill the entries 
 with the corresponding <img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> values. The diagonal will naturally always be 1, but we can also restrict 
-ourself to only filling out one half of the matrix by making use of the following property of ASO:
+ourselves to only filling out one half of the matrix by making use of the following symmetry property of ASO:
 
 <p align="center"><img src="19a0661139e4b089cac41a8a27b738e7.svg?invert_in_darkmode" align=middle width=245.9131653pt height=16.438356pt/></p>
 
@@ -236,32 +236,66 @@ amount to up to <img src="358d4d0949e47523757b4bc797ab597e.svg?invert_in_darkmod
 
 ---
 
-The corresponding code can then look something like this:
+The package implements the function `multi_aso()` exactly for this purpose. It has the same arguments as `aso()`, with 
+a few differences. First of all, the function takes a single `scores` argument, which can be a list of lists (of scores),
+or a nested NumPy array or Tensorflow / PyTorch / Jax tensor or dictionary (more about that later). 
+Let's look at an example:
 
 ```python 
 import numpy as np 
-from deepsig import aso 
+from deepsig import multi_aso 
  
 N = 5  # Number of random seeds
 M = 3  # Number of different models / algorithms
-num_comparisons = M * (M - 1) / 2
-eps_min = np.eye(M)  # M x M matrix with ones on diagonal
 
 # Simulate different model scores by sampling from normal distributions with increasing means
 # Here, we will sample from N(0.1, 0.8), N(0.15, 0.8), N(0.2, 0.8)
 my_models_scores = [np.random.normal(loc=loc, scale=0.8, size=N) for loc in np.arange(0.1, 0.1 + 0.05 * M, step=0.05)]
 
-for i in range(M):
-  for j in range(i + 1, M):
-    
-    e_min = aso(my_models_scores[i], my_models_scores[j], confidence_level=0.05 / num_comparisons)
-    eps_min[i, j] = e_min
-    eps_min[j, i] = 1 - e_min
+eps_min = multi_aso(my_model_scores, confidence_level=0.05)
     
 # eps_min =
 # array([[1., 1., 1.],
 #        [0., 1., 1.],
 #        [0., 0., 1.]])
+```
+
+In the example, `eps_min` is now a matrix, containing the <img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> score between all pairs of models (for 
+the same model, it set to 1 by default). The function applies the bonferroni correction for multiple comparisons by 
+default, but this can be turned off by using `use_bonferroni=False`. In order to save compute, the above symmetry
+property is used as well, but this can also be disabled by `use_symmetry=False`.
+
+Lastly, when the `scores` argument is a dictionary and the function is called with `return_df=True`, the resulting matrix is 
+given as a `pandas.DataFrame` for increased readability:
+
+```python 
+import numpy as np 
+from deepsig import multi_aso 
+ 
+N = 5  # Number of random seeds
+M = 3  # Number of different models / algorithms
+
+# Same setup as above, but use a dict for scores
+my_models_scores = {
+  f"model {i+1}": np.random.normal(loc=loc, scale=0.8, size=N) 
+  for i, loc in enumerate(np.arange(0.1, 0.1 + 0.05 * M, step=0.05))
+}
+
+# my_model_scores = {
+#   "model 1": array([...]),
+#   "model 2": array([...]),
+#   ...
+# }
+
+eps_min = multi_aso(my_model_scores, confidence_level=0.05, return_df=True)
+    
+# This is now a DataFrame!
+# eps_min =
+#           model 1   model 2  model 3
+# model 1       1.0       1.0      1.0
+# model 2       0.0       1.0      1.0
+# model 3       1.0       0.0      1.0
+
 ```
 
 ### |:newspaper:| How to report results
@@ -309,6 +343,11 @@ b = torch.randn(5, 1)
 
 aso(a, b)  # It just works!
 ```
+
+#### ||:woman_farmer:|| Setting seeds for replicability
+
+In order to ensure replicability, both `aso()` and `multi_aso()` supply as `seed` argument. This even works 
+when multiple jobs are used!
 
 #### |:game_die:| Permutation and bootstrap test 
 

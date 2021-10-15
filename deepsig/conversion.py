@@ -6,7 +6,7 @@ numpy arrays for consistency.
 # STD
 from collections import defaultdict
 from functools import wraps
-from typing import Callable, List, Union
+from typing import Callable, List, Union, Dict
 
 # EXT
 import numpy as np
@@ -17,6 +17,9 @@ import numpy as np
 # Thus, in the normal case, a sequence based on a Python Iterable is just kept as is.
 # This trick borrowed from https://github.com/Kaleidophon/token2index/blob/master/t2i/decorators.py.
 ArrayLike = Union[List[float], np.array]
+ScoreCollection = Union[
+    Dict[str, List[float]], Dict[str, np.array], np.array, List[List[float]]
+]
 CONVERSIONS = defaultdict(lambda: lambda array_like: array_like)
 CONVERSIONS[list] = CONVERSIONS[tuple] = lambda array_like: np.array(array_like)
 CONVERSIONS[set] = lambda array_like: np.array(list(array_like))
