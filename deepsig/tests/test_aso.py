@@ -156,6 +156,7 @@ class MultiASOTests(unittest.TestCase):
         }
         self.num_models = 3
         self.num_seeds = 100
+        np.random.seed(5678)
         self.scores = [
             np.random.normal(loc=0.3, scale=0.2, size=self.num_seeds).tolist()
             for _ in range(self.num_models)

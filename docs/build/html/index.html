@@ -113,7 +113,7 @@
 <li><a class="reference internal" href="#id17">📚 Bibliography</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#documentation">Documentation</a></li>
+<li><a class="reference internal" href="#module-deepsig">Documentation</a></li>
 </ul>
 </div>
             
@@ -352,9 +352,9 @@ Let’s look at an example:</p>
 
 <span class="c1"># Simulate different model scores by sampling from normal distributions with increasing means</span>
 <span class="c1"># Here, we will sample from N(0.1, 0.8), N(0.15, 0.8), N(0.2, 0.8)</span>
-<span class="n">my_models_scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span> <span class="o">+</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">M</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)]</span>
+<span class="n">my_models_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span> <span class="o">+</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">M</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)])</span>
 
-<span class="n">eps_min</span> <span class="o">=</span> <span class="n">multi_aso</span><span class="p">(</span><span class="n">my_model_scores</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+<span class="n">eps_min</span> <span class="o">=</span> <span class="n">multi_aso</span><span class="p">(</span><span class="n">my_models_scores</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
 
 <span class="c1"># eps_min =</span>
 <span class="c1"># array([[1., 1., 1.],</span>
@@ -386,7 +386,7 @@ given as a <code class="docutils literal notranslate"><span class="pre">pandas.D
 <span class="c1">#   ...</span>
 <span class="c1"># }</span>
 
-<span class="n">eps_min</span> <span class="o">=</span> <span class="n">multi_aso</span><span class="p">(</span><span class="n">my_model_scores</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">return_df</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">eps_min</span> <span class="o">=</span> <span class="n">multi_aso</span><span class="p">(</span><span class="n">my_models_scores</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">return_df</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># This is now a DataFrame!</span>
 <span class="c1"># eps_min =</span>
@@ -541,8 +541,251 @@ The inline latex equations were rendered using <a class="reference external" hre
 <p>Noreen, Eric W. “Computer intensive methods for hypothesis testing: An introduction.” Wiley, New York (1989).</p>
 </div>
 </div>
-<div class="section" id="documentation">
-<h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-deepsig">
+<span id="documentation"></span><h1>Documentation<a class="headerlink" href="#module-deepsig" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-deepsig.aso"></span><p>Re-implementation of Almost Stochastic Order (ASO) by <a class="reference external" href="https://arxiv.org/pdf/2010.03039.pdf">Dror et al. (2019)</a>.
+The code here heavily borrows from their <a class="reference external" href="https://github.com/rtmdrr/DeepComparison">original code base</a>.</p>
+<dl class="py function">
+<dt id="deepsig.aso.aso">
+<code class="sig-prename descclassname">deepsig.aso.</code><code class="sig-name descname">aso</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scores_a</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.Tensor<span class="p">, </span>torch.LongTensor<span class="p">, </span>torch.FloatTensor<span class="p">, </span>List<span class="p">[</span>float<span class="p">]</span><span class="p">, </span>numpy.array<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">scores_b</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.Tensor<span class="p">, </span>torch.LongTensor<span class="p">, </span>torch.FloatTensor<span class="p">, </span>List<span class="p">[</span>float<span class="p">]</span><span class="p">, </span>numpy.array<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">confidence_level</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">num_samples</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">num_bootstrap_iterations</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">dt</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.005</span></em>, <em class="sig-param"><span class="n">num_jobs</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">show_progress</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">seed</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">_progress_bar</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>tqdm.std.tqdm<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#deepsig.aso.aso" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the Almost Stochastic Order test by Dror et al. (2019). The function takes two list of scores as input
+(they do not have to be of the same length) and returns an upper bound to the violation ratio - the minimum epsilon
+threshold. <cite>scores_a</cite> should contain scores of the algorithm which we suspect to be better (in this setup,
+higher = better).</p>
+<p>The null hypothesis (which we would like to reject), is that the algorithm that generated <cite>scores_a</cite> is
+<em>not</em> better than the one <cite>scores_b</cite> originated from. If the violation ratio is below 0.5, the null hypothesis can
+be rejected safely (and the model scores_a belongs to is deemed better than the model of scores_b). Intuitively, the
+violation ratio denotes the degree to which total stochastic order (algorithm A is <em>always</em> better than B) is being
+violated. The more scores and the higher num_samples / num_bootstrap_iterations, the more reliable is the result.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>scores_a: List[float]</strong></dt><dd><p>Scores of algorithm A.</p>
+</dd>
+<dt><strong>scores_b: List[float]</strong></dt><dd><p>Scores of algorithm B.</p>
+</dd>
+<dt><strong>confidence_level: float</strong></dt><dd><p>Desired confidence level of test. Set to 0.05 by default.</p>
+</dd>
+<dt><strong>num_samples: int</strong></dt><dd><p>Number of samples from the score distributions during every bootstrap iteration when estimating sigma.</p>
+</dd>
+<dt><strong>num_bootstrap_iterations: int</strong></dt><dd><p>Number of bootstrap iterations when estimating sigma.</p>
+</dd>
+<dt><strong>dt: float</strong></dt><dd><p>Differential for t during integral calculation.</p>
+</dd>
+<dt><strong>num_jobs: int</strong></dt><dd><p>Number of threads that bootstrap iterations are divided among.</p>
+</dd>
+<dt><strong>show_progress: bool</strong></dt><dd><p>Show progress bar. Default is True.</p>
+</dd>
+<dt><strong>seed: Optional[int]</strong></dt><dd><p>Set seed for reproducibility purposes. Default is None (meaning no seed is used).</p>
+</dd>
+<dt><strong>_progress_bar: Optional[tqdm]</strong></dt><dd><p>Hands over a progress bar object when called by multi_aso(). Only for internal use.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Return an upper bound to the violation ratio. If it falls below 0.5, the null hypothesis can be rejected.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="deepsig.aso.compute_violation_ratio">
+<code class="sig-prename descclassname">deepsig.aso.</code><code class="sig-name descname">compute_violation_ratio</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scores_a</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">scores_b</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">dt</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#deepsig.aso.compute_violation_ratio" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the violation ration e_W2 (equation 4 + 5).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>scores_a: List[float]</strong></dt><dd><p>Scores of algorithm A.</p>
+</dd>
+<dt><strong>scores_b: List[float]</strong></dt><dd><p>Scores of algorithm B.</p>
+</dd>
+<dt><strong>dt: float</strong></dt><dd><p>Differential for t during integral calculation.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Return violation ratio.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="deepsig.aso.get_quantile_function">
+<code class="sig-prename descclassname">deepsig.aso.</code><code class="sig-name descname">get_quantile_function</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scores</span><span class="p">:</span> <span class="n">numpy.array</span></em><span class="sig-paren">)</span> &#x2192; Callable<a class="headerlink" href="#deepsig.aso.get_quantile_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the quantile function corresponding to an empirical distribution of scores.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>scores: List[float]</strong></dt><dd><p>Empirical distribution of scores belonging to an algorithm.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>Callable</dt><dd><p>Return the quantile function belonging to an empirical score distribution.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="deepsig.aso.multi_aso">
+<code class="sig-prename descclassname">deepsig.aso.</code><code class="sig-name descname">multi_aso</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scores</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Dict<span class="p">[</span>str<span class="p">, </span>List<span class="p">[</span>float<span class="p">]</span><span class="p">]</span><span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>numpy.array<span class="p">]</span><span class="p">, </span>numpy.array<span class="p">, </span>List<span class="p">[</span>List<span class="p">[</span>float<span class="p">]</span><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">confidence_level</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">use_bonferroni</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_symmetry</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">num_samples</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">num_bootstrap_iterations</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">dt</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.005</span></em>, <em class="sig-param"><span class="n">num_jobs</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">return_df</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">show_progress</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">seed</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>numpy.array<span class="p">, </span>pandas.core.frame.DataFrame<span class="p">]</span><a class="headerlink" href="#deepsig.aso.multi_aso" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides easy function to compare the scores of multiple models at ones. Scores can be supplied in various forms
+(dictionary, nested list, 2D arrays or tensors). Returns a matrix (or pandas.DataFrame) with results. Applies
+Bonferroni correction to confidence level by default, but can be disabled by use_bonferroni=False.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>scores: ScoreCollection</strong></dt><dd><p>Collection of model scores. Should be either dictionary of model name to model scores, nested Python list,
+2D numpy or Jax array, or 2D Tensorflow or PyTorch tensor.</p>
+</dd>
+<dt><strong>confidence_level: float</strong></dt><dd><p>Desired confidence level of test. Set to 0.05 by default.</p>
+</dd>
+<dt><strong>use_bonferroni: bool</strong></dt><dd><p>Indicate whether Bonferroni correction should be applied to confidence level in order to adjust for the number
+of comparisons. Default is True.</p>
+</dd>
+<dt><strong>use_symmetry: bool</strong></dt><dd><p>Use the fact that ASO(A, B, alpha) = 1 - ASO(B, A, alpha)
+<a class="reference external" href="https://arxiv.org/pdf/1705.01788.pdf">del Barrio et al. (2018)</a> to save half of the computations. Default is
+True.</p>
+</dd>
+<dt><strong>num_samples: int</strong></dt><dd><p>Number of samples from the score distributions during every bootstrap iteration when estimating sigma.</p>
+</dd>
+<dt><strong>num_bootstrap_iterations: int</strong></dt><dd><p>Number of bootstrap iterations when estimating sigma.</p>
+</dd>
+<dt><strong>dt: float</strong></dt><dd><p>Differential for t during integral calculation.</p>
+</dd>
+<dt><strong>num_jobs: int</strong></dt><dd><p>Number of threads that bootstrap iterations are divided among.</p>
+</dd>
+<dt><strong>return_df: bool</strong></dt><dd><p>Indicate whether result should be returned as pandas DataFrame. Only possible if scores is a dictionary of
+model names to model scores. Otherwise, 2D numpy array with eps_min scores is returned. Default is False.</p>
+</dd>
+<dt><strong>show_progress: bool</strong></dt><dd><p>Show progress bar. Default is True.</p>
+</dd>
+<dt><strong>seed: Optional[int]</strong></dt><dd><p>Set seed for reproducibility purposes. Default is None (meaning no seed is used).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>Union[np.array, pd.DataFrame]</dt><dd><p>2D numpy array or pandas Dataframe (if scores is dictionary and return_df=True) with result of ASO.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-deepsig.bootstrap"></span><p>Implementation of paired bootstrap test
+<a class="reference external" href="https://cds.cern.ch/record/526679/files/0412042312_TOC.pdf">(Efron &amp; Tibshirani, 1994)</a>.</p>
+<dl class="py function">
+<dt id="deepsig.bootstrap.bootstrap_test">
+<code class="sig-prename descclassname">deepsig.bootstrap.</code><code class="sig-name descname">bootstrap_test</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scores_a</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.Tensor<span class="p">, </span>torch.LongTensor<span class="p">, </span>torch.FloatTensor<span class="p">, </span>List<span class="p">[</span>float<span class="p">]</span><span class="p">, </span>numpy.array<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">scores_b</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.Tensor<span class="p">, </span>torch.LongTensor<span class="p">, </span>torch.FloatTensor<span class="p">, </span>List<span class="p">[</span>float<span class="p">]</span><span class="p">, </span>numpy.array<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">num_samples</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#deepsig.bootstrap.bootstrap_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implementation of paired bootstrap test. A p-value is being estimated by comparing the mean of scores
+for two algorithms to the means of resampled populations, where <cite>num_samples</cite> determines the number of
+times we resample.</p>
+<p>The test is single-tailed, where we want to verify that the algorithm corresponding to <cite>scores_a</cite> is better than
+the one <cite>scores_b</cite> originated from.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>scores_a: ArrayLike</strong></dt><dd><p>Scores of algorithm A.</p>
+</dd>
+<dt><strong>scores_b: ArrrayLike</strong></dt><dd><p>Scores of algorithm B.</p>
+</dd>
+<dt><strong>num_samples: int</strong></dt><dd><p>Number of bootstrap samples used for estimation.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Estimated p-value.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-deepsig.correction"></span><p>This module contains methods to correct p-values in order to avoid the
+<a class="reference external" href="https://en.wikipedia.org/wiki/Multiple_comparisons_problem">Multiple comparisons problem</a>. The code is based on
+<a class="reference external" href="https://github.com/rtmdrr/replicability-analysis-NLP">this codebase</a> corresponding to the
+<a class="reference external" href="https://arxiv.org/abs/1709.09500">Dror et al. (2017)</a> publication.</p>
+<dl class="py function">
+<dt id="deepsig.correction.bonferroni_correction">
+<code class="sig-prename descclassname">deepsig.correction.</code><code class="sig-name descname">bonferroni_correction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p_values</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.Tensor<span class="p">, </span>torch.LongTensor<span class="p">, </span>torch.FloatTensor<span class="p">, </span>List<span class="p">[</span>float<span class="p">]</span><span class="p">, </span>numpy.array<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; numpy.array<a class="headerlink" href="#deepsig.correction.bonferroni_correction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Correct for multiple comparisons based on Bonferroni’s method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>p_values: ArrayLike</strong></dt><dd><p>p-values to be corrected.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>np.array</dt><dd><p>Corrected p-values.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="deepsig.correction.calculate_partial_conjunction">
+<code class="sig-prename descclassname">deepsig.correction.</code><code class="sig-name descname">calculate_partial_conjunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sorted_p_values</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">u</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#deepsig.correction.calculate_partial_conjunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the partial conjunction p-value for u out of N.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sorted_p_values: np.array</strong></dt><dd><p>Sorted p-values.</p>
+</dd>
+<dt><strong>u: int</strong></dt><dd><p>Number of null hypothesis.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>p-value for the partial conjunction hypothesis for u out of N.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-deepsig.permutation"></span><p>Implementation of paired sign test.</p>
+<dl class="py function">
+<dt id="deepsig.permutation.permutation_test">
+<code class="sig-prename descclassname">deepsig.permutation.</code><code class="sig-name descname">permutation_test</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scores_a</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.Tensor<span class="p">, </span>torch.LongTensor<span class="p">, </span>torch.FloatTensor<span class="p">, </span>List<span class="p">[</span>float<span class="p">]</span><span class="p">, </span>numpy.array<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">scores_b</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.Tensor<span class="p">, </span>torch.LongTensor<span class="p">, </span>torch.FloatTensor<span class="p">, </span>List<span class="p">[</span>float<span class="p">]</span><span class="p">, </span>numpy.array<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">num_samples</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#deepsig.permutation.permutation_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implementation of a permutation-randomization test. Scores of A and B will be randomly swapped and the difference
+in samples is then compared to the original difference.</p>
+<p>The test is single-tailed, where we want to verify that the algorithm corresponding to <cite>scores_a</cite> is better than
+the one <cite>scores_b</cite> originated from.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>scores_a: ArrayLike</strong></dt><dd><p>Scores of algorithm A.</p>
+</dd>
+<dt><strong>scores_b: ArrayLike</strong></dt><dd><p>Scores of algorithm B.</p>
+</dd>
+<dt><strong>num_samples: int</strong></dt><dd><p>Number of permutations used for estimation.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Estimated p-value.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 

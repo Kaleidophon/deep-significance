@@ -358,9 +358,9 @@ Let’s look at an example:</p>
 
 <span class="c1"># Simulate different model scores by sampling from normal distributions with increasing means</span>
 <span class="c1"># Here, we will sample from N(0.1, 0.8), N(0.15, 0.8), N(0.2, 0.8)</span>
-<span class="n">my_models_scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span> <span class="o">+</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">M</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)]</span>
+<span class="n">my_models_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span> <span class="o">+</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">M</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)])</span>
 
-<span class="n">eps_min</span> <span class="o">=</span> <span class="n">multi_aso</span><span class="p">(</span><span class="n">my_model_scores</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+<span class="n">eps_min</span> <span class="o">=</span> <span class="n">multi_aso</span><span class="p">(</span><span class="n">my_models_scores</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
     
 <span class="c1"># eps_min =</span>
 <span class="c1"># array([[1., 1., 1.],</span>
@@ -392,7 +392,7 @@ given as a <code class="docutils literal notranslate"><span class="pre">pandas.D
 <span class="c1">#   ...</span>
 <span class="c1"># }</span>
 
-<span class="n">eps_min</span> <span class="o">=</span> <span class="n">multi_aso</span><span class="p">(</span><span class="n">my_model_scores</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">return_df</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">eps_min</span> <span class="o">=</span> <span class="n">multi_aso</span><span class="p">(</span><span class="n">my_models_scores</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">return_df</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     
 <span class="c1"># This is now a DataFrame!</span>
 <span class="c1"># eps_min =</span>
