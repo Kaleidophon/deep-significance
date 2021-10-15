@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/Kaleidophon/deep-significance.svg?branch=main)]()
 [![Coverage Status](https://coveralls.io/repos/github/Kaleidophon/deep-significance/badge.svg?branch=main&service=github)](https://coveralls.io/github/Kaleidophon/deep-significance?branch=main)
-[![Compatibility](https://img.shields.io/badge/python-3.5%2B-blue)]()
+[![Compatibility](https://img.shields.io/badge/python-v3.7-blue)]()
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 [![DOI](https://zenodo.org/badge/341677886.svg)](https://zenodo.org/badge/latestdoi/341677886)
@@ -344,7 +344,7 @@ b = torch.randn(5, 1)
 aso(a, b)  # It just works!
 ```
 
-#### :woman_farmer: Setting seeds for replicability
+#### |:woman_farmer:| Setting seeds for replicability
 
 In order to ensure replicability, both `aso()` and `multi_aso()` supply as `seed` argument. This even works 
 when multiple jobs are used!
