@@ -344,7 +344,7 @@ b = torch.randn(5, 1)
 aso(a, b)  # It just works!
 ```
 
-#### |:woman_farmer:| Setting seeds for replicability
+#### :woman_farmer: Setting seeds for replicability
 
 In order to ensure replicability, both `aso()` and `multi_aso()` supply as `seed` argument. This even works 
 when multiple jobs are used!
