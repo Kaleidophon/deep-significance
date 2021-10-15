@@ -262,7 +262,7 @@ M = 3  # Number of different models / algorithms
 # Here, we will sample from N(0.1, 0.8), N(0.15, 0.8), N(0.2, 0.8)
 my_models_scores = [np.random.normal(loc=loc, scale=0.8, size=N) for loc in np.arange(0.1, 0.1 + 0.05 * M, step=0.05)]
 
-eps_min = multi_aso(my_model_scores, confidence_level=0.05)
+eps_min = multi_aso(my_models_scores, confidence_level=0.05)
     
 # eps_min =
 # array([[1., 1., 1.],
@@ -297,7 +297,7 @@ my_models_scores = {
 #   ...
 # }
 
-eps_min = multi_aso(my_model_scores, confidence_level=0.05, return_df=True)
+eps_min = multi_aso(my_models_scores, confidence_level=0.05, return_df=True)
     
 # This is now a DataFrame!
 # eps_min =

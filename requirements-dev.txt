@@ -8,3 +8,4 @@ tensorflow==2.4.1
 torch==1.8.0
 coverage==5.5
 coveralls==3.0.1
+dill==0.3.4
