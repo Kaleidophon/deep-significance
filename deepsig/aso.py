@@ -4,13 +4,13 @@ The code here heavily borrows from their `original code base <https://github.com
 """
 
 # STD
-from typing import List, Callable, Union
+
+from typing import List, Callable, Union, Optional
 from warnings import warn
 
 # EXT
 from joblib import Parallel, delayed
 from joblib.externals.loky import set_loky_pickler
-from joblib import wrap_non_picklable_objects
 import numpy as np
 import pandas as pd
 from scipy.stats import norm as normal
@@ -39,6 +39,8 @@ def aso(
     dt: float = 0.005,
     num_jobs: int = 1,
     show_progress: bool = True,
+    seed: Optional[int] = None,
+    _progress_bar: Optional[tqdm] = None,
 ) -> float:
     """
     Performs the Almost Stochastic Order test by Dror et al. (2019). The function takes two list of scores as input
@@ -70,6 +72,10 @@ def aso(
         Number of threads that bootstrap iterations are divided among.
     show_progress: bool
         Show progress bar. Default is True.
+    seed: Optional[int]
+        Set seed for reproducibility purposes. Default is None (meaning no seed is used).
+    _progress_bar: Optional[tqdm]
+        Hands over a progress bar object when called by multi_aso(). Only for internal use.
 
     Returns
     -------
@@ -95,17 +101,51 @@ def aso(
     quantile_func_a = get_quantile_function(scores_a)
     quantile_func_b = get_quantile_function(scores_b)
 
-    # Add progressbar if applicable
-    iters = (
-        tqdm(range(num_bootstrap_iterations), desc="Bootstrap iterations")
-        if show_progress
-        else range(num_bootstrap_iterations)
+    def _progress_iter(high: int, progress_bar: tqdm):
+        """
+        This function is used when a shared progress bar is passed from multi_aso() - every time the iterator yields an
+        element, the progress bar is updated by one. It essentially behaves like a simplified range() function.
+
+        Parameters
+        ----------
+        high: int
+            Number of elements in iterator.
+        progress_bar: tqdm
+            Shared progress bar.
+        """
+        current = 0
+
+        while current < high:
+            yield current
+            current += 1
+            progress_bar.update(1)
+
+    # Add progress bar if applicable
+    if show_progress and _progress_bar is None:
+        iters = tqdm(range(num_bootstrap_iterations), desc="Bootstrap iterations")
+
+    # Shared progress bar when called from multi_aso()
+    elif _progress_bar is not None:
+        iters = _progress_iter(num_bootstrap_iterations, _progress_bar)
+
+    else:
+        iters = range(num_bootstrap_iterations)
+
+    # Set seeds for different jobs if applicable
+    # "Sub-seeds" for jobs are just seed argument + job index
+    seeds = (
+        [None] * num_jobs
+        if seed is None
+        else [seed + offset for offset in range(1, num_jobs + 1)]
     )
 
-    def _bootstrap_iter():
+    def _bootstrap_iter(seed: Optional[int] = None):
         """
         One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
         """
+        if seed is not None:
+            np.random.seed(seed)
+
         sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, num_samples))
         sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, num_samples))
         sample = compute_violation_ratio(
@@ -118,7 +158,7 @@ def aso(
 
     # Initialize worker pool and start iterations
     parallel = Parallel(n_jobs=num_jobs)
-    samples = parallel(delayed(_bootstrap_iter)() for _ in iters)
+    samples = parallel(delayed(_bootstrap_iter)(seed) for seed, _ in zip(seeds, iters))
 
     const2 = np.sqrt(
         num_samples ** 2 / (2 * num_samples)
@@ -147,6 +187,7 @@ def multi_aso(
     num_jobs: int = 1,
     return_df: bool = False,
     show_progress: bool = True,
+    seed: Optional[int] = None,
 ) -> Union[np.array, pd.DataFrame]:
     """
     Provides easy function to compare the scores of multiple models at ones. Scores can be supplied in various forms
@@ -180,6 +221,8 @@ def multi_aso(
         model names to model scores. Otherwise, 2D numpy array with eps_min scores is returned. Default is False.
     show_progress: bool
         Show progress bar. Default is True.
+    seed: Optional[int]
+        Set seed for reproducibility purposes. Default is None (meaning no seed is used).
 
     Returns
     -------
@@ -187,21 +230,22 @@ def multi_aso(
         2D numpy array or pandas Dataframe (if scores is dictionary and return_df=True) with result of ASO.
     """
     num_models = _get_num_models(scores)
+    num_comparisons = num_models * (num_models - 1) / 2
     eps_min = np.eye(num_models)  # Initialize score matrix
 
     if use_bonferroni:
-        num_comparisons = num_models * (num_models - 1) / 2
         confidence_level /= num_comparisons
 
     # Iterate over simple indices or dictionary keys depending on type of scores argument
     indices = list(range(num_models)) if type(scores) != dict else list(scores.keys())
 
-    # TODO: Improve progressbar
-
     # Add progressbar if applicable
+    progress_bar = None
     if show_progress:
         progress_bar = tqdm(
-            range(num_models) if use_symmetry else range(num_models * 2),
+            range(int(num_comparisons * num_bootstrap_iterations))
+            if use_symmetry
+            else range(int(num_comparisons * num_bootstrap_iterations * 2)),
             desc="Model comparisons",
         )
 
@@ -218,10 +262,9 @@ def multi_aso(
                 dt=dt,
                 num_jobs=num_jobs,
                 show_progress=False,
+                seed=seed,
+                _progress_bar=progress_bar,
             )
-
-            if show_progress:
-                progress_bar.update(1)
 
             # Use ASO(A, B, alpha) = 1 - ASO(B, A, alpha)
             if use_symmetry:
@@ -238,10 +281,9 @@ def multi_aso(
                     dt=dt,
                     num_jobs=num_jobs,
                     show_progress=False,
+                    seed=seed,
+                    _progress_bar=progress_bar,
                 )
-
-                if show_progress:
-                    progress_bar.update(1)
 
     if type(scores) == dict and return_df:
         eps_min = pd.DataFrame(data=eps_min, index=list(scores.keys()))
