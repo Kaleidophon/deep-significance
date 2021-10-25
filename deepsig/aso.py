@@ -4,6 +4,7 @@ The code here heavily borrows from their `original code base <https://github.com
 """
 
 # STD
+import sys
 from typing import List, Callable, Union, Optional, Dict, Tuple
 from warnings import warn
 
@@ -13,6 +14,7 @@ from joblib.externals.loky import set_loky_pickler
 import numpy as np
 import pandas as pd
 from scipy.stats import norm as normal
+import scipy.special as special
 from tqdm import tqdm
 
 # PKG
@@ -240,7 +242,8 @@ def multi_aso(
 def bf_aso(
     scores_a: ArrayLike,
     scores_b: ArrayLike,
-    prior_kwargs: Dict[str, float] = {"alpha": 1, "beta": 1},
+    eps_min_threshold: float = 0.5,
+    prior_kwargs: Dict[str, float] = {"loc": 0.5, "scale": 0.5, "alpha": 3, "beta": 1},
     num_bootstrap_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
     dt: float = 0.005,
@@ -257,6 +260,11 @@ def bf_aso(
         Scores of algorithm A.
     scores_b: ArrayLike
         Scores of algorithm B.
+    eps_min_threshold: float
+        Threshold that is used to compute the Bayes factor. Intuitively, the Bayes factor returned from this function
+        expresses how much the odds have changed in favor of the null hypothesis given the supplied scores, given
+        that the null hypothesis is expressed as H_0: epsilon_W2(F, G) > eps_min_threshold. Set to 0.5 by default.
+        In order to reduce the Type I error, set the value lower than 0.5.
     prior_kwargs: Dict[str, float]
         Dictionary of arguments to instantiate prior.
     num_bootstrap_samples: int
@@ -290,7 +298,7 @@ def bf_aso(
     )
     # TODO: Add more cases here
 
-    violation_ratio, sigma_hat, samples = get_bootstrap_estimates(
+    _, sigma_hat, samples = get_bootstrap_estimates(
         scores_a,
         scores_b,
         num_bootstrap_samples,
@@ -299,10 +307,52 @@ def bf_aso(
         num_jobs,
         show_progress,
     )
-    # const = np.sqrt(len(scores_a) + len(scores_b) / (len(scores_a) * len(scores_b)))
+    const = np.sqrt(len(scores_a) + len(scores_b) / (len(scores_a) * len(scores_b)))
+    var = const * sigma_hat
 
-    # TODO: Implement
-    bf = None
+    # Define prior and posterior parameters
+    # Posterior parameters taken from https://en.wikipedia.org/wiki/Conjugate_prior
+    N = len(scores_a) + len(scores_b)
+    sample_mean = np.mean(samples)
+    prior_loc, prior_scale = prior_kwargs["loc"], prior_kwargs["scale"]
+    prior_alpha, prior_beta = prior_kwargs["alpha"], prior_kwargs["beta"]
+    posterior_loc = (prior_scale * prior_loc + N * sample_mean) / (prior_scale + N)
+    posterior_scale = prior_scale + N
+    posterior_alpha = prior_alpha + N / 2
+    posterior_beta = (
+        prior_beta
+        + 0.5 * np.sum((samples - sample_mean) ** 2)
+        + N * prior_scale / (prior_scale + N) * (sample_mean - prior_loc) ** 2 / 2
+    )
+
+    # Compute Bayes factor as p(H_0|D)p(H_1) / (p(H_1|D)p(H_0)) which is
+    # p(e_W2(F, G) > eps_min_treshold|D)p(e_W2(F, G) ≤ eps_min_treshold) /
+    # (p(e_W2(F, G) ≤ eps_min_treshold|D)p(e_W2(F, G) > eps_min_treshold))
+    numerator = 1 - normal_inverse_gamma_cdf(
+        eps_min_threshold,
+        var,
+        posterior_loc,
+        posterior_scale,
+        posterior_alpha,
+        posterior_beta,
+    )
+    numerator *= normal_inverse_gamma_cdf(
+        eps_min_threshold, var, prior_loc, prior_scale, prior_alpha, prior_beta
+    )
+    denominator = normal_inverse_gamma_cdf(
+        eps_min_threshold,
+        var,
+        posterior_loc,
+        posterior_scale,
+        posterior_alpha,
+        posterior_beta,
+    )
+    denominator *= 1 - normal_inverse_gamma_cdf(
+        eps_min_threshold, var, prior_loc, prior_scale, prior_alpha, prior_beta
+    )
+
+    eps = 1e-6
+    bf = np.exp(np.log(numerator + eps) - np.log(denominator + eps))
 
     return bf
 
@@ -383,12 +433,13 @@ def get_bootstrap_estimates(
     else:
         iters = range(num_bootstrap_iterations)
 
-    # Set seeds for different jobs if applicable
+    # Set seeds for different runs if applicable
     # "Sub-seeds" for jobs are just seed argument + job index
+    # TODO: Fix this in main branch
     seeds = (
-        [None] * num_jobs
+        [None] * num_bootstrap_iterations
         if seed is None
-        else [seed + offset for offset in range(1, num_jobs + 1)]
+        else [seed + offset for offset in range(1, num_bootstrap_iterations + 1)]
     )
 
     def _bootstrap_iter(seed: Optional[int] = None):
@@ -483,6 +534,54 @@ def get_quantile_function(scores: np.array) -> Callable:
     return np.vectorize(_quantile_function)
 
 
+def normal_inverse_gamma_cdf(
+    x: float, var: float, loc: float, scale: float, alpha: float, beta: float
+) -> float:
+    """
+    Cumulative density function for the normal-inverse gamma function, taken from [1]. Returns the joint probability
+    of X ≤ x and a variance under a location (mu), scale (lambda), alpha and beta parameter.
+
+    [1] https://en.wikipedia.org/wiki/Normal-inverse-gamma_distribution#Cumulative_distribution_function
+
+    Parameters
+    ----------
+    loc: float
+        Location parameter (mu).
+    scale: float
+        Scale parameter (lambda).
+    alpha: float
+        Alpha parameter.
+    beta: float
+        Beta parameter.
+
+    Returns
+    -------
+    float
+        Joint probability under NIG.
+    """
+    # TODO: This is still super unstable numerically, catch extreme values and avoid dvisions by zero
+    # TODO: Debug
+    # Add small number to variance since in very clear cases, all bootstrapped violation ratios will be zero - creating
+    # a lot of numerical instability in this function
+    eps = 1e-6
+    eps_var = var + eps
+
+    num_term = np.exp(-beta / eps_var) + (beta / eps_var) ** alpha
+
+    if np.isinf(num_term):
+        num_term = sys.maxsize
+
+    numerator = num_term + special.erf(
+        np.sqrt(scale) * (x - loc) / (np.sqrt(2 * var) + eps) + 1
+    )
+    denominator = 2 * var * special.gamma(alpha) + eps
+
+    joint_prob = np.exp(np.log(numerator) - np.log(denominator))
+    # joint_prob = np.clip(joint_prob, 0, 1)
+
+    return joint_prob
+
+
 def _get_num_models(scores: ScoreCollection) -> int:
     """
     Retrieve the number of models from a ScoreCollection for multi_aso().
@@ -529,3 +628,11 @@ def _get_num_models(scores: ScoreCollection) -> int:
         "Invalid type for 'scores', should be nested Python list, dict, Jax / Numpy array or Tensorflow / PyTorch "
         "tensor, '{}' found.".format(type(scores).__name__)
     )
+
+
+# TODO: Debug
+if __name__ == "__main__":
+    scores_a, scores_b = np.random.normal(-0.1, 0.2, 50), np.random.normal(0, 0.022, 50)
+
+    # TODO: Jusing num_jobs > 1 produces error
+    print(bf_aso(scores_a, scores_b, num_jobs=1))
