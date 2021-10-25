@@ -17,3 +17,7 @@ script:
   - coverage run --source deepsig/ --omit="*/test*" -m unittest discover deepsig/tests
   - coverage report --skip-covered
   - coveralls
+
+branches:
+  only:
+    - main

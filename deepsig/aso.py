@@ -4,7 +4,7 @@ The code here heavily borrows from their `original code base <https://github.com
 """
 
 # STD
-from typing import List, Callable, Union, Optional, Dict
+from typing import List, Callable, Union, Optional, Dict, Tuple
 from warnings import warn
 
 # EXT
@@ -94,75 +94,20 @@ def aso(
         num_jobs
     )
 
-    violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
     # Based on the actual number of samples
     const1 = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
-    quantile_func_a = get_quantile_function(scores_a)
-    quantile_func_b = get_quantile_function(scores_b)
 
-    def _progress_iter(high: int, progress_bar: tqdm):
-        """
-        This function is used when a shared progress bar is passed from multi_aso() - every time the iterator yields an
-        element, the progress bar is updated by one. It essentially behaves like a simplified range() function.
-
-        Parameters
-        ----------
-        high: int
-            Number of elements in iterator.
-        progress_bar: tqdm
-            Shared progress bar.
-        """
-        current = 0
-
-        while current < high:
-            yield current
-            current += 1
-            progress_bar.update(1)
-
-    # Add progress bar if applicable
-    if show_progress and _progress_bar is None:
-        iters = tqdm(range(num_bootstrap_iterations), desc="Bootstrap iterations")
-
-    # Shared progress bar when called from multi_aso()
-    elif _progress_bar is not None:
-        iters = _progress_iter(num_bootstrap_iterations, _progress_bar)
-
-    else:
-        iters = range(num_bootstrap_iterations)
-
-    # Set seeds for different jobs if applicable
-    # "Sub-seeds" for jobs are just seed argument + job index
-    seeds = (
-        [None] * num_jobs
-        if seed is None
-        else [seed + offset for offset in range(1, num_jobs + 1)]
+    violation_ratio, sigma_hat, _ = get_bootstrap_estimates(
+        scores_a,
+        scores_b,
+        num_samples,
+        num_bootstrap_iterations,
+        dt,
+        num_jobs,
+        show_progress,
+        seed,
+        _progress_bar,
     )
-
-    def _bootstrap_iter(seed: Optional[int] = None):
-        """
-        One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
-        """
-        if seed is not None:
-            np.random.seed(seed)
-
-        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, num_samples))
-        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, num_samples))
-        sample = compute_violation_ratio(
-            sampled_scores_a,
-            sampled_scores_b,
-            dt,
-        )
-
-        return sample
-
-    # Initialize worker pool and start iterations
-    parallel = Parallel(n_jobs=num_jobs)
-    samples = parallel(delayed(_bootstrap_iter)(seed) for seed, _ in zip(seeds, iters))
-
-    const2 = np.sqrt(
-        num_samples ** 2 / (2 * num_samples)
-    )  # This one is based on the number of re-sampled scores
-    sigma_hat = np.std(const2 * (samples - violation_ratio))
 
     # Compute eps_min and make sure it stays in [0, 1]
     min_epsilon = min(
@@ -345,7 +290,6 @@ def bf_aso(
     )
     # TODO: Add more cases here
 
-    """
     violation_ratio, sigma_hat, samples = get_bootstrap_estimates(
         scores_a,
         scores_b,
@@ -355,14 +299,125 @@ def bf_aso(
         num_jobs,
         show_progress,
     )
-    """
-    # TODO: Abstract above function
     # const = np.sqrt(len(scores_a) + len(scores_b) / (len(scores_a) * len(scores_b)))
 
     # TODO: Implement
     bf = None
 
     return bf
+
+
+def get_bootstrap_estimates(
+    scores_a: np.array,
+    scores_b: np.array,
+    num_samples: int = 1000,
+    num_bootstrap_iterations: int = 1000,
+    dt: float = 0.005,
+    num_jobs: int = 1,
+    show_progress: bool = True,
+    seed: Optional[int] = None,
+    _progress_bar: Optional[tqdm] = None,
+) -> Tuple[float, float, np.array]:
+    """
+    Perform bootstrap estimates and return the violation ratio based on the actual scores, sigma_hat (variance of
+    samples) and the obtained bootstrap samples for the violation ratio. Used by aso() and bf_aso().
+
+    Parameters
+    ----------
+    scores_a: List[float]
+        Scores of algorithm A.
+    scores_b: List[float]
+        Scores of algorithm B.
+    num_samples: int
+        Number of samples from the score distributions during every bootstrap iteration when estimating sigma.
+    num_bootstrap_iterations: int
+        Number of bootstrap iterations when estimating sigma.
+    dt: float
+        Differential for t during integral calculation.
+    num_jobs: int
+        Number of threads that bootstrap iterations are divided among.
+    show_progress: bool
+        Show progress bar. Default is True.
+    seed: Optional[int]
+        Set seed for reproducibility purposes. Default is None (meaning no seed is used).
+    _progress_bar: Optional[tqdm]
+        Hands over a progress bar object when called by multi_aso(). Only for internal use.
+
+    Returns
+    -------
+    Tuple[float, float, np.array]
+        Violation ratio based on actual scores, sigma_hat, and bootstrapped violation ratios.
+    """
+    violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
+    # Based on the actual number of samples
+    quantile_func_a = get_quantile_function(scores_a)
+    quantile_func_b = get_quantile_function(scores_b)
+
+    def _progress_iter(high: int, progress_bar: tqdm):
+        """
+        This function is used when a shared progress bar is passed from multi_aso() - every time the iterator yields an
+        element, the progress bar is updated by one. It essentially behaves like a simplified range() function.
+
+        Parameters
+        ----------
+        high: int
+            Number of elements in iterator.
+        progress_bar: tqdm
+            Shared progress bar.
+        """
+        current = 0
+
+        while current < high:
+            yield current
+            current += 1
+            progress_bar.update(1)
+
+    # Add progress bar if applicable
+    if show_progress and _progress_bar is None:
+        iters = tqdm(range(num_bootstrap_iterations), desc="Bootstrap iterations")
+
+    # Shared progress bar when called from multi_aso()
+    elif _progress_bar is not None:
+        iters = _progress_iter(num_bootstrap_iterations, _progress_bar)
+
+    else:
+        iters = range(num_bootstrap_iterations)
+
+    # Set seeds for different jobs if applicable
+    # "Sub-seeds" for jobs are just seed argument + job index
+    seeds = (
+        [None] * num_jobs
+        if seed is None
+        else [seed + offset for offset in range(1, num_jobs + 1)]
+    )
+
+    def _bootstrap_iter(seed: Optional[int] = None):
+        """
+        One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
+        """
+        if seed is not None:
+            np.random.seed(seed)
+
+        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, num_samples))
+        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, num_samples))
+        sample = compute_violation_ratio(
+            sampled_scores_a,
+            sampled_scores_b,
+            dt,
+        )
+
+        return sample
+
+    # Initialize worker pool and start iterations
+    parallel = Parallel(n_jobs=num_jobs)
+    samples = parallel(delayed(_bootstrap_iter)(seed) for seed, _ in zip(seeds, iters))
+
+    const2 = np.sqrt(
+        num_samples ** 2 / (2 * num_samples)
+    )  # This one is based on the number of re-sampled scores
+    sigma_hat = np.std(const2 * (samples - violation_ratio))
+
+    return violation_ratio, sigma_hat, samples
 
 
 def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -> float:
