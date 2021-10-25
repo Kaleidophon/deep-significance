@@ -12,9 +12,6 @@ import numpy as np
 from deepsig.conversion import p_value_conversion, ArrayLike
 
 
-# TODO: Change function name and doc
-
-
 @p_value_conversion
 def bonferroni_correction(p_values: ArrayLike) -> np.array:
     """

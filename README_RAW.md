@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/Kaleidophon/deep-significance.svg?branch=main)]()
 [![Coverage Status](https://coveralls.io/repos/github/Kaleidophon/deep-significance/badge.svg?branch=main&service=github)](https://coveralls.io/github/Kaleidophon/deep-significance?branch=main)
-[![Compatibility](https://img.shields.io/badge/python-3.5%2B-blue)]()
+[![Compatibility](https://img.shields.io/badge/python-v3.7-blue)]()
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 [![DOI](https://zenodo.org/badge/341677886.svg)](https://zenodo.org/badge/latestdoi/341677886)
@@ -17,6 +17,7 @@
   * [Scenario 2: Comparing multiple runs across datasets](#scenario-2---comparing-multiple-runs-across-datasets) 
   * [Scenario 3: Comparing sample-level scores](#scenario-3---comparing-sample-level-scores)
   * [Scenario 4: Comparing more than two models](#scenario-4---comparing-more-than-two-models)
+  * [How to report results](#newspaper-how-to-report-results)
   * [Other features](#sparkles-other-features)
   * [General Recommendations & other notes](#general-recommendations) 
 * [:mortar_board: Cite](#mortar_board-cite)
@@ -69,6 +70,9 @@ Another option is to clone the repository and install the package locally:
 ---
 **tl;dr**: Use `aso()` to compare scores for two models. If the returned `eps_min < 0.5`, A is better than B. The lower
 `eps_min`, the more confident the result. 
+
+:warning: Testing models with only one set of hyperparameters and only one test set will be able to guarantee superiority
+in all settings. See [General Recommendations & other notes](#general-recommendations).
 
 ---
 
@@ -227,7 +231,7 @@ eps_min = [aso(a, b, confidence_level=0.05 / len(pairs)) for a, b in pairs]
 Similarly, when comparing multiple models (now again on a per-seed basis), we can use a similar approach like in the 
 previous example. For instance, for three models, we can create a $3 \times 3$ matrix and fill the entries 
 with the corresponding $\epsilon_\text{min}$ values. The diagonal will naturally always be 1, but we can also restrict 
-ourself to only filling out one half of the matrix by making use of the following property of ASO:
+ourselves to only filling out one half of the matrix by making use of the following symmetry property of ASO:
 
 $$
 \text{ASO}(A, B, \alpha) = 1 - \text{ASO}(B, A, \alpha)
@@ -242,33 +246,79 @@ amount to up to $0.2$* when the scores distributions of A and B are very similar
 
 ---
 
-The corresponding code can then look something like this:
+The package implements the function `multi_aso()` exactly for this purpose. It has the same arguments as `aso()`, with 
+a few differences. First of all, the function takes a single `scores` argument, which can be a list of lists (of scores),
+or a nested NumPy array or Tensorflow / PyTorch / Jax tensor or dictionary (more about that later). 
+Let's look at an example:
 
 ```python 
 import numpy as np 
-from deepsig import aso 
+from deepsig import multi_aso 
  
 N = 5  # Number of random seeds
 M = 3  # Number of different models / algorithms
-num_comparisons = M * (M - 1) / 2
-eps_min = np.eye(M)  # M x M matrix with ones on diagonal
 
 # Simulate different model scores by sampling from normal distributions with increasing means
 # Here, we will sample from N(0.1, 0.8), N(0.15, 0.8), N(0.2, 0.8)
-my_models_scores = [np.random.normal(loc=loc, scale=0.8, size=N) for loc in np.arange(0.1, 0.1 + 0.05 * M, step=0.05)]
+my_models_scores = np.array([np.random.normal(loc=loc, scale=0.8, size=N) for loc in np.arange(0.1, 0.1 + 0.05 * M, step=0.05)])
 
-for i in range(M):
-  for j in range(i + 1, M):
-    
-    e_min = aso(my_models_scores[i], my_models_scores[j], confidence_level=0.05 / num_comparisons)
-    eps_min[i, j] = e_min
-    eps_min[j, i] = 1 - e_min
+eps_min = multi_aso(my_models_scores, confidence_level=0.05)
     
 # eps_min =
 # array([[1., 1., 1.],
 #        [0., 1., 1.],
 #        [0., 0., 1.]])
 ```
+
+In the example, `eps_min` is now a matrix, containing the $\epsilon_\text{min}$ score between all pairs of models (for 
+the same model, it set to 1 by default). The function applies the bonferroni correction for multiple comparisons by 
+default, but this can be turned off by using `use_bonferroni=False`. In order to save compute, the above symmetry
+property is used as well, but this can also be disabled by `use_symmetry=False`.
+
+Lastly, when the `scores` argument is a dictionary and the function is called with `return_df=True`, the resulting matrix is 
+given as a `pandas.DataFrame` for increased readability:
+
+```python 
+import numpy as np 
+from deepsig import multi_aso 
+ 
+N = 5  # Number of random seeds
+M = 3  # Number of different models / algorithms
+
+# Same setup as above, but use a dict for scores
+my_models_scores = {
+  f"model {i+1}": np.random.normal(loc=loc, scale=0.8, size=N) 
+  for i, loc in enumerate(np.arange(0.1, 0.1 + 0.05 * M, step=0.05))
+}
+
+# my_model_scores = {
+#   "model 1": array([...]),
+#   "model 2": array([...]),
+#   ...
+# }
+
+eps_min = multi_aso(my_models_scores, confidence_level=0.05, return_df=True)
+    
+# This is now a DataFrame!
+# eps_min =
+#           model 1   model 2  model 3
+# model 1       1.0       1.0      1.0
+# model 2       0.0       1.0      1.0
+# model 3       1.0       0.0      1.0
+
+```
+
+### :newspaper: How to report results
+
+When ASO used, two important details have to be reported, namely the confidence level $\alpha$ and the $\epsilon_\text{min}$
+score. Below lists some example snippets reporting the results of scenarios 1 and 4:
+
+    Using ASO with a confidence level $\alpha = 0.05$, we found the score distribution of algorithm A based on three 
+    random seeds to be stochastically dominant over B ($\epsilon_\text{min} = 0$).
+
+    We compared all pairs of models based on five random seeds each using ASO with a confidence level of 
+    $\alpha = 0.05$ (before adjusting for all pair-wise comparisons using the Bonferroni correction). Almost stochastic 
+    dominance ($\epsilon_\text{min} < 0.5)$ is indicated in table X.
 
 ### :sparkles: Other features
 
@@ -304,6 +354,11 @@ b = torch.randn(5, 1)
 aso(a, b)  # It just works!
 ```
 
+#### |:woman_farmer:| Setting seeds for replicability
+
+In order to ensure replicability, both `aso()` and `multi_aso()` supply as `seed` argument. This even works 
+when multiple jobs are used!
+
 #### :game_die: Permutation and bootstrap test 
 
 Should you be suspicious of ASO and want to revert to the good old faithful tests, this package also implements 
@@ -328,7 +383,9 @@ print(bootstrap_test(a, b))    # 0.103
 * Naturally, the CDFs built from `scores_a` and `scores_b` can only be approximations of the true distributions. Therefore,
 as many scores as possible should be collected, especially if the variance between runs is high. If only one run is available,
   comparing sample-wise score distributions like in scenario 3 can be an option, but comparing multiple runs will 
-  **always** be preferable.
+  **always** be preferable. Ideally, scores should be obtained even using different sets of hyperparameters per model.
+  Because this is usually infeasible in practice, Bouthilier et al. (2020) recommend to **vary all other sources of variation**
+  between runs to obtain the most trustworthy estimate of the "true" performance, such as data shuffling, weight initialization etc.
 
 * `num_samples` and `num_bootstrap_iterations` can be reduced to increase the speed of `aso()`. However, this is not 
 recommended as the result of the test will also become less accurate. Technically, $\epsilon_\text{min}$ is a upper bound
@@ -401,6 +458,8 @@ Del Barrio, Eustasio, Juan A. Cuesta-Albertos, and Carlos Matrán. "An optimal t
 Bonferroni, Carlo. "Teoria statistica delle classi e calcolo delle probabilita." Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.
 
 Borji, Ali. "Negative results in computer vision: A perspective." Image and Vision Computing 69 (2018): 1-8.
+
+Bouthillier, Xavier, et al. "Accounting for variance in machine learning benchmarks." Proceedings of Machine Learning and Systems 3 (2021).
 
 Dror, Rotem, et al. "The hitchhiker’s guide to testing statistical significance in natural language processing." Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2018.
 
