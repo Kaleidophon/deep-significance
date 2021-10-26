@@ -49,7 +49,7 @@ testing:
 
 All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch / 
 Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation 
-[here](deep-significance.rtfd.io/en/latest/) or the scenarios in the section [Examples](#examples).
+[here](https://deep-significance.readthedocs.io/en/latest/) or the scenarios in the section [Examples](#examples).
 
 ## :inbox_tray: Installation
 

@@ -4,7 +4,6 @@ The code here heavily borrows from their `original code base <https://github.com
 """
 
 # STD
-
 from typing import List, Callable, Union, Optional
 from warnings import warn
 
@@ -134,15 +133,22 @@ def aso(
     # Set seeds for different jobs if applicable
     # "Sub-seeds" for jobs are just seed argument + job index
     seeds = (
-        [None] * num_jobs
+        [None] * num_bootstrap_iterations
         if seed is None
-        else [seed + offset for offset in range(1, num_jobs + 1)]
+        else [seed + offset for offset in range(1, num_bootstrap_iterations + 1)]
     )
 
     def _bootstrap_iter(seed: Optional[int] = None):
         """
         One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
         """
+        # When running multiple jobs, these modules have to be re-imported for some reason to avoid an error
+        # Use dir() to check whether module is available in local scope:
+        # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
+        if "numpy" not in dir() or "deepsig" not in dir():
+            import numpy as np
+            from deepsig.aso import compute_violation_ratio
+
         if seed is not None:
             np.random.seed(seed)
 
@@ -344,6 +350,11 @@ def get_quantile_function(scores: np.array) -> Callable:
     Callable
         Return the quantile function belonging to an empirical score distribution.
     """
+    # When running multiple jobs via joblib, numpy has to be re-imported for some reason to avoid an error
+    # Use dir() to check whether module is available in local scope:
+    # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
+    if "numpy" not in dir():
+        import numpy as np
 
     def _quantile_function(p: float) -> float:
         cdf = np.sort(scores)
