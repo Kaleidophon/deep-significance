@@ -576,7 +576,8 @@ def normal_inverse_gamma_cdf(
     )
     denominator = 2 * var * special.gamma(alpha) + eps
 
-    joint_prob = np.exp(np.log(numerator) - np.log(denominator))
+    joint_prob = numerator / denominator
+    # joint_prob = np.exp(np.log(numerator) - np.log(denominator))
     # joint_prob = np.clip(joint_prob, 0, 1)
 
     return joint_prob
@@ -635,4 +636,4 @@ if __name__ == "__main__":
     scores_a, scores_b = np.random.normal(-0.1, 0.2, 50), np.random.normal(0, 0.022, 50)
 
     # TODO: Jusing num_jobs > 1 produces error
-    print(bf_aso(scores_a, scores_b, num_jobs=1))
+    print(bf_aso(scores_b, scores_a, num_jobs=1))
