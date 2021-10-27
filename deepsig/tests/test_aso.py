@@ -164,6 +164,13 @@ class MultiASOTests(unittest.TestCase):
         self.scores_dict = {
             "model{}".format(i): scores for i, scores in enumerate(self.scores)
         }
+        # Test case based on https://github.com/Kaleidophon/deep-significance/issues/7
+        self.mikes_scores_dict = {
+            "x": np.array([59.13, 58.03, 59.18, 58.78, 58.5]),
+            "y": np.array([58.13, 59.19, 59.94, 60.08, 59.85]),
+            "z": np.array([58.77, 58.86, 59.58, 59.59, 59.64]),
+            "w": np.array([58.16, 58.49, 59.87, 58.94, 58.96]),
+        }
         self.scores_numpy = np.array(self.scores)
         self.scores_torch = torch.from_numpy(self.scores_numpy)
         self.scores_tensorflow = tf.convert_to_tensor(self.scores_numpy)
@@ -204,8 +211,48 @@ class MultiASOTests(unittest.TestCase):
         )
         symmetric_scores = multi_aso(self.scores_numpy, seed=seed, **self.aso_kwargs)
 
-        self.assertTrue(np.all(symmetric_scores == symmetric_scores.T))
-        self.assertTrue(np.any(asymmetric_scores != asymmetric_scores.T))
+        self.assertTrue(
+            np.all(
+                np.tril(symmetric_scores, -1) == np.tril((1 - symmetric_scores).T, -1)
+            )
+        )
+        self.assertTrue(
+            np.any(
+                np.tril(asymmetric_scores, -1) == np.tril((1 - asymmetric_scores).T, -1)
+            )
+        )
+        self.assertTrue(
+            np.all(np.diag(symmetric_scores) == 1)
+        )  # Check all diagonals to be one
+        self.assertTrue(
+            np.all(np.diag(asymmetric_scores) == 1)
+        )  # Check all diagonals to be one
+
+        # Cover Mike's test case: https://github.com/Kaleidophon/deep-significance/issues/7
+        mikes_asymmetric_scores = multi_aso(
+            self.mikes_scores_dict, seed=seed, use_symmetry=False, **self.aso_kwargs
+        )
+        mikes_symmetric_scores = multi_aso(
+            self.mikes_scores_dict, seed=seed, **self.aso_kwargs
+        )
+        self.assertTrue(
+            np.all(
+                np.tril(mikes_symmetric_scores, -1)
+                == np.tril((1 - mikes_symmetric_scores).T, -1)
+            )
+        )
+        self.assertTrue(
+            np.any(
+                np.tril(mikes_asymmetric_scores, -1)
+                == np.tril((1 - mikes_asymmetric_scores).T, -1)
+            )
+        )
+        self.assertTrue(
+            np.all(np.diag(mikes_symmetric_scores) == 1)
+        )  # Check all diagonals to be one
+        self.assertTrue(
+            np.all(np.diag(mikes_asymmetric_scores) == 1)
+        )  # Check all diagonals to be one
 
     def test_result_df(self):
         """

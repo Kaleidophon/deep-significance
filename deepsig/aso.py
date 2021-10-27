@@ -256,7 +256,7 @@ def multi_aso(
         )
 
     for i, key_i in enumerate(indices):
-        for j, key_j in enumerate(indices[(i + 1) :]):
+        for j, key_j in enumerate(indices[(i + 1) :], start=i + 1):
             scores_a, scores_b = scores[key_i], scores[key_j]
 
             eps_min[i, j] = aso(
@@ -274,7 +274,7 @@ def multi_aso(
 
             # Use ASO(A, B, alpha) = 1 - ASO(B, A, alpha)
             if use_symmetry:
-                eps_min[j, i] = eps_min[i, j]
+                eps_min[j, i] = 1 - eps_min[i, j]
 
             # Compute ASO(B, A, alpha) separately
             else:
