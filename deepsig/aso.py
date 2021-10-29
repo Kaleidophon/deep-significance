@@ -13,7 +13,7 @@ from joblib import Parallel, delayed
 from joblib.externals.loky import set_loky_pickler
 import numpy as np
 import pandas as pd
-from scipy.stats import norm as normal
+from scipy.stats import norm as normal, t
 import scipy.special as special
 from tqdm import tqdm
 
@@ -243,7 +243,7 @@ def bf_aso(
     scores_a: ArrayLike,
     scores_b: ArrayLike,
     eps_min_threshold: float = 0.5,
-    prior_kwargs: Dict[str, float] = {"loc": 0.5, "scale": 0.5, "alpha": 3, "beta": 1},
+    prior_kwargs: Dict[str, float] = {"loc": 0.5, "scale": 1, "alpha": 41, "beta": 20},
     num_bootstrap_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
     dt: float = 0.005,
@@ -298,7 +298,7 @@ def bf_aso(
     )
     # TODO: Add more cases here
 
-    _, sigma_hat, samples = get_bootstrap_estimates(
+    _, _, samples = get_bootstrap_estimates(
         scores_a,
         scores_b,
         num_bootstrap_samples,
@@ -307,8 +307,6 @@ def bf_aso(
         num_jobs,
         show_progress,
     )
-    const = np.sqrt(len(scores_a) + len(scores_b) / (len(scores_a) * len(scores_b)))
-    var = const * sigma_hat
 
     # Define prior and posterior parameters
     # Posterior parameters taken from https://en.wikipedia.org/wiki/Conjugate_prior
@@ -325,34 +323,33 @@ def bf_aso(
         + N * prior_scale / (prior_scale + N) * (sample_mean - prior_loc) ** 2 / 2
     )
 
-    # Compute Bayes factor as p(H_0|D)p(H_1) / (p(H_1|D)p(H_0)) which is
-    # p(e_W2(F, G) > eps_min_treshold|D)p(e_W2(F, G) ≤ eps_min_treshold) /
-    # (p(e_W2(F, G) ≤ eps_min_treshold|D)p(e_W2(F, G) > eps_min_treshold))
-    numerator = 1 - normal_inverse_gamma_cdf(
-        eps_min_threshold,
-        var,
-        posterior_loc,
-        posterior_scale,
-        posterior_alpha,
-        posterior_beta,
-    )
-    numerator *= normal_inverse_gamma_cdf(
-        eps_min_threshold, var, prior_loc, prior_scale, prior_alpha, prior_beta
-    )
-    denominator = normal_inverse_gamma_cdf(
-        eps_min_threshold,
-        var,
-        posterior_loc,
-        posterior_scale,
-        posterior_alpha,
-        posterior_beta,
-    )
-    denominator *= 1 - normal_inverse_gamma_cdf(
-        eps_min_threshold, var, prior_loc, prior_scale, prior_alpha, prior_beta
-    )
+    # Define the parameters for the marginal prior and posterior parameters (it's a t distribution)
+    prior_t_params = {
+        "df": 2 * prior_alpha,
+        "loc": prior_loc,
+        "scale": prior_beta * (prior_scale + 1) / (prior_scale * prior_alpha),
+    }
+    posterior_t_params = {
+        "df": 2 * posterior_alpha,
+        "loc": posterior_loc,
+        "scale": posterior_beta
+        * (posterior_scale + 1)
+        / (posterior_scale * posterior_alpha),
+    }
 
-    eps = 1e-6
-    bf = np.exp(np.log(numerator + eps) - np.log(denominator + eps))
+    # Define marginal distributions
+    t_cdf_prior = lambda thresh: t.cdf(thresh, **prior_t_params)
+    t_cdf_post = lambda thresh: t.cdf(thresh, **posterior_t_params)
+
+    # Compute Bayes factor as p(H_0|D)p(H_1) / (p(H_1|D)p(H_0))
+    eps = 1e-10
+    alt_hypothesis_post = t_cdf_post(eps_min_threshold) + eps
+    alt_hypothesis_prior = t_cdf_prior(eps_min_threshold) + eps
+    bf = (
+        ((1 - alt_hypothesis_post) * alt_hypothesis_prior)
+        / alt_hypothesis_post
+        * (1 - alt_hypothesis_prior)
+    )
 
     return bf
 
@@ -435,7 +432,6 @@ def get_bootstrap_estimates(
 
     # Set seeds for different runs if applicable
     # "Sub-seeds" for jobs are just seed argument + job index
-    # TODO: Fix this in main branch
     seeds = (
         [None] * num_bootstrap_iterations
         if seed is None
@@ -534,55 +530,6 @@ def get_quantile_function(scores: np.array) -> Callable:
     return np.vectorize(_quantile_function)
 
 
-def normal_inverse_gamma_cdf(
-    x: float, var: float, loc: float, scale: float, alpha: float, beta: float
-) -> float:
-    """
-    Cumulative density function for the normal-inverse gamma function, taken from [1]. Returns the joint probability
-    of X ≤ x and a variance under a location (mu), scale (lambda), alpha and beta parameter.
-
-    [1] https://en.wikipedia.org/wiki/Normal-inverse-gamma_distribution#Cumulative_distribution_function
-
-    Parameters
-    ----------
-    loc: float
-        Location parameter (mu).
-    scale: float
-        Scale parameter (lambda).
-    alpha: float
-        Alpha parameter.
-    beta: float
-        Beta parameter.
-
-    Returns
-    -------
-    float
-        Joint probability under NIG.
-    """
-    # TODO: This is still super unstable numerically, catch extreme values and avoid dvisions by zero
-    # TODO: Debug
-    # Add small number to variance since in very clear cases, all bootstrapped violation ratios will be zero - creating
-    # a lot of numerical instability in this function
-    eps = 1e-6
-    eps_var = var + eps
-
-    num_term = np.exp(-beta / eps_var) + (beta / eps_var) ** alpha
-
-    if np.isinf(num_term):
-        num_term = sys.maxsize
-
-    numerator = num_term + special.erf(
-        np.sqrt(scale) * (x - loc) / (np.sqrt(2 * var) + eps) + 1
-    )
-    denominator = 2 * var * special.gamma(alpha) + eps
-
-    joint_prob = numerator / denominator
-    # joint_prob = np.exp(np.log(numerator) - np.log(denominator))
-    # joint_prob = np.clip(joint_prob, 0, 1)
-
-    return joint_prob
-
-
 def _get_num_models(scores: ScoreCollection) -> int:
     """
     Retrieve the number of models from a ScoreCollection for multi_aso().
@@ -633,7 +580,7 @@ def _get_num_models(scores: ScoreCollection) -> int:
 
 # TODO: Debug
 if __name__ == "__main__":
-    scores_a, scores_b = np.random.normal(-0.1, 0.2, 50), np.random.normal(0, 0.022, 50)
+    scores_a, scores_b = np.random.normal(0.05, 0.2, 50), np.random.normal(0, 0.022, 50)
 
     # TODO: Jusing num_jobs > 1 produces error
     print(bf_aso(scores_b, scores_a, num_jobs=1))
