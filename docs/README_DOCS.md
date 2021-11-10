@@ -22,6 +22,7 @@
   * [General Recommendations & other notes](#general-recommendations) 
 * [|:mortar_board:| Cite](#mortar_board-cite)
 * [|:medal_sports:| Acknowledgements](#medal_sports-acknowledgements)
+* [|:people_holding_hands:| Papers using deep-significance](#people_holding_hands-papers-using-deep-significance)
 * [|:books:| Bibliography](#books-bibliography)
 
 ### |:interrobang:| Why?
@@ -261,7 +262,9 @@ eps_min = multi_aso(my_models_scores, confidence_level=0.05)
 ```
 
 In the example, `eps_min` is now a matrix, containing the <img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> score between all pairs of models (for 
-the same model, it set to 1 by default). The function applies the bonferroni correction for multiple comparisons by 
+the same model, it set to 1 by default). The matrix is always to be read as ASO(row, column).
+
+The function applies the bonferroni correction for multiple comparisons by 
 default, but this can be turned off by using `use_bonferroni=False`. In order to save compute, the above symmetry
 property is used as well, but this can also be disabled by `use_symmetry=False`.
 
@@ -440,6 +443,14 @@ answer questions and provide feedback to the implementation and documentation of
 
 The commit message template used in this project can be found [here](https://github.com/Kaleidophon/commit-template-for-humans).
 The inline latex equations were rendered using [readme2latex](https://github.com/leegao/readme2tex).
+
+### |:people_holding_hands:| Papers using deep-significance
+
+In this last section of the readme, I would like to refer to works already using `deep-significance`. Open an issue or 
+pull request if you would like to see your work added here!
+
+* ["From Masked Language Modeling to Translation: Non-English Auxiliary Tasks Improve Zero-shot Spoken Language Understanding" (van der Groot et al., 2021)](https://robvanderg.github.io/doc/naacl2021.pdf)
+* ["Cartography Active Learning" (Zhang & Plank, 2021)](https://arxiv.org/pdf/2109.04282.pdf)
 
 ### |:books:| Bibliography
 

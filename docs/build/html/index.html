@@ -110,7 +110,8 @@
 <li><a class="reference internal" href="#id12">General recommendations &amp; other notes</a></li>
 <li><a class="reference internal" href="#id13">🎓 Cite</a></li>
 <li><a class="reference internal" href="#id14">🏅 Acknowledgements</a></li>
-<li><a class="reference internal" href="#id17">📚 Bibliography</a></li>
+<li><a class="reference internal" href="#id17">🧑‍🤝‍🧑 Papers using deep-significance</a></li>
+<li><a class="reference internal" href="#id18">📚 Bibliography</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-deepsig">Documentation</a></li>
@@ -163,6 +164,7 @@
 </li>
 <li><p><a class="reference external" href="#mortar_board-cite">|:mortar_board:| Cite</a></p></li>
 <li><p><a class="reference external" href="#medal_sports-acknowledgements">|:medal_sports:| Acknowledgements</a></p></li>
+<li><p><a class="reference external" href="#people_holding_hands-papers-using-deep-significance">|:people_holding_hands:| Papers using deep-significance</a></p></li>
 <li><p><a class="reference external" href="#books-bibliography">|:books:| Bibliography</a></p></li>
 </ul>
 <div class="section" id="id1">
@@ -363,7 +365,8 @@ Let’s look at an example:</p>
 </pre></div>
 </div>
 <p>In the example, <code class="docutils literal notranslate"><span class="pre">eps_min</span></code> is now a matrix, containing the <span class="raw-html-m2r"><img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/></span> score between all pairs of models (for
-the same model, it set to 1 by default). The function applies the bonferroni correction for multiple comparisons by
+the same model, it set to 1 by default). The matrix is always to be read as ASO(row, column).</p>
+<p>The function applies the bonferroni correction for multiple comparisons by
 default, but this can be turned off by using <code class="docutils literal notranslate"><span class="pre">use_bonferroni=False</span></code>. In order to save compute, the above symmetry
 property is used as well, but this can also be disabled by <code class="docutils literal notranslate"><span class="pre">use_symmetry=False</span></code>.</p>
 <p>Lastly, when the <code class="docutils literal notranslate"><span class="pre">scores</span></code> argument is a dictionary and the function is called with <code class="docutils literal notranslate"><span class="pre">return_df=True</span></code>, the resulting matrix is
@@ -527,7 +530,16 @@ answer questions and provide feedback to the implementation and documentation of
 The inline latex equations were rendered using <a class="reference external" href="https://github.com/leegao/readme2tex">readme2latex</a>.</p>
 </div>
 <div class="section" id="id17">
-<h2>📚 Bibliography<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h2>
+<h2>🧑‍🤝‍🧑 Papers using deep-significance<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h2>
+<p>In this last section of the readme, I would like to refer to works already using <code class="docutils literal notranslate"><span class="pre">deep-significance</span></code>. Open an issue or
+pull request if you would like to see your work added here!</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://robvanderg.github.io/doc/naacl2021.pdf">“From Masked Language Modeling to Translation: Non-English Auxiliary Tasks Improve Zero-shot Spoken Language Understanding” (van der Groot et al., 2021)</a></p></li>
+<li><p><a class="reference external" href="https://arxiv.org/pdf/2109.04282.pdf">“Cartography Active Learning” (Zhang &amp; Plank, 2021)</a></p></li>
+</ul>
+</div>
+<div class="section" id="id18">
+<h2>📚 Bibliography<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h2>
 <p>Del Barrio, Eustasio, Juan A. Cuesta-Albertos, and Carlos Matrán. “An optimal transportation approach for assessing almost stochastic order.” The Mathematics of the Uncertain. Springer, Cham, 2018. 33-44.</p>
 <p>Bonferroni, Carlo. “Teoria statistica delle classi e calcolo delle probabilita.” Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.</p>
 <p>Borji, Ali. “Negative results in computer vision: A perspective.” Image and Vision Computing 69 (2018): 1-8.</p>

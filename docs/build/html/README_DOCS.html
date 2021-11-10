@@ -114,6 +114,7 @@
 <li><a class="reference internal" href="#general-recommendations-other-notes">General recommendations &amp; other notes</a></li>
 <li><a class="reference internal" href="#mortar-board-cite">|:mortar_board:| Cite</a></li>
 <li><a class="reference internal" href="#medal-sports-acknowledgements">|:medal_sports:| Acknowledgements</a></li>
+<li><a class="reference internal" href="#people-holding-hands-papers-using-deep-significance">|:people_holding_hands:| Papers using deep-significance</a></li>
 <li><a class="reference internal" href="#books-bibliography">|:books:| Bibliography</a></li>
 </ul>
 </li>
@@ -170,6 +171,7 @@
 </li>
 <li><p><a class="reference external" href="#mortar_board-cite">|:mortar_board:| Cite</a></p></li>
 <li><p><a class="reference external" href="#medal_sports-acknowledgements">|:medal_sports:| Acknowledgements</a></p></li>
+<li><p><a class="reference external" href="#people_holding_hands-papers-using-deep-significance">|:people_holding_hands:| Papers using deep-significance</a></p></li>
 <li><p><a class="reference external" href="#books-bibliography">|:books:| Bibliography</a></p></li>
 </ul>
 <div class="section" id="interrobang-why">
@@ -369,7 +371,8 @@ Let’s look at an example:</p>
 </pre></div>
 </div>
 <p>In the example, <code class="docutils literal notranslate"><span class="pre">eps_min</span></code> is now a matrix, containing the <img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> score between all pairs of models (for
-the same model, it set to 1 by default). The function applies the bonferroni correction for multiple comparisons by
+the same model, it set to 1 by default). The matrix is always to be read as ASO(row, column).</p>
+<p>The function applies the bonferroni correction for multiple comparisons by
 default, but this can be turned off by using <code class="docutils literal notranslate"><span class="pre">use_bonferroni=False</span></code>. In order to save compute, the above symmetry
 property is used as well, but this can also be disabled by <code class="docutils literal notranslate"><span class="pre">use_symmetry=False</span></code>.</p>
 <p>Lastly, when the <code class="docutils literal notranslate"><span class="pre">scores</span></code> argument is a dictionary and the function is called with <code class="docutils literal notranslate"><span class="pre">return_df=True</span></code>, the resulting matrix is
@@ -543,6 +546,15 @@ and <a class="reference external" href="https://github.com/rtmdrr/DeepComparison
 answer questions and provide feedback to the implementation and documentation of this package.</p>
 <p>The commit message template used in this project can be found <a class="reference external" href="https://github.com/Kaleidophon/commit-template-for-humans">here</a>.
 The inline latex equations were rendered using <a class="reference external" href="https://github.com/leegao/readme2tex">readme2latex</a>.</p>
+</div>
+<div class="section" id="people-holding-hands-papers-using-deep-significance">
+<h3>|:people_holding_hands:| Papers using deep-significance<a class="headerlink" href="#people-holding-hands-papers-using-deep-significance" title="Permalink to this headline">¶</a></h3>
+<p>In this last section of the readme, I would like to refer to works already using <code class="docutils literal notranslate"><span class="pre">deep-significance</span></code>. Open an issue or
+pull request if you would like to see your work added here!</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://robvanderg.github.io/doc/naacl2021.pdf">“From Masked Language Modeling to Translation: Non-English Auxiliary Tasks Improve Zero-shot Spoken Language Understanding” (van der Groot et al., 2021)</a></p></li>
+<li><p><a class="reference external" href="https://arxiv.org/pdf/2109.04282.pdf">“Cartography Active Learning” (Zhang &amp; Plank, 2021)</a></p></li>
+</ul>
 </div>
 <div class="section" id="books-bibliography">
 <h3>|:books:| Bibliography<a class="headerlink" href="#books-bibliography" title="Permalink to this headline">¶</a></h3>
