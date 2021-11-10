@@ -4,7 +4,6 @@ The code here heavily borrows from their `original code base <https://github.com
 """
 
 # STD
-import sys
 from typing import List, Callable, Union, Optional, Dict, Tuple
 from warnings import warn
 
@@ -14,7 +13,6 @@ from joblib.externals.loky import set_loky_pickler
 import numpy as np
 import pandas as pd
 from scipy.stats import norm as normal, t
-import scipy.special as special
 from tqdm import tqdm
 
 # PKG
@@ -249,6 +247,7 @@ def bf_aso(
     dt: float = 0.005,
     num_jobs: int = 1,
     show_progress: bool = True,
+    seed: Optional[int] = None,
 ) -> float:
     """
     Compute the Bayes factor BF_01 for Almost stochastic order, where the null hypothesis H_0: e_W2 = 0.5 and the
@@ -277,6 +276,8 @@ def bf_aso(
         Differential for t during integral calculation.
     show_progress: bool
         Show progress bar. Default is True.
+    seed: Optional[int]
+        Set seed for reproducibility purposes. Default is None (meaning no seed is used).
 
     Returns
     -------
@@ -306,6 +307,7 @@ def bf_aso(
         dt,
         num_jobs,
         show_progress,
+        seed=seed,
     )
 
     # Define prior and posterior parameters
@@ -345,10 +347,8 @@ def bf_aso(
     eps = 1e-10
     alt_hypothesis_post = t_cdf_post(eps_min_threshold) + eps
     alt_hypothesis_prior = t_cdf_prior(eps_min_threshold) + eps
-    bf = (
-        ((1 - alt_hypothesis_post) * alt_hypothesis_prior)
-        / alt_hypothesis_post
-        * (1 - alt_hypothesis_prior)
+    bf = ((1 - alt_hypothesis_post) * alt_hypothesis_prior) / (
+        alt_hypothesis_post * (1 - alt_hypothesis_prior)
     )
 
     return bf
@@ -442,6 +442,13 @@ def get_bootstrap_estimates(
         """
         One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
         """
+        # When running multiple jobs, these modules have to be re-imported for some reason to avoid an error
+        # Use dir() to check whether module is available in local scope:
+        # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
+        if "numpy" not in dir() or "deepsig" not in dir():
+            import numpy as np
+            from deepsig.aso import compute_violation_ratio
+
         if seed is not None:
             np.random.seed(seed)
 
@@ -519,6 +526,11 @@ def get_quantile_function(scores: np.array) -> Callable:
     Callable
         Return the quantile function belonging to an empirical score distribution.
     """
+    # When running multiple jobs via joblib, numpy has to be re-imported for some reason to avoid an error
+    # Use dir() to check whether module is available in local scope:
+    # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
+    if "numpy" not in dir():
+        import numpy as np
 
     def _quantile_function(p: float) -> float:
         cdf = np.sort(scores)
@@ -580,7 +592,7 @@ def _get_num_models(scores: ScoreCollection) -> int:
 
 # TODO: Debug
 if __name__ == "__main__":
-    scores_a, scores_b = np.random.normal(0.05, 0.2, 50), np.random.normal(0, 0.022, 50)
+    scores_a, scores_b = np.random.normal(10, 0.2, 50), np.random.normal(0, 0.1, 50)
 
-    # TODO: Jusing num_jobs > 1 produces error
-    print(bf_aso(scores_b, scores_a, num_jobs=1))
+    # TODO: Check alternative bayes factor by using prior for known variance
+    print(bf_aso(scores_b, scores_a, num_jobs=4))
