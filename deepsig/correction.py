@@ -9,10 +9,10 @@ This module contains methods to correct p-values in order to avoid the
 import numpy as np
 
 # PKD
-from deepsig.conversion import p_value_conversion, ArrayLike
+from deepsig.conversion import score_conversion, ArrayLike
 
 
-@p_value_conversion
+@score_conversion
 def bonferroni_correction(p_values: ArrayLike) -> np.array:
     """
     Correct for multiple comparisons based on Bonferroni's method.

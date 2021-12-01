@@ -6,10 +6,10 @@ Implementation of paired sign test.
 import numpy as np
 
 # PKG
-from deepsig.conversion import ArrayLike, score_conversion
+from deepsig.conversion import ArrayLike, score_pair_conversion
 
 
-@score_conversion
+@score_pair_conversion
 def permutation_test(
     scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int = 1000
 ) -> float:

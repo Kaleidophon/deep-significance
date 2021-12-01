@@ -12,7 +12,7 @@ from scipy.stats import ttest_ind
 from tqdm import tqdm
 
 # PROJECT
-from deepsig.conversion import p_value_conversion, ArrayLike
+from deepsig.conversion import score_conversion, ArrayLike
 
 
 def aso_uncertainty_reduction(m_old: int, n_old: int, m_new: int, n_new: int) -> float:
@@ -37,10 +37,18 @@ def aso_uncertainty_reduction(m_old: int, n_old: int, m_new: int, n_new: int) ->
         Reduction of uncertainty / increase of tightness of estimate for violation ratio e_W2(F, G).
 
     """
+    assert all(
+        sample_size > 1 for sample_size in [m_old, n_old, m_new, n_new]
+    ), "All sample sizes have to be larger than or equal to 1."
+
+    assert all(
+        type(sample_size) == int for sample_size in [m_old, n_old, m_new, n_new]
+    ), "Sample sizes have to be integers."
+
     return sqrt((m_old + n_old) * m_new * n_new / (m_old * n_old * (m_new + n_new)))
 
 
-@p_value_conversion
+@score_conversion
 def bootstrap_power_analysis(
     scores: ArrayLike,
     scalar: float = 1.25,

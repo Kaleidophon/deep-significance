@@ -77,9 +77,10 @@ except:
     pass
 
 
-def score_conversion(func: Callable) -> Callable:
+def score_pair_conversion(func: Callable) -> Callable:
     """
     Decorator that makes sure that any sort of array containing scores is internally being converted to a numpy array.
+    This decorator is specficially used for functions that that two sets of scores as their first argument.
     Supports most common Python iterables, PyTorch and Tensorflow tensors as well as Jax arrays.
 
     Parameters
@@ -94,7 +95,7 @@ def score_conversion(func: Callable) -> Callable:
     """
 
     @wraps(func)
-    def with_score_conversion(
+    def with_score_pair_conversion(
         scores_a: ArrayLike, scores_b: ArrayLike, *args, **kwargs
     ):
 
@@ -125,13 +126,14 @@ def score_conversion(func: Callable) -> Callable:
 
         return func(scores_a, scores_b, *args, **kwargs)
 
-    return with_score_conversion
+    return with_score_pair_conversion
 
 
-def p_value_conversion(func: Callable) -> Callable:
+def score_conversion(func: Callable) -> Callable:
     """
-    Decorator that makes sure that any sort of array containing p-values is internally being converted to a numpy array.
-    Supports most common Python iterables, PyTorch and Tensorflow tensors as well as Jax arrays.
+    Decorator that makes sure that any sort of array containing scores is internally being converted to a numpy array.
+    In comparison to score_pair_conversion, this decorator is used for functions only using a single set of scores
+    (or valuues). Supports most common Python iterables, PyTorch and Tensorflow tensors as well as Jax arrays.
 
     Parameters
     ----------
@@ -145,7 +147,7 @@ def p_value_conversion(func: Callable) -> Callable:
     """
 
     @wraps(func)
-    def with_p_value_conversion(p_values: ArrayLike, *args, **kwargs):
+    def with_score_conversion(p_values: ArrayLike, *args, **kwargs):
 
         # Select appropriate conversion functions
         conversion_func = CONVERSIONS[type(p_values)]
@@ -156,7 +158,7 @@ def p_value_conversion(func: Callable) -> Callable:
 
         return func(p_values, *args, **kwargs)
 
-    return with_p_value_conversion
+    return with_score_conversion
 
 
 def _squeeze_or_exception(array: np.array, name: str) -> np.array:
