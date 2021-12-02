@@ -38,7 +38,7 @@ def aso_uncertainty_reduction(m_old: int, n_old: int, m_new: int, n_new: int) ->
 
     """
     assert all(
-        sample_size > 1 for sample_size in [m_old, n_old, m_new, n_new]
+        sample_size >= 1 for sample_size in [m_old, n_old, m_new, n_new]
     ), "All sample sizes have to be larger than or equal to 1."
 
     assert all(

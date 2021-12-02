@@ -18,14 +18,30 @@ class ASOUncertaintyReductionTests(unittest.TestCase):
         """
         Make sure that weird input arguments raise errors.
         """
-        ...  # TODO: Implement
+        with self.assertRaises(AssertionError):
+            aso_uncertainty_reduction(-1, 0, 1, 2)
+
+        with self.assertRaises(AssertionError):
+            aso_uncertainty_reduction(1.1, 2.3, 4.5, 4.1)
 
     def test_monotonicity(self):
         """
         Make sure that a) Increasing sample sizes always tightens the bound of the estimate and that b) the tightness of
         the bound is a monotonically increasing function of the sample sizes.
         """
-        ...  # TODO: Implement
+        base_samples = [1, 1, 1, 1]
+
+        for var in [2, 3]:
+            reductions = []
+
+            for increase in [2, 4, 20, 50, 200]:
+                samples = list(base_samples)
+                samples[var] += increase  # Increase sample size
+
+                reductions.append(aso_uncertainty_reduction(*samples))
+
+            # Check that increase in tightness is monotonically increasing with sample size
+            self.assertEqual(reductions, list(sorted(reductions)))
 
 
 class BootstrapPowerAnalysisTests(unittest.TestCase):
