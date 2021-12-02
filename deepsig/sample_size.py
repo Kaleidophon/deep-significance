@@ -102,7 +102,7 @@ def bootstrap_power_analysis(
     float:
         Percentage of significant comparisons. If the percentage is low, more samples should be gathered.
     """
-    assert len(scores) > 0, "Both lists of scores must be non-empty."
+    assert len(scores) > 0, "Lists of scores must be non-empty."
     assert (
         num_bootstrap_iterations > 0
     ), "Number of bootstrap iterations should be positive"

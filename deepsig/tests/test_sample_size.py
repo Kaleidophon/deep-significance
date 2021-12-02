@@ -5,6 +5,10 @@ Tests for deepsig.sample_size.py.
 # STD
 import unittest
 
+# EXT
+import numpy as np
+from scipy.stats import ks_2samp
+
 # PKD
 from deepsig.sample_size import aso_uncertainty_reduction, bootstrap_power_analysis
 
@@ -53,7 +57,15 @@ class BootstrapPowerAnalysisTests(unittest.TestCase):
         """
         Make sure that weird input arguments raise errors.
         """
-        ...  # TODO: Implement
+        with self.assertRaises(AssertionError):
+            bootstrap_power_analysis([])
+
+        samples = np.random.randn(3)
+        with self.assertRaises(AssertionError):
+            bootstrap_power_analysis(samples, num_bootstrap_iterations=0)
+
+        with self.assertRaises(AssertionError):
+            bootstrap_power_analysis(samples, scalar=0.8)
 
     def test_bootstrap_power_analysis(self):
         """
@@ -61,4 +73,42 @@ class BootstrapPowerAnalysisTests(unittest.TestCase):
         a certain threshold of significant comparisons. Decreasing the variance in samples should lower the percentage
         of significant comparisons.
         """
-        ...  # TODO: Implement
+        seed = 1234
+        np.random.seed(seed)
+
+        # Test bad sample with high variance
+        bad_sample = np.random.normal(0, 20, 5)
+        power = bootstrap_power_analysis(bad_sample, show_progress=False, seed=seed)
+        self.assertLessEqual(power, 0.2)
+
+        # Test good sample with low variance
+        good_sample = np.random.normal(0, 0.1, 50)
+        power2 = bootstrap_power_analysis(good_sample, show_progress=False, seed=seed)
+        self.assertGreater(power2, power)  # Power should be higher
+
+        # Test with different significance threshold
+        power3 = bootstrap_power_analysis(
+            bad_sample, show_progress=False, seed=seed, significance_threshold=1
+        )
+        self.assertEqual(power3, 1)
+
+        power4 = bootstrap_power_analysis(
+            good_sample, show_progress=False, seed=seed, significance_threshold=0
+        )
+        self.assertEqual(power4, 0)
+
+        # Test with different significance test
+        bootstrap_power_analysis(
+            good_sample,
+            show_progress=False,
+            seed=seed,
+            significance_test=lambda scores_a, scores_b: ks_2samp(
+                data1=scores_a, data2=scores_b
+            )[1],
+        )
+
+        # Test with different scalar for lifting
+        ...  # TODO
+
+        # Test monotonicity
+        ...  # TODO

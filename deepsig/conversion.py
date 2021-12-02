@@ -147,16 +147,16 @@ def score_conversion(func: Callable) -> Callable:
     """
 
     @wraps(func)
-    def with_score_conversion(p_values: ArrayLike, *args, **kwargs):
+    def with_score_conversion(scores: ArrayLike, *args, **kwargs):
 
         # Select appropriate conversion functions
-        conversion_func = CONVERSIONS[type(p_values)]
+        conversion_func = CONVERSIONS[type(scores)]
 
         # Convert to numpy arrays
-        p_values = conversion_func(p_values)
-        p_values = _squeeze_or_exception(p_values, "p_values")
+        scores = conversion_func(scores)
+        scores = _squeeze_or_exception(scores, "p_values")
 
-        return func(p_values, *args, **kwargs)
+        return func(scores, *args, **kwargs)
 
     return with_score_conversion
 
