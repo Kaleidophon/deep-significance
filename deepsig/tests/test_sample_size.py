@@ -98,6 +98,7 @@ class BootstrapPowerAnalysisTests(unittest.TestCase):
         self.assertEqual(power4, 0)
 
         # Test with different significance test
+        # Only fails when it throws an exception
         bootstrap_power_analysis(
             good_sample,
             show_progress=False,
@@ -108,7 +109,22 @@ class BootstrapPowerAnalysisTests(unittest.TestCase):
         )
 
         # Test with different scalar for lifting
-        ...  # TODO
+        power5 = bootstrap_power_analysis(
+            bad_sample, show_progress=False, seed=seed, scalar=1.1
+        )
+        self.assertLessEqual(power5, power)
 
-        # Test monotonicity
-        ...  # TODO
+        power6 = bootstrap_power_analysis(
+            bad_sample, show_progress=False, seed=seed, scalar=1.5
+        )
+        self.assertGreaterEqual(power6, power5)
+
+        # Test monotonicity - power should increase as a function of sample size
+        powers = []
+        for sample_size in [5, 10, 20, 50, 100, 200, 500]:
+            samples = np.random.normal(0, 5, sample_size)
+            powers.append(
+                bootstrap_power_analysis(samples, show_progress=False, seed=seed)
+            )
+
+        self.assertEqual(powers, list(sorted(powers)))
