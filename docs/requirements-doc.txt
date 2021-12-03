@@ -3,7 +3,7 @@ sphinxemoji==0.1.8
 m2r==0.2.1
 recommonmark==0.7.1
 numpy==1.19.5
-scipy==1.5.4
+scipy==1.6.0
 numpydoc==1.1.0
 tqdm==4.59.0
 joblib==1.0.1

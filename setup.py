@@ -8,7 +8,7 @@ with open("requirements.txt") as f:
 
 setup(
     name="deepsig",
-    version="1.1.3",
+    version="1.2.0",
     author="Dennis Ulmer",
     description="Easy Significance Testing for Deep Neural Networks.",
     long_description=long_description,

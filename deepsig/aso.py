@@ -19,7 +19,7 @@ from tqdm import tqdm
 from deepsig.conversion import (
     ArrayLike,
     ScoreCollection,
-    score_conversion,
+    score_pair_conversion,
     ALLOWED_TYPES,
     CONVERSIONS,
 )
@@ -28,7 +28,7 @@ from deepsig.conversion import (
 set_loky_pickler("dill")  # Avoid weird joblib error with multi_aso
 
 
-@score_conversion
+@score_pair_conversion
 def aso(
     scores_a: ArrayLike,
     scores_b: ArrayLike,
