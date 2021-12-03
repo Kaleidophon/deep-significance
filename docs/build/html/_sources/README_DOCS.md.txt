@@ -18,6 +18,7 @@
   * [Scenario 3: Comparing sample-level scores](#scenario-3---comparing-sample-level-scores)
   * [Scenario 4: Comparing more than two models](#scenario-4---comparing-more-than-two-models)
   * [How to report results](#newspaper-how-to-report-results)
+  * [Sample size](#control_knobs-sample-size)
   * [Other features](#sparkles-other-features)
   * [General Recommendations & other notes](#general-recommendations) 
 * [|:mortar_board:| Cite](#mortar_board-cite)
@@ -313,6 +314,60 @@ score. Below lists some example snippets reporting the results of scenarios 1 an
     $\alpha = 0.05$ (before adjusting for all pair-wise comparisons using the Bonferroni correction). Almost stochastic 
     dominance ($\epsilon_\text{min} < 0.5)$ is indicated in table X.
 
+### |:control_knobs:| Sample size
+
+It can be hard to determine whether the currently collected set of scores is large enough to allow for reliable 
+significance testing or whether more scores are required. For this reason, `deep-significance` also implements functions to aid the decision of whether to 
+collect more samples or not. 
+
+First of all, it contains *Bootstrap power analysis* (Yuan & Hayashi, 2003): Given a set of scores, it gives all of them a uniform lift to 
+create an artificial, second sample. Then, the analysis runs repeated analyses using bootstrapped versions of both 
+samples, comparing them with a significance test. Ideally, this should yield a significant result: If the difference 
+between the re-sampled original and the lifted sample is non-significant, the original sample has too high of a variance. The 
+analyses then returns the *percentage of comparisons* that yielded significant results. If the number is too low, 
+more scores should be collected and added to the sample. 
+
+The result of the analysis is the *statistical power*: The 
+higher the power, the smaller the risk of falling prey to a Type II error - the probability of mistakenly accepting the 
+null hypothesis, when in fact it should actually be rejected. Usually, a power of ~ 0.8 is recommended (although that is
+sometimes hard to achieve in a machine learning setup).
+
+The function can be used in the following way:
+
+```python
+import numpy as np
+from deepsig import bootstrap_power_analysis
+
+scores = np.random.normal(loc=0, scale=20, size=5)  # Create too small of a sample with high variance
+power = bootstrap_power_analysis(scores, show_progress=False)  # 0.081, way too low
+
+scores2 = np.random.normal(loc=0, scale=20, size=50)  # Let's collect more samples
+power2 = bootstrap_power_analysis(scores2, show_progress=False)  # Better power with 0.2556
+```
+
+By default, `bootstrap_power_analysis()` uses a one-sided Welch's t-test. However, this can be modified by passing 
+a function to the `significance_test` argument, which expects a function taking two sets of scores and returning a 
+p-value.
+
+Secondly, if the Almost Stochastic Order test (ASO) is being used, there is a second function available. ASO estimates
+the violation ratio of two samples using bootstrapping. However, there is necessarily some uncertainty around that 
+estimate, given that we only possess a finite number of samples. Using more samples decreases the uncertainty and makes the estimate tighter.
+The degree to which collecting more samples increases the tightness can be computed using the following function:
+
+```python
+import numpy as np
+from deepsig import aso_uncertainty_reduction
+
+scores1 = np.random.normal(loc=0, scale=0.3, size=5)  # First sample with five scores
+scores2 = np.random.normal(loc=0.2, scale=5, size=3)  # Second sample with three scores
+
+red1 = aso_uncertainty_reduction(m_old=len(scores1), n_old=len(scores2), m_new=5, n_new=5)  # 1.1547005383792515
+red2 = aso_uncertainty_reduction(m_old=len(scores1), n_old=len(scores2), m_new=7, n_new=3)  # 1.0583005244258363
+
+# Adding two runs to scores1 increases tightness of estimate by 1.15
+# But adding two runs to scores2 only increases tightness by 1.06! So spending two more runs on scores1 is better
+```
+
 ### |:sparkles:| Other features
 
 #### |:rocket:| For the impatient: ASO with multi-threading
@@ -475,3 +530,5 @@ Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein. "Visualizing th
 Narang, Sharan, et al. "Do Transformer Modifications Transfer Across Implementations and Applications?." arXiv preprint arXiv:2102.11972 (2021).
 
 Noreen, Eric W. "Computer intensive methods for hypothesis testing: An introduction." Wiley, New York (1989).
+
+Yuan, Ke‐Hai, and Kentaro Hayashi. "Bootstrap approach to inference and power analysis based on three test statistics for covariance structure models." British Journal of Mathematical and Statistical Psychology 56.1 (2003): 93-110.

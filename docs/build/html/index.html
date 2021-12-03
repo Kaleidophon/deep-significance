@@ -106,6 +106,7 @@
 <li><a class="reference internal" href="#id8">Scenario 3 - Comparing sample-level scores</a></li>
 <li><a class="reference internal" href="#id9">Scenario 4 - Comparing more than two models</a></li>
 <li><a class="reference internal" href="#newspaper-how-to-report-results">📰 How to report results</a></li>
+<li><a class="reference internal" href="#control-knobs-sample-size">🎛️ Sample size</a></li>
 <li><a class="reference internal" href="#sparkles-other-features">✨ Other features</a></li>
 <li><a class="reference internal" href="#id12">General recommendations &amp; other notes</a></li>
 <li><a class="reference internal" href="#id13">🎓 Cite</a></li>
@@ -158,6 +159,7 @@
 <li><p><a class="reference external" href="#scenario-3---comparing-sample-level-scores">Scenario 3: Comparing sample-level scores</a></p></li>
 <li><p><a class="reference external" href="#scenario-4---comparing-more-than-two-models">Scenario 4: Comparing more than two models</a></p></li>
 <li><p><a class="reference external" href="#newspaper-how-to-report-results">How to report results</a></p></li>
+<li><p><a class="reference external" href="#control_knobs-sample-size">Sample size</a></p></li>
 <li><p><a class="reference external" href="#sparkles-other-features">Other features</a></p></li>
 <li><p><a class="reference external" href="#general-recommendations">General Recommendations &amp; other notes</a></p></li>
 </ul>
@@ -413,6 +415,53 @@ dominance ($\epsilon_\text{min} &lt; 0.5)$ is indicated in table X.
 </pre></div>
 </div>
 </div>
+<div class="section" id="control-knobs-sample-size">
+<h2>🎛️ Sample size<a class="headerlink" href="#control-knobs-sample-size" title="Permalink to this headline">¶</a></h2>
+<p>It can be hard to determine whether the currently collected set of scores is large enough to allow for reliable
+significance testing or whether more scores are required. For this reason, <code class="docutils literal notranslate"><span class="pre">deep-significance</span></code> also implements functions to aid the decision of whether to
+collect more samples or not.</p>
+<p>First of all, it contains <em>Bootstrap power analysis</em> (Yuan &amp; Hayashi, 2003): Given a set of scores, it gives all of them a uniform lift to
+create an artificial, second sample. Then, the analysis runs repeated analyses using bootstrapped versions of both
+samples, comparing them with a significance test. Ideally, this should yield a significant result: If the difference
+between the re-sampled original and the lifted sample is non-significant, the original sample has too high of a variance. The
+analyses then returns the <em>percentage of comparisons</em> that yielded significant results. If the number is too low,
+more scores should be collected and added to the sample.</p>
+<p>The result of the analysis is the <em>statistical power</em>: The
+higher the power, the smaller the risk of falling prey to a Type II error - the probability of mistakenly accepting the
+null hypothesis, when in fact it should actually be rejected. Usually, a power of ~ 0.8 is recommended (although that is
+sometimes hard to achieve in a machine learning setup).</p>
+<p>The function can be used in the following way:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">deepsig</span> <span class="kn">import</span> <span class="n">bootstrap_power_analysis</span>
+
+<span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># Create too small of a sample with high variance</span>
+<span class="n">power</span> <span class="o">=</span> <span class="n">bootstrap_power_analysis</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">show_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># 0.081, way too low</span>
+
+<span class="n">scores2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>  <span class="c1"># Let&#39;s collect more samples</span>
+<span class="n">power2</span> <span class="o">=</span> <span class="n">bootstrap_power_analysis</span><span class="p">(</span><span class="n">scores2</span><span class="p">,</span> <span class="n">show_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># Better power with 0.2556</span>
+</pre></div>
+</div>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">bootstrap_power_analysis()</span></code> uses a one-sided Welch’s t-test. However, this can be modified by passing
+a function to the <code class="docutils literal notranslate"><span class="pre">significance_test</span></code> argument, which expects a function taking two sets of scores and returning a
+p-value.</p>
+<p>Secondly, if the Almost Stochastic Order test (ASO) is being used, there is a second function available. ASO estimates
+the violation ratio of two samples using bootstrapping. However, there is necessarily some uncertainty around that
+estimate, given that we only possess a finite number of samples. Using more samples decreases the uncertainty and makes the estimate tighter.
+The degree to which collecting more samples increases the tightness can be computed using the following function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">deepsig</span> <span class="kn">import</span> <span class="n">aso_uncertainty_reduction</span>
+
+<span class="n">scores1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># First sample with five scores</span>
+<span class="n">scores2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># Second sample with three scores</span>
+
+<span class="n">red1</span> <span class="o">=</span> <span class="n">aso_uncertainty_reduction</span><span class="p">(</span><span class="n">m_old</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">scores1</span><span class="p">),</span> <span class="n">n_old</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">scores2</span><span class="p">),</span> <span class="n">m_new</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">n_new</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># 1.1547005383792515</span>
+<span class="n">red2</span> <span class="o">=</span> <span class="n">aso_uncertainty_reduction</span><span class="p">(</span><span class="n">m_old</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">scores1</span><span class="p">),</span> <span class="n">n_old</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">scores2</span><span class="p">),</span> <span class="n">m_new</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">n_new</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># 1.0583005244258363</span>
+
+<span class="c1"># Adding two runs to scores1 increases tightness of estimate by 1.15</span>
+<span class="c1"># But adding two runs to scores2 only increases tightness by 1.06! So spending two more runs on scores1 is better</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="sparkles-other-features">
 <h2>✨ Other features<a class="headerlink" href="#sparkles-other-features" title="Permalink to this headline">¶</a></h2>
 <p>Waiting for all the bootstrap iterations to finish can feel tedious, especially when doing many comparisons. Therefore,
@@ -551,6 +600,7 @@ pull request if you would like to see your work added here!</p>
 <p>Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein. “Visualizing the Loss Landscape of Neural Nets.” NeurIPS 2018: 6391-6401</p>
 <p>Narang, Sharan, et al. “Do Transformer Modifications Transfer Across Implementations and Applications?.” arXiv preprint arXiv:2102.11972 (2021).</p>
 <p>Noreen, Eric W. “Computer intensive methods for hypothesis testing: An introduction.” Wiley, New York (1989).</p>
+<p>Yuan, Ke‐Hai, and Kentaro Hayashi. “Bootstrap approach to inference and power analysis based on three test statistics for covariance structure models.” British Journal of Mathematical and Statistical Psychology 56.1 (2003): 93-110.</p>
 </div>
 </div>
 <div class="section" id="module-deepsig">
