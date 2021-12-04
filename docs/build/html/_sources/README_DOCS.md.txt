@@ -48,6 +48,7 @@ testing:
 * Statistical Significance tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron & Tibshirani, 1994) and 
   permutation-randomization (Noreen, 1989).
 * Bonferroni correction methods for multiplicity in datasets (Bonferroni, 1936). 
+* Bootstrap power analysis (Yuan & Hayashi, 2003) and other functions to determine the right sample size.
 
 All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch / 
 Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation 
@@ -402,7 +403,7 @@ b = torch.randn(5, 1)
 aso(a, b)  # It just works!
 ```
 
-#### ||:woman_farmer:|| Setting seeds for replicability
+#### |:woman_farmer:| Setting seeds for replicability
 
 In order to ensure replicability, both `aso()` and `multi_aso()` supply as `seed` argument. This even works 
 when multiple jobs are used!
