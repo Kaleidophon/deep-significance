@@ -25,3 +25,8 @@ Documentation
    :members:
    :undoc-members:
    :show-inheritance:
+
+.. automodule:: deepsig.sample_size
+   :members:
+   :undoc-members:
+   :show-inheritance:
