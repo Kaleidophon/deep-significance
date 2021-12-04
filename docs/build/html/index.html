@@ -849,6 +849,82 @@ the one <cite>scores_b</cite> originated from.</p>
 </dl>
 </dd></dl>
 
+<span class="target" id="module-deepsig.sample_size"></span><p>Implement functions to help determine the right sample size for experiments.</p>
+<dl class="py function">
+<dt id="deepsig.sample_size.aso_uncertainty_reduction">
+<code class="sig-prename descclassname">deepsig.sample_size.</code><code class="sig-name descname">aso_uncertainty_reduction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">m_old</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">n_old</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">m_new</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">n_new</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#deepsig.sample_size.aso_uncertainty_reduction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the reduction of uncertainty of tightness of estimate for violation ratio e_W2(F, G).
+This is based on the CLT in <a class="reference external" href="https://arxiv.org/pdf/1705.01788.pdf">del Barrio et al. (2018)</a> Theorem 2.4 / eq. 9.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m_old: int</strong></dt><dd><p>Old number of scores for algorithm A.</p>
+</dd>
+<dt><strong>n_old: int</strong></dt><dd><p>Old number of scores for algorithm B.</p>
+</dd>
+<dt><strong>m_new: int</strong></dt><dd><p>New number of scores for algorithm A.</p>
+</dd>
+<dt><strong>n_new: int</strong></dt><dd><p>New number of scores for algorithm B.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Reduction of uncertainty / increase of tightness of estimate for violation ratio e_W2(F, G).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="deepsig.sample_size.bootstrap_power_analysis">
+<code class="sig-prename descclassname">deepsig.sample_size.</code><code class="sig-name descname">bootstrap_power_analysis</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scores</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>tensorflow.python.framework.ops.EagerTensor<span class="p">, </span>tensorflow.python.framework.ops.Tensor<span class="p">, </span>torch.Tensor<span class="p">, </span>torch.LongTensor<span class="p">, </span>torch.FloatTensor<span class="p">, </span>List<span class="p">[</span>float<span class="p">]</span><span class="p">, </span>numpy.array<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">scalar</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.25</span></em>, <em class="sig-param"><span class="n">num_bootstrap_iterations</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">5000</span></em>, <em class="sig-param"><span class="n">significance_threshold</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">significance_test</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_progress</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">seed</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#deepsig.sample_size.bootstrap_power_analysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform bootstrap power analysis [1] to see whether the amount of collected scores is sufficient. It determines
+the statistical power of the sample, i.e. the probability of an statistically significant effect to be found given
+that there is one (that is, the lower the power, the higher the probability of a Type II error).</p>
+<p>This is done by giving all scores a uniform lift as suggested by [2] by using the value in the <cite>scalar</cite> named
+argument. Then, a number of bootstrap iterations is run and a significance test to see whether the difference
+between the original and the scaled scores is  significant. If the percentage of significant comparisons is low,
+more samples should be gathered - a uniform lift of 1.25 should result in many significant differences, thus the
+variance in the original sample is too high.</p>
+<p>By default, a one-tailed Welch’s t-test is used. However, this can be changed by supplying a different
+<cite>significance_test</cite> named argument (the test might have to be wrapped in a lambda function or similar to only
+return the p-value, not the test statistic).</p>
+<p>[1] Yuan, Ke‐Hai, and Kentaro Hayashi. “Bootstrap approach to inference and power analysis based on three test
+statistics for covariance structure models.” British Journal of Mathematical and Statistical Psychology 56.1 (2003):
+93-110.
+[2] Henderson, Peter, et al. “Deep reinforcement learning that matters.” Proceedings of the AAAI conference on
+artificial intelligence. Vol. 32. No. 1. 2018.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>scores: ArrayLike</strong></dt><dd><p>Scores to be examined.</p>
+</dd>
+<dt><strong>scalar: float</strong></dt><dd><p>Scalar used for lifting scores.</p>
+</dd>
+<dt><strong>num_bootstrap_iterations: int</strong></dt><dd><p>Number of bootstrap iterations.</p>
+</dd>
+<dt><strong>significance_threshold: float</strong></dt><dd><p>Significance threshold to determine whether a comparison is significant.</p>
+</dd>
+<dt><strong>significance_test: Optional[Callable]</strong></dt><dd><p>Callable function returning a p-value (or similar) based on two sets of scores. If None, a Welch’s t-test is
+used.</p>
+</dd>
+<dt><strong>show_progress: bool</strong></dt><dd><p>Show progress bar. Default is True.</p>
+</dd>
+<dt><strong>seed: Optional[int]</strong></dt><dd><p>Set seed for reproducibility purposes. Default is None (meaning no seed is used).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>float:</dt><dd><p>Percentage of significant comparisons. If the percentage is low, more samples should be gathered.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 
