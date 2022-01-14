@@ -7,7 +7,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 [![DOI](https://zenodo.org/badge/341677886.svg)](https://zenodo.org/badge/latestdoi/341677886)
 
-<img src="img/logo.png" alt="drawing" width="550"/>
+![](img/logo.png)
 
 **Contents**
 
