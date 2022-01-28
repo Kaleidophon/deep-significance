@@ -4,6 +4,8 @@ The code here heavily borrows from their `original code base <https://github.com
 """
 
 # STD
+from math import sqrt
+import sys
 from typing import List, Callable, Union, Optional, Dict, Tuple
 from warnings import warn
 
@@ -12,7 +14,8 @@ from joblib import Parallel, delayed
 from joblib.externals.loky import set_loky_pickler
 import numpy as np
 import pandas as pd
-from scipy.stats import norm as normal, t
+from scipy.stats import norm as normal
+from scipy.special import erf
 from tqdm import tqdm
 
 # PKG
@@ -241,7 +244,7 @@ def bf_aso(
     scores_a: ArrayLike,
     scores_b: ArrayLike,
     eps_min_threshold: float = 0.5,
-    prior_kwargs: Dict[str, float] = {"loc": 0.5, "scale": 1, "alpha": 41, "beta": 20},
+    prior_kwargs: Dict[str, float] = {"loc": 0.5, "scale": 0.194},
     num_bootstrap_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
     dt: float = 0.005,
@@ -299,7 +302,7 @@ def bf_aso(
     )
     # TODO: Add more cases here
 
-    _, _, samples = get_bootstrap_estimates(
+    _, sigma_hat, samples = get_bootstrap_estimates(
         scores_a,
         scores_b,
         num_bootstrap_samples,
@@ -312,44 +315,27 @@ def bf_aso(
 
     # Define prior and posterior parameters
     # Posterior parameters taken from https://en.wikipedia.org/wiki/Conjugate_prior
-    N = len(scores_a) + len(scores_b)
-    sample_mean = np.mean(samples)
+    N = len(samples)
+    sigma_hat += 1e-5
     prior_loc, prior_scale = prior_kwargs["loc"], prior_kwargs["scale"]
-    prior_alpha, prior_beta = prior_kwargs["alpha"], prior_kwargs["beta"]
-    posterior_loc = (prior_scale * prior_loc + N * sample_mean) / (prior_scale + N)
-    posterior_scale = prior_scale + N
-    posterior_alpha = prior_alpha + N / 2
-    posterior_beta = (
-        prior_beta
-        + 0.5 * np.sum((samples - sample_mean) ** 2)
-        + N * prior_scale / (prior_scale + N) * (sample_mean - prior_loc) ** 2 / 2
+    sigma = (
+        sqrt((len(scores_a) + len(scores_b)) / len(scores_a) / len(scores_b))
+        * sigma_hat
+    )
+    posterior_scale = 1 / (1 / prior_scale ** 2 + N / sigma)
+    posterior_loc = posterior_scale * (
+        prior_loc / prior_scale ** 2 + sum(samples) / sigma
     )
 
-    # Define the parameters for the marginal prior and posterior parameters (it's a t distribution)
-    prior_t_params = {
-        "df": 2 * prior_alpha,
-        "loc": prior_loc,
-        "scale": prior_beta * (prior_scale + 1) / (prior_scale * prior_alpha),
-    }
-    posterior_t_params = {
-        "df": 2 * posterior_alpha,
-        "loc": posterior_loc,
-        "scale": posterior_beta
-        * (posterior_scale + 1)
-        / (posterior_scale * posterior_alpha),
-    }
-
-    # Define marginal distributions
-    t_cdf_prior = lambda thresh: t.cdf(thresh, **prior_t_params)
-    t_cdf_post = lambda thresh: t.cdf(thresh, **posterior_t_params)
-
-    # Compute Bayes factor as p(H_0|D)p(H_1) / (p(H_1|D)p(H_0))
-    eps = 1e-10
-    alt_hypothesis_post = t_cdf_post(eps_min_threshold) + eps
-    alt_hypothesis_prior = t_cdf_prior(eps_min_threshold) + eps
-    bf = ((1 - alt_hypothesis_post) * alt_hypothesis_prior) / (
-        alt_hypothesis_post * (1 - alt_hypothesis_prior)
+    # Compute Bayes factor
+    eps = 1e-5
+    post_prob = (
+        normal.cdf(eps_min_threshold, loc=posterior_loc, scale=posterior_scale) + eps
     )
+    prior_prob = normal.cdf(eps_min_threshold, loc=prior_loc, scale=prior_scale) + eps
+    bf_num = (1 - post_prob) * prior_prob
+    bf_denom = post_prob * (1 - prior_prob)
+    bf = np.clip(bf_num / bf_denom, 0, sys.maxsize)
 
     return bf
 
@@ -469,7 +455,7 @@ def get_bootstrap_estimates(
     const2 = np.sqrt(
         num_samples ** 2 / (2 * num_samples)
     )  # This one is based on the number of re-sampled scores
-    sigma_hat = np.std(const2 * (samples - violation_ratio))
+    sigma_hat = np.std(const2 * (np.array(samples) - violation_ratio))
 
     return violation_ratio, sigma_hat, samples
 
@@ -592,7 +578,7 @@ def _get_num_models(scores: ScoreCollection) -> int:
 
 # TODO: Debug
 if __name__ == "__main__":
-    scores_a, scores_b = np.random.normal(10, 0.2, 50), np.random.normal(0, 0.1, 50)
+    scores_a, scores_b = np.random.normal(20, 0.4, 1000), np.random.normal(0, 0.4, 100)
 
     # TODO: Check alternative bayes factor by using prior for known variance
-    print(bf_aso(scores_b, scores_a, num_jobs=4))
+    print(bf_aso(scores_a, scores_a, num_jobs=4))
