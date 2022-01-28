@@ -333,9 +333,9 @@ def bf_aso(
         normal.cdf(eps_min_threshold, loc=posterior_loc, scale=posterior_scale) + eps
     )
     prior_prob = normal.cdf(eps_min_threshold, loc=prior_loc, scale=prior_scale) + eps
-    bf_num = (1 - post_prob) * prior_prob
-    bf_denom = post_prob * (1 - prior_prob)
-    bf = np.clip(bf_num / bf_denom, 0, sys.maxsize)
+    bf_num = post_prob * (1 - prior_prob)
+    bf_denom = (1 - post_prob) * prior_prob
+    bf = np.clip(np.abs(bf_num / bf_denom), 0, sys.maxsize)
 
     return bf
 
@@ -578,7 +578,7 @@ def _get_num_models(scores: ScoreCollection) -> int:
 
 # TODO: Debug
 if __name__ == "__main__":
-    scores_a, scores_b = np.random.normal(20, 0.4, 1000), np.random.normal(0, 0.4, 100)
+    scores_a, scores_b = np.random.normal(0.15, 0.4, 50), np.random.normal(0, 0.4, 50)
 
     # TODO: Check alternative bayes factor by using prior for known variance
-    print(bf_aso(scores_a, scores_a, num_jobs=4))
+    print(bf_aso(scores_a, scores_b, num_jobs=4))
