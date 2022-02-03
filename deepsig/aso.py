@@ -15,7 +15,6 @@ from joblib.externals.loky import set_loky_pickler
 import numpy as np
 import pandas as pd
 from scipy.stats import norm as normal
-from scipy.special import erf
 from tqdm import tqdm
 
 # PKG
@@ -253,8 +252,8 @@ def bf_aso(
     seed: Optional[int] = None,
 ) -> float:
     """
-    Compute the Bayes factor BF_01 for Almost stochastic order, where the null hypothesis H_0: e_W2 = 0.5 and the
-    alternate hypothesis H_1: e_W2 =/= 0.5. The Bayes factor is computed using the Savage-Dickey ratio.
+    Compute the Bayes factor BF_01 for Almost stochastic order, where the null hypothesis H_0: e_W2 > 0.5 and the
+    alternate hypothesis H_1: e_W2 <= 0.5. The Bayes factor is computed using the Savage-Dickey ratio.
 
     Parameters
     ----------
@@ -302,7 +301,7 @@ def bf_aso(
     )
     # TODO: Add more cases here
 
-    _, sigma_hat, samples = get_bootstrap_estimates(
+    violation_ratio, sigma_hat, samples = get_bootstrap_estimates(
         scores_a,
         scores_b,
         num_bootstrap_samples,
@@ -316,7 +315,8 @@ def bf_aso(
     # Define prior and posterior parameters
     # Posterior parameters taken from https://en.wikipedia.org/wiki/Conjugate_prior
     N = len(samples)
-    sigma_hat += 1e-5
+    eps = 1e-6
+    sigma_hat = max(sigma_hat ** 2, eps)
     prior_loc, prior_scale = prior_kwargs["loc"], prior_kwargs["scale"]
     sigma = (
         sqrt((len(scores_a) + len(scores_b)) / len(scores_a) / len(scores_b))
@@ -328,11 +328,12 @@ def bf_aso(
     )
 
     # Compute Bayes factor
-    eps = 1e-5
-    post_prob = (
-        normal.cdf(eps_min_threshold, loc=posterior_loc, scale=posterior_scale) + eps
+    post_prob = max(
+        normal.cdf(eps_min_threshold, loc=posterior_loc, scale=posterior_scale), eps
     )
-    prior_prob = normal.cdf(eps_min_threshold, loc=prior_loc, scale=prior_scale) + eps
+    prior_prob = max(
+        normal.cdf(eps_min_threshold, loc=prior_loc, scale=prior_scale), eps
+    )
     bf_num = post_prob * (1 - prior_prob)
     bf_denom = (1 - post_prob) * prior_prob
     bf = np.clip(np.abs(bf_num / bf_denom), 0, sys.maxsize)
@@ -578,7 +579,7 @@ def _get_num_models(scores: ScoreCollection) -> int:
 
 # TODO: Debug
 if __name__ == "__main__":
-    scores_a, scores_b = np.random.normal(0.15, 0.4, 50), np.random.normal(0, 0.4, 50)
+    scores_a, scores_b = np.random.normal(-0.05, 1, 10), np.random.normal(0, 1, 10)
 
     # TODO: Check alternative bayes factor by using prior for known variance
     print(bf_aso(scores_a, scores_b, num_jobs=4))

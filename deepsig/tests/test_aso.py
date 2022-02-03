@@ -355,3 +355,42 @@ class ASOSanityChecks(unittest.TestCase):
                 num_bootstrap_iterations=1000,
             )
             self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=0.2)
+
+
+class ASOBayesFactorTests(unittest.TestCase):
+    """
+    Test bf_aso().
+    """
+
+    def setUp(self) -> None:
+        ...  # TODO
+
+    def test_scores_types(self):
+        """
+        Test different types for the scores argument.
+        """
+        ...  # TODO
+
+    def test_dependency_on_threshold(self):
+        """
+        Test the dependency on the Bayes factor on the eps_min threshold.
+        """
+        ...  # TODO
+
+    def test_dependency_on_samples(self):
+        """
+        Test the dependency of the Bayes factor on the number of samples.
+        """
+        ...  # TODO
+
+    def test_dependency_on_sample_means(self):
+        """
+        Test the dependency of the Bayes factor on the difference in sample means.
+        """
+        ...  # TODO
+
+    def test_dependency_on_prior(self):
+        """
+        Test the dependency of the Bayes factor on the prior parameters.
+        """
+        ...  # TODO
