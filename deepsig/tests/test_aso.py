@@ -17,6 +17,7 @@ from scipy.stats import wasserstein_distance, pearsonr
 from deepsig.aso import (
     aso,
     multi_aso,
+    bf_aso,
     compute_violation_ratio,
     get_quantile_function,
 )
@@ -363,34 +364,130 @@ class ASOBayesFactorTests(unittest.TestCase):
     """
 
     def setUp(self) -> None:
-        ...  # TODO
+        self.aso_kwargs = {
+            "num_bootstrap_samples": 500,
+            "num_bootstrap_iterations": 500,
+            "num_jobs": 4,
+            "show_progress": False,
+        }
+        self.num_models = 2
+        self.num_seeds = 1000
+        np.random.seed(5678)
+        self.scores = [
+            np.random.normal(loc=0.3, scale=0.2, size=self.num_seeds).tolist()
+            for _ in range(self.num_models)
+        ]
+        self.scores_numpy = [np.array(scores) for scores in self.scores]
+        self.scores_torch = [torch.from_numpy(scores) for scores in self.scores_numpy]
+        self.scores_tensorflow = [
+            tf.convert_to_tensor(scores) for scores in self.scores_numpy
+        ]
+        self.all_score_types = [
+            self.scores,
+            self.scores_numpy,
+            self.scores_torch,
+            self.scores_tensorflow,
+        ]
 
     def test_scores_types(self):
         """
         Test different types for the scores argument.
         """
-        ...  # TODO
+        for scores in self.all_score_types:
+            bf_aso(*scores, **self.aso_kwargs)
 
     def test_dependency_on_threshold(self):
         """
-        Test the dependency on the Bayes factor on the eps_min threshold.
+        Test the dependency on the Bayes factor on the eps_min threshold. The Bayes factor should increase
+        as the threshold increases, as the null hypothesis gets easier to refute.
         """
-        ...  # TODO
+        bfs = []
+
+        for threshold in np.arange(0.1, 0.9, 0.1):
+            scores_b = self.scores_numpy[0]
+            scores_a = scores_b + 1e-3
+            bfs.append(
+                bf_aso(
+                    scores_a, scores_b, **self.aso_kwargs, eps_min_threshold=threshold
+                )
+            )
+
+        print(bfs)
+        print(list(sorted(bfs)))
+        self.assertEqual(list(sorted(bfs)), bfs)
 
     def test_dependency_on_samples(self):
         """
-        Test the dependency of the Bayes factor on the number of samples.
+        Test the dependency of the Bayes factor on the number of samples. The Bayes factor should increase as a function
+        of the sample size, since more samples make it easier to detect the existing difference between the two groups.
+
         """
-        ...  # TODO
+        bfs = []
+        seed = 7890
+
+        for num_samples in [80, 1000, 8000]:
+            samples_normal2 = np.random.normal(
+                loc=0, scale=1.1, size=num_samples
+            )  # Scores for algorithm B
+            samples_normal1 = samples_normal2 + 1e-3
+
+            bf = bf_aso(
+                samples_normal1,
+                samples_normal2,
+                **self.aso_kwargs,
+                seed=seed,
+            )
+            bfs.append(bf)
+
+        self.assertEqual(list(sorted(bfs)), bfs)  # Make sure bf increases
 
     def test_dependency_on_sample_means(self):
         """
-        Test the dependency of the Bayes factor on the difference in sample means.
+        Test the dependency of the Bayes factor on the difference in sample means. The Bayes factor should increase as
+        a function of mean difference.
         """
-        ...  # TODO
+        bfs = []
+        seed = 99999
+
+        for mean_diff in [0.01, 0.05, 0.1, 0.5, 1]:
+            samples_normal2 = np.random.normal(
+                loc=0, scale=1.1, size=1000
+            )  # Scores for algorithm B
+            samples_normal1 = np.random.normal(
+                loc=mean_diff, scale=1.1, size=1000
+            )  # Scores for algorithm B
+
+            bf = bf_aso(
+                samples_normal1,
+                samples_normal2,
+                **self.aso_kwargs,
+                seed=seed,
+            )
+            bfs.append(bf)
+
+        self.assertEqual(list(sorted(bfs)), bfs)  # Make sure bf increases
 
     def test_dependency_on_prior(self):
         """
-        Test the dependency of the Bayes factor on the prior parameters.
+        Test the dependency of the Bayes factor on the prior parameters. The Bayes factor should increase as the prior
+        mean decreases, since it biases the violation ratio to smaller values.
         """
-        ...  # TODO
+        bfs = []
+        seed = 3333
+
+        for prior_mean in np.arange(0.8, 0.2, -0.1):
+            samples_normal2 = np.random.normal(
+                loc=0, scale=1.1, size=1000
+            )  # Scores for algorithm B
+            samples_normal1 = samples_normal2 + 1e-3  # Scores for algorithm B
+
+            bf = bf_aso(
+                samples_normal1,
+                samples_normal2,
+                **self.aso_kwargs,
+                prior_kwargs={"loc": prior_mean, "scale": 0.194},
+                seed=seed,
+            )
+            bfs.append(bf)
+
+        self.assertEqual(list(sorted(bfs)), bfs)  # Make sure bf increases

@@ -344,8 +344,8 @@ def bf_aso(
 def get_bootstrap_estimates(
     scores_a: np.array,
     scores_b: np.array,
-    num_samples: int = 1000,
-    num_bootstrap_iterations: int = 1000,
+    num_samples: int = 100,
+    num_bootstrap_iterations: int = 100,
     dt: float = 0.005,
     num_jobs: int = 1,
     show_progress: bool = True,
