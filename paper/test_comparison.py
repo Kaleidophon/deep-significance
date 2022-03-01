@@ -4,7 +4,7 @@ Compare ASO against other significance tests and measure Type I and Type II erro
 
 # STD
 import pickle
-from typing import Dict, Callable, List, Tuple, Optional
+from typing import Dict, Callable, List, Tuple, Optional, Any
 
 # EXT
 import matplotlib.pyplot as plt
@@ -35,15 +35,13 @@ MEAN_DIFFS = [0.25, 0.5, 0.75, 1]
 SAVE_DIR = "./img"
 NUM_SIMULATIONS = 250
 
-# TODO: Refactor to use arbitrary distributions
-
 
 def test_type1_error(
     tests: Dict[str, Callable],
     sample_sizes: List[int],
     num_simulations: int = 200,
-    loc: float = 0,
-    scale: float = 1.5,
+    dist_func: Callable = np.random.normal,
+    dist_params: Dict[str, Any] = {"loc": 0, "scale": 1.5},
     threshold: float = 0.05,
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
     save_dir: Optional[str] = None,
@@ -59,10 +57,10 @@ def test_type1_error(
         Samples sizes that are being tested.
     num_simulations: int
         Number of simulations conducted.
-    loc: float
-        Location of the normal distribution both samples are taken from.
-    scale: float
-        Scale of the normal distribution both samples are taken from.
+    dist_func: Callable
+        Distribution function that is used for sampling.
+    dist_params: Dict[str, Any]
+        Parameters of the distribution function.
     threshold: float
         Threshold that test results has to fall below in order for significance to be claimed.
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]]
@@ -80,8 +78,8 @@ def test_type1_error(
             for _ in range(num_simulations):
 
                 # Sample scores for this round
-                scores_a = np.random.normal(loc=loc, scale=scale, size=sample_size)
-                scores_b = np.random.normal(loc=loc, scale=scale, size=sample_size)
+                scores_a = dist_func(**dist_params, size=sample_size)
+                scores_b = dist_func(**dist_params, size=sample_size)
 
                 for test_name, test_func in tests.items():
                     simulation_results[test_name][sample_size].append(
@@ -198,10 +196,9 @@ def test_type2_error_sample_size(
     tests: Dict[str, Callable],
     sample_sizes: List[int],
     num_simulations: int = 200,
-    loc1: float = 0.5,
-    scale1: float = 1.5,
-    loc2: float = 0,
-    scale2: float = 1.5,
+    dist_func: Callable = np.random.normal,
+    dist1_params: Dict[str, Any] = {"loc": 0.5, "scale": 1.5},
+    dist2_params: Dict[str, Any] = {"loc": 0, "scale": 1.5},
     threshold: float = 0.05,
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
     save_dir: Optional[str] = None,
@@ -217,14 +214,12 @@ def test_type2_error_sample_size(
         Samples sizes that are being tested.
     num_simulations: int
         Number of simulations conducted.
-    loc1: float
-        Location of the first normal distribution.
-    scale1: float
-        Scale of the first normal distribution.
-    loc2: float
-        Location of second normal distribution.
-    scale2: float
-        Scale of the second normal distribution.
+    dist_func: Callable
+        Distribution function that is used for sampling.
+    dist1_params: Dict[str, Any]
+        Parameters of the first distribution function.
+    dist2_params: Dict[str, Any]
+        Parameters of the second distribution function.
     threshold: float
         Threshold that test results has to fall below in order for significance to be claimed.
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]]
@@ -242,8 +237,8 @@ def test_type2_error_sample_size(
             for _ in range(num_simulations):
 
                 # Sample scores for this round
-                scores_a = np.random.normal(loc=loc1, scale=scale1, size=sample_size)
-                scores_b = np.random.normal(loc=loc2, scale=scale2, size=sample_size)
+                scores_a = dist_func(**dist1_params, size=sample_size)
+                scores_b = dist_func(**dist2_params, size=sample_size)
 
                 for test_name, test_func in tests.items():
                     simulation_results[test_name][sample_size].append(
@@ -302,8 +297,9 @@ def test_type2_error_mean_difference(
     tests: Dict[str, Callable],
     mean_differences: List[float],
     num_simulations: int = 200,
-    loc: float = 0,
-    scale: float = 1.5,
+    target_param: str = "loc",
+    dist_func: Callable = np.random.normal,
+    dist_params: Dict[str, Any] = {"loc": 0, "scale": 1.5},
     sample_size: int = 5,
     threshold: float = 0.05,
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
@@ -321,10 +317,12 @@ def test_type2_error_mean_difference(
         Mean differences between distributions that simulations are run for.
     num_simulations: int
         Number of simulations conducted.
-    loc: float
-        Location of second normal distribution.
-    scale: float
-        Scale for both normal distributions.
+    target_param: str
+        Name of parameter affected by mean_differences.
+    dist_func: Callable
+        Distribution function that is used for sampling.
+    dist_params: Dict[str, Any]
+        Parameters of the distribution function.
     sample_size: int
         Number of samples for simulations.
     threshold: float
@@ -346,10 +344,12 @@ def test_type2_error_mean_difference(
             for _ in range(num_simulations):
 
                 # Sample scores for this round
-                scores_a = np.random.normal(
-                    loc=loc + mean_diff, scale=scale, size=sample_size
-                )
-                scores_b = np.random.normal(loc=loc, scale=scale, size=sample_size)
+                modified_dist_params = {
+                    param: (value + mean_diff if param == target_param else value)
+                    for param, value in dist_params.items()
+                }
+                scores_a = np.random.normal(**modified_dist_params, size=sample_size)
+                scores_b = np.random.normal(**dist_params, size=sample_size)
 
                 for test_name, test_func in tests.items():
                     simulation_results[test_name][mean_diff].append(
