@@ -3,6 +3,7 @@ Compare ASO against other significance tests and measure Type I and Type II erro
 """
 
 # STD
+import os
 import pickle
 from typing import Dict, Callable, List, Tuple, Optional, Any
 
@@ -30,10 +31,10 @@ CONSIDERED_TEST_COLORS_MARKERS = {
     "Bootstrap": ("forestgreen", "^"),
     "Permutation": ("darkorange", "P"),
 }
-SAMPLE_SIZES = [5, 10, 15, 20, 25]
-MEAN_DIFFS = [0.25, 0.5, 0.75, 1]
+SAMPLE_SIZES = [5, 10]  # TODO: Debug , 15, 20, 25]
+MEAN_DIFFS = [0.25, 0.5]  # TODO: Debug , 0.75, 1]
 SAVE_DIR = "./img"
-NUM_SIMULATIONS = 250
+NUM_SIMULATIONS = 2  # TODO: Debug 250
 
 
 def test_type1_error(
@@ -136,7 +137,7 @@ def test_type1_error(
     # Plot box-and-whiskers plot of values
     plt.figure(figsize=(8, 6))
     plt.rcParams.update(
-        {"font.size": 18, "text.usetex": True, "legend.loc": "upper right"}
+        {"font.size": 20, "text.usetex": True, "legend.loc": "upper right"}
     )
 
     # Create datastructure for boxplots
@@ -252,7 +253,7 @@ def test_type2_error_sample_size(
     # Plot Type I error rates as line plot
     plt.figure(figsize=(8, 6))
     plt.rcParams.update(
-        {"font.size": 18, "text.usetex": True, "legend.loc": "upper right"}
+        {"font.size": 20, "text.usetex": True, "legend.loc": "upper right"}
     )
 
     for test_name, data in simulation_results.items():
@@ -348,8 +349,8 @@ def test_type2_error_mean_difference(
                     param: (value + mean_diff if param == target_param else value)
                     for param, value in dist_params.items()
                 }
-                scores_a = np.random.normal(**modified_dist_params, size=sample_size)
-                scores_b = np.random.normal(**dist_params, size=sample_size)
+                scores_a = dist_func(**modified_dist_params, size=sample_size)
+                scores_b = dist_func(**dist_params, size=sample_size)
 
                 for test_name, test_func in tests.items():
                     simulation_results[test_name][mean_diff].append(
@@ -363,7 +364,7 @@ def test_type2_error_mean_difference(
     # Plot Type I error rates as line plot
     plt.figure(figsize=(8, 6))
     plt.rcParams.update(
-        {"font.size": 18, "text.usetex": True, "legend.loc": "upper right"}
+        {"font.size": 20, "text.usetex": True, "legend.loc": "upper right"}
     )
 
     for test_name, data in simulation_results.items():
@@ -405,26 +406,46 @@ def test_type2_error_mean_difference(
 
 
 if __name__ == "__main__":
-    test_type1_error(
-        tests=CONSIDERED_TESTS,
-        sample_sizes=SAMPLE_SIZES,
-        colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
-        save_dir=SAVE_DIR,
-        num_simulations=NUM_SIMULATIONS,
-    )
+    for dist_func, target_param, dist1_params, dist2_params, save_dir in zip(
+        [np.random.normal, np.random.laplace, np.random.rayleigh],
+        ["loc", "loc", "scale"],
+        [{"loc": 0.5, "scale": 1.5}, {"loc": 0.5, "scale": 1.5}, {"scale": 1}],
+        [{"loc": 0, "scale": 1.5}, {"loc": 0, "scale": 1.5}, {"scale": 0.5}],
+        [f"{SAVE_DIR}/normal", f"{SAVE_DIR}/laplace", f"{SAVE_DIR}/rayleigh"],
+    ):
 
-    test_type2_error_sample_size(
-        tests=CONSIDERED_TESTS,
-        sample_sizes=SAMPLE_SIZES,
-        colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
-        save_dir=SAVE_DIR,
-        num_simulations=NUM_SIMULATIONS,
-    )
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
 
-    test_type2_error_mean_difference(
-        tests=CONSIDERED_TESTS,
-        mean_differences=MEAN_DIFFS,
-        colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
-        save_dir=SAVE_DIR,
-        num_simulations=NUM_SIMULATIONS,
-    )
+        test_type1_error(
+            tests=CONSIDERED_TESTS,
+            dist_func=dist_func,
+            dist_params=dist2_params,
+            sample_sizes=SAMPLE_SIZES,
+            colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
+            save_dir=save_dir,
+            num_simulations=NUM_SIMULATIONS,
+        )
+
+        if dist_func == np.random.normal:
+            test_type2_error_sample_size(
+                tests=CONSIDERED_TESTS,
+                dist_func=dist_func,
+                dist1_params=dist1_params,
+                dist2_params=dist2_params,
+                sample_sizes=SAMPLE_SIZES,
+                colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
+                save_dir=save_dir,
+                num_simulations=NUM_SIMULATIONS,
+            )
+
+            test_type2_error_mean_difference(
+                tests=CONSIDERED_TESTS,
+                dist_func=dist_func,
+                dist_params=dist2_params,
+                target_param=target_param,
+                mean_differences=MEAN_DIFFS,
+                colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
+                save_dir=save_dir,
+                num_simulations=NUM_SIMULATIONS,
+            )

@@ -56,7 +56,7 @@ def test_type1_error_bootstrap(
     # Plot Type I error rates as line plot
     plt.figure(figsize=(8, 6))
     plt.rcParams.update(
-        {"font.size": 18, "text.usetex": True, "legend.loc": "upper right"}
+        {"font.size": 20, "text.usetex": True, "legend.loc": "upper right"}
     )
 
     color, marker = None, None
@@ -131,7 +131,7 @@ def test_type1_error_confidence(
     # Plot Type I error rates as line plot
     plt.figure(figsize=(8, 6))
     plt.rcParams.update(
-        {"font.size": 18, "text.usetex": True, "legend.loc": "upper right"}
+        {"font.size": 20, "text.usetex": True, "legend.loc": "upper right"}
     )
 
     color, marker = None, None
