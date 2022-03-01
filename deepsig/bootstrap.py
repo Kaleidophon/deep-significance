@@ -10,6 +10,9 @@ import numpy as np
 from deepsig.conversion import ArrayLike, score_pair_conversion
 
 
+# TODO: Parallelize this
+
+
 @score_pair_conversion
 def bootstrap_test(
     scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int = 1000

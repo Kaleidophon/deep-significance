@@ -3,6 +3,7 @@ Compare ASO against other significance tests and measure Type I and Type II erro
 """
 
 # STD
+import pickle
 from typing import Dict, Callable, List, Tuple, Optional
 
 # EXT
@@ -29,22 +30,26 @@ CONSIDERED_TEST_COLORS_MARKERS = {
     "Bootstrap": ("forestgreen", "^"),
     "Permutation": ("darkorange", "P"),
 }
-SAMPLE_SIZES = [5, 10, 15, 25, 40, 50]
+SAMPLE_SIZES = [5, 10, 15, 20, 25]
+MEAN_DIFFS = [0.25, 0.5, 0.75, 1]
 SAVE_DIR = "./img"
+NUM_SIMULATIONS = 250
+
+# TODO: Refactor to use arbitrary distributions
 
 
 def test_type1_error(
     tests: Dict[str, Callable],
     sample_sizes: List[int],
-    num_simulations: int = 50,
+    num_simulations: int = 200,
     loc: float = 0,
-    scale: float = 1,
+    scale: float = 1.5,
     threshold: float = 0.05,
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
     save_dir: Optional[str] = None,
 ):
     """
-    Test the rate of type I error under different samples sizes.
+    Test the rate of type I error (false positive) under different samples sizes.
 
     Parameters
     ----------
@@ -84,13 +89,13 @@ def test_type1_error(
                     )
                     progress_bar.update(1)
 
+    with open(f"{save_dir}/type1_rates.pkl", "wb") as out_file:
+        pickle.dump(simulation_results, out_file)
+
     # Plot Type I error rates as line plot
     plt.figure(figsize=(8, 6))
     plt.rcParams.update(
-        {
-            "font.size": 18,
-            "text.usetex": True,
-        }
+        {"font.size": 18, "text.usetex": True, "legend.loc": "upper right"}
     )
 
     for test_name, data in simulation_results.items():
@@ -111,6 +116,7 @@ def test_type1_error(
             color=color,
             marker=marker,
             markersize=marker_size,
+            alpha=0.8,
         )
 
     ax = plt.gca()
@@ -132,10 +138,7 @@ def test_type1_error(
     # Plot box-and-whiskers plot of values
     plt.figure(figsize=(8, 6))
     plt.rcParams.update(
-        {
-            "font.size": 18,
-            "text.usetex": True,
-        }
+        {"font.size": 18, "text.usetex": True, "legend.loc": "upper right"}
     )
 
     # Create datastructure for boxplots
@@ -160,7 +163,7 @@ def test_type1_error(
         box_plot = plt.boxplot(
             test_data,
             positions=np.arange(0, len(sample_sizes)) * len(tests) + offset,
-            sym="",
+            sym=marker,
             widths=0.45,
             flierprops={"marker": marker},
         )
@@ -194,14 +197,17 @@ def test_type1_error(
 def test_type2_error_sample_size(
     tests: Dict[str, Callable],
     sample_sizes: List[int],
-    num_simulations=1000,
-    loc1: float = 0.2,
-    scale1: float = 1,
+    num_simulations: int = 200,
+    loc1: float = 0.5,
+    scale1: float = 1.5,
     loc2: float = 0,
-    scale2: float = 1,
+    scale2: float = 1.5,
+    threshold: float = 0.05,
+    colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
+    save_dir: Optional[str] = None,
 ):
     """
-    Test the rate of type II error under different samples sizes.
+    Test the rate of type 2 error (false negative) under different samples sizes.
 
     Parameters
     ----------
@@ -219,16 +225,89 @@ def test_type2_error_sample_size(
         Location of second normal distribution.
     scale2: float
         Scale of the second normal distribution.
+    threshold: float
+        Threshold that test results has to fall below in order for significance to be claimed.
+    colors_and_markers: Optional[Dict[str, Tuple[str, str]]]
+        Colors and markers corresponding to each test for plotting.
+    save_dir: Optional[str]
+        Directory that plots should be saved to.
     """
-    ...  # TODO
+    simulation_results = {
+        test_name: {sample_size: [] for sample_size in sample_sizes}
+        for test_name in tests
+    }
+
+    with tqdm(total=len(sample_sizes) * num_simulations * len(tests)) as progress_bar:
+        for sample_size in sample_sizes:
+            for _ in range(num_simulations):
+
+                # Sample scores for this round
+                scores_a = np.random.normal(loc=loc1, scale=scale1, size=sample_size)
+                scores_b = np.random.normal(loc=loc2, scale=scale2, size=sample_size)
+
+                for test_name, test_func in tests.items():
+                    simulation_results[test_name][sample_size].append(
+                        test_func(scores_a, scores_b)
+                    )
+                    progress_bar.update(1)
+
+    with open(f"{save_dir}/type2_rates.pkl", "wb") as out_file:
+        pickle.dump(simulation_results, out_file)
+
+    # Plot Type I error rates as line plot
+    plt.figure(figsize=(8, 6))
+    plt.rcParams.update(
+        {"font.size": 18, "text.usetex": True, "legend.loc": "upper right"}
+    )
+
+    for test_name, data in simulation_results.items():
+        color, marker, marker_size = None, None, None
+
+        if colors_and_markers is not None:
+            color, marker = colors_and_markers[test_name]
+            marker_size = 16
+
+        y = [
+            1 - (np.array(data[sample_size]) <= threshold).astype(float).mean()
+            for sample_size in sample_sizes
+        ]
+        plt.plot(
+            sample_sizes,
+            y,
+            label=test_name,
+            color=color,
+            marker=marker,
+            markersize=marker_size,
+            alpha=0.8,
+        )
+
+    ax = plt.gca()
+    # ax.set_ylim(0, 1)
+    ax.yaxis.grid()
+    plt.xticks(sample_sizes, [str(size) for size in sample_sizes])
+    plt.xlabel("Sample Size")
+    plt.ylabel("Type II Error Rate")
+    plt.legend()
+
+    if save_dir is not None:
+        plt.tight_layout()
+        plt.savefig(f"{save_dir}/type2_rates.png")
+    else:
+        plt.show()
+
+    plt.close()
 
 
 def test_type2_error_mean_difference(
     tests: Dict[str, Callable],
     mean_differences: List[float],
-    num_simulations=1000,
+    num_simulations: int = 200,
     loc: float = 0,
-    scale: float = 1,
+    scale: float = 1.5,
+    sample_size: int = 5,
+    threshold: float = 0.05,
+    colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
+    save_dir: Optional[str] = None,
 ):
     """
     Test the rate of type II error under different mean differences between the two distributions that samples are taken
@@ -246,8 +325,83 @@ def test_type2_error_mean_difference(
         Location of second normal distribution.
     scale: float
         Scale for both normal distributions.
+    sample_size: int
+        Number of samples for simulations.
+    threshold: float
+        Threshold that test results has to fall below in order for significance to be claimed.
+    colors_and_markers: Optional[Dict[str, Tuple[str, str]]]
+        Colors and markers corresponding to each test for plotting.
+    save_dir: Optional[str]
+        Directory that plots should be saved to.
     """
-    ...  # TODO
+    simulation_results = {
+        test_name: {mean_diff: [] for mean_diff in mean_differences}
+        for test_name in tests
+    }
+
+    with tqdm(
+        total=len(mean_differences) * num_simulations * len(tests)
+    ) as progress_bar:
+        for mean_diff in mean_differences:
+            for _ in range(num_simulations):
+
+                # Sample scores for this round
+                scores_a = np.random.normal(
+                    loc=loc + mean_diff, scale=scale, size=sample_size
+                )
+                scores_b = np.random.normal(loc=loc, scale=scale, size=sample_size)
+
+                for test_name, test_func in tests.items():
+                    simulation_results[test_name][mean_diff].append(
+                        test_func(scores_a, scores_b)
+                    )
+                    progress_bar.update(1)
+
+    with open(f"{save_dir}/type2_mean_rates.pkl", "wb") as out_file:
+        pickle.dump(simulation_results, out_file)
+
+    # Plot Type I error rates as line plot
+    plt.figure(figsize=(8, 6))
+    plt.rcParams.update(
+        {"font.size": 18, "text.usetex": True, "legend.loc": "upper right"}
+    )
+
+    for test_name, data in simulation_results.items():
+        color, marker, marker_size = None, None, None
+
+        if colors_and_markers is not None:
+            color, marker = colors_and_markers[test_name]
+            marker_size = 16
+
+        y = [
+            1 - (np.array(data[sample_size]) <= threshold).astype(float).mean()
+            for sample_size in mean_differences
+        ]
+        plt.plot(
+            mean_differences,
+            y,
+            label=test_name,
+            color=color,
+            marker=marker,
+            markersize=marker_size,
+            alpha=0.8,
+        )
+
+    ax = plt.gca()
+    # ax.set_ylim(0, 1)
+    ax.yaxis.grid()
+    plt.xticks(mean_differences, [str(size) for size in mean_differences])
+    plt.xlabel("Mean difference")
+    plt.ylabel("Type II Error Rate")
+    plt.legend()
+
+    if save_dir is not None:
+        plt.tight_layout()
+        plt.savefig(f"{save_dir}/type2_mean_rates.png")
+    else:
+        plt.show()
+
+    plt.close()
 
 
 if __name__ == "__main__":
@@ -256,4 +410,21 @@ if __name__ == "__main__":
         sample_sizes=SAMPLE_SIZES,
         colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
         save_dir=SAVE_DIR,
+        num_simulations=NUM_SIMULATIONS,
+    )
+
+    test_type2_error_sample_size(
+        tests=CONSIDERED_TESTS,
+        sample_sizes=SAMPLE_SIZES,
+        colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
+        save_dir=SAVE_DIR,
+        num_simulations=NUM_SIMULATIONS,
+    )
+
+    test_type2_error_mean_difference(
+        tests=CONSIDERED_TESTS,
+        mean_differences=MEAN_DIFFS,
+        colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
+        save_dir=SAVE_DIR,
+        num_simulations=NUM_SIMULATIONS,
     )

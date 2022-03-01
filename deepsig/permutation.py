@@ -8,6 +8,8 @@ import numpy as np
 # PKG
 from deepsig.conversion import ArrayLike, score_pair_conversion
 
+# TODO: Parallelize this
+
 
 @score_pair_conversion
 def permutation_test(
