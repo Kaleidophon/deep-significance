@@ -4,18 +4,18 @@ Implementation of paired bootstrap test
 """
 
 # EXT
+from joblib import Parallel, delayed
 import numpy as np
 
 # PKG
 from deepsig.conversion import ArrayLike, score_pair_conversion
 
-
-# TODO: Parallelize this
+# TODO: Add seeding
 
 
 @score_pair_conversion
 def bootstrap_test(
-    scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int = 1000
+    scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int = 1000, num_jobs: int = 1
 ) -> float:
     """
     Implementation of paired bootstrap test. A p-value is being estimated by comparing the mean of scores
@@ -33,6 +33,8 @@ def bootstrap_test(
         Scores of algorithm B.
     num_samples: int
         Number of bootstrap samples used for estimation.
+    num_jobs: int
+        Number of threads that bootstrap iterations are divided among.
 
     Returns
     -------
@@ -49,17 +51,28 @@ def bootstrap_test(
 
     N = len(scores_a)
     delta = np.mean(scores_a) - np.mean(scores_b)
-    num_larger = 0
 
-    for _ in range(num_samples):
+    def _bootstrap_iter(delta: float):
+        """
+        One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
+        """
+        # When running multiple jobs, modules have to be re-imported for some reason to avoid an error
+        # Use dir() to check whether module is available in local scope:
+        # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
+        if "numpy" not in dir():
+            import numpy as np
+
         resampled_scores_a = np.random.choice(scores_a, N)
         resampled_scores_b = np.random.choice(scores_b, N)
 
         new_delta = np.mean(resampled_scores_a - resampled_scores_b)
 
-        if new_delta >= 2 * delta:
-            num_larger += 1
+        return int(new_delta >= 2 * delta)
 
-    p_value = num_larger / num_samples
+    # Initialize worker pool and start iterations
+    parallel = Parallel(n_jobs=num_jobs)
+    samples = parallel(delayed(_bootstrap_iter)(delta) for _ in range(num_samples))
+
+    p_value = sum(samples) / num_samples
 
     return p_value

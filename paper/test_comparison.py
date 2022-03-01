@@ -22,8 +22,8 @@ CONSIDERED_TESTS = {
     "Student's t": lambda a, b: ttest_ind(a, b, equal_var=False, alternative="greater")[
         1
     ],
-    "Bootstrap": bootstrap_test,
-    "Permutation": permutation_test,
+    "Bootstrap": lambda a, b: bootstrap_test(a, b, num_jobs=4),
+    "Permutation": lambda a, b: permutation_test(a, b, num_jobs=4),
 }
 CONSIDERED_TEST_COLORS_MARKERS = {
     "ASO": ("darkred", "*"),
@@ -31,8 +31,8 @@ CONSIDERED_TEST_COLORS_MARKERS = {
     "Bootstrap": ("forestgreen", "^"),
     "Permutation": ("darkorange", "P"),
 }
-SAMPLE_SIZES = [5, 10]  # TODO: Debug , 15, 20, 25]
-MEAN_DIFFS = [0.25, 0.5]  # TODO: Debug , 0.75, 1]
+SAMPLE_SIZES = [5, 10, 15, 20, 25]
+MEAN_DIFFS = [0.25, 0.5, 0.75, 1]
 SAVE_DIR = "./img"
 NUM_SIMULATIONS = 2  # TODO: Debug 250
 
