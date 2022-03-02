@@ -3,3 +3,4 @@ notebook
 gym
 torch
 numpy
+pygame
