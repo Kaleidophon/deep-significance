@@ -34,7 +34,7 @@ CONSIDERED_TEST_COLORS_MARKERS = {
 SAMPLE_SIZES = [5, 10, 15, 20, 25]
 MEAN_DIFFS = [0.25, 0.5, 0.75, 1]
 SAVE_DIR = "./img"
-NUM_SIMULATIONS = 2  # TODO: Debug 250
+NUM_SIMULATIONS = 250
 
 
 def test_type1_error(
@@ -181,7 +181,7 @@ def test_type1_error(
     ax.yaxis.grid()
     plt.xticks(np.arange(0, len(sample_sizes) * len(tests), len(tests)), sample_sizes)
     plt.xlabel("Sample Size")
-    plt.ylabel("Test value")
+    plt.ylabel(r"$p$-value / $\varepsilon_\mathrm{min}$")
     plt.legend()
 
     if save_dir is not None:

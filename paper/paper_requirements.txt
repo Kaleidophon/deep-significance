@@ -1,1 +1,5 @@
 matplotlib
+notebook
+gym
+torch
+numpy

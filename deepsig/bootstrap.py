@@ -3,6 +3,9 @@ Implementation of paired bootstrap test
 `(Efron & Tibshirani, 1994) <https://cds.cern.ch/record/526679/files/0412042312_TOC.pdf>`_.
 """
 
+# STD
+from typing import Optional
+
 # EXT
 from joblib import Parallel, delayed
 import numpy as np
@@ -10,12 +13,14 @@ import numpy as np
 # PKG
 from deepsig.conversion import ArrayLike, score_pair_conversion
 
-# TODO: Add seeding
-
 
 @score_pair_conversion
 def bootstrap_test(
-    scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int = 1000, num_jobs: int = 1
+    scores_a: ArrayLike,
+    scores_b: ArrayLike,
+    num_samples: int = 1000,
+    num_jobs: int = 1,
+    seed: Optional[int] = None,
 ) -> float:
     """
     Implementation of paired bootstrap test. A p-value is being estimated by comparing the mean of scores
@@ -29,12 +34,14 @@ def bootstrap_test(
     ----------
     scores_a: ArrayLike
         Scores of algorithm A.
-    scores_b: ArrrayLike
+    scores_b: ArrayLike
         Scores of algorithm B.
     num_samples: int
         Number of bootstrap samples used for estimation.
     num_jobs: int
         Number of threads that bootstrap iterations are divided among.
+    seed: Optional[int]
+        Set seed for reproducibility purposes. Default is None (meaning no seed is used).
 
     Returns
     -------
@@ -52,15 +59,26 @@ def bootstrap_test(
     N = len(scores_a)
     delta = np.mean(scores_a) - np.mean(scores_b)
 
-    def _bootstrap_iter(delta: float):
+    # Set seeds for different jobs if applicable
+    # "Sub-seeds" for jobs are just seed argument + job index
+    seeds = (
+        [None] * num_samples
+        if seed is None
+        else [seed + offset for offset in range(1, num_samples + 1)]
+    )
+
+    def _bootstrap_iter(delta: float, seed: Optional[int] = None):
         """
         One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
         """
         # When running multiple jobs, modules have to be re-imported for some reason to avoid an error
         # Use dir() to check whether module is available in local scope:
         # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
-        if "numpy" not in dir():
+        if "np" not in dir():
             import numpy as np
+
+        if seed is not None:
+            np.random.seed(seed)
 
         resampled_scores_a = np.random.choice(scores_a, N)
         resampled_scores_b = np.random.choice(scores_b, N)
@@ -71,7 +89,10 @@ def bootstrap_test(
 
     # Initialize worker pool and start iterations
     parallel = Parallel(n_jobs=num_jobs)
-    samples = parallel(delayed(_bootstrap_iter)(delta) for _ in range(num_samples))
+    samples = parallel(
+        delayed(_bootstrap_iter)(delta, seed)
+        for _, seed in zip(range(num_samples), seeds)
+    )
 
     p_value = sum(samples) / num_samples
 

@@ -59,17 +59,22 @@ def test_type1_error_bootstrap(
         {"font.size": 20, "text.usetex": True, "legend.loc": "upper right"}
     )
 
-    color, marker = None, None
+    color, marker, marker_size = None, None, None
 
     if color_and_marker is not None:
         color, marker = color_and_marker
+        marker_size = 16
 
     box_plot = plt.boxplot(
         [simulation_results[iters] for iters in bootstrap_iters],
         sym=marker,
         widths=0.65,
         positions=np.arange(0, len(bootstrap_iters)),
-        flierprops={"marker": marker},
+        flierprops={
+            "marker": marker,
+            "markerfacecolor": color,
+            "markersize": marker_size,
+        },
     )
 
     if color is not None:
@@ -85,7 +90,7 @@ def test_type1_error_bootstrap(
         np.arange(0, len(bootstrap_iters)), [str(iters) for iters in bootstrap_iters]
     )
     plt.xlabel("Num. Bootstrap Iterations")
-    plt.ylabel("Type I Error Rate")
+    plt.ylabel(r"$\varepsilon_\mathrm{min}$")
 
     if save_dir is not None:
         plt.tight_layout()
@@ -134,17 +139,22 @@ def test_type1_error_confidence(
         {"font.size": 20, "text.usetex": True, "legend.loc": "upper right"}
     )
 
-    color, marker = None, None
+    color, marker, marker_size = None, None, None
 
     if color_and_marker is not None:
         color, marker = color_and_marker
+        marker_size = 16
 
     box_plot = plt.boxplot(
         [simulation_results[level] for level in confidence_levels],
         positions=np.arange(0, len(confidence_levels)),
         sym=marker,
         widths=0.65,
-        flierprops={"marker": marker},
+        flierprops={
+            "marker": marker,
+            "markerfacecolor": color,
+            "markersize": marker_size,
+        },
     )
 
     if color is not None:
@@ -161,7 +171,7 @@ def test_type1_error_confidence(
         [str(level) for level in confidence_levels],
     )
     plt.xlabel("Confidence level")
-    plt.ylabel("Type I Error Rate")
+    plt.ylabel(r"$\varepsilon_\mathrm{min}$")
 
     if save_dir is not None:
         plt.tight_layout()

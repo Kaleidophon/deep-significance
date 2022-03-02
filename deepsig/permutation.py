@@ -2,6 +2,9 @@
 Implementation of paired sign test.
 """
 
+# STD
+from typing import Optional
+
 # EXT
 from joblib import Parallel, delayed
 import numpy as np
@@ -10,12 +13,13 @@ import numpy as np
 from deepsig.conversion import ArrayLike, score_pair_conversion
 
 
-# TODO: Add seeding
-
-
 @score_pair_conversion
 def permutation_test(
-    scores_a: ArrayLike, scores_b: ArrayLike, num_samples: int = 1000, num_jobs: int = 1
+    scores_a: ArrayLike,
+    scores_b: ArrayLike,
+    num_samples: int = 1000,
+    num_jobs: int = 1,
+    seed: Optional[int] = None,
 ) -> float:
     """
     Implementation of a permutation-randomization test. Scores of A and B will be randomly swapped and the difference
@@ -34,6 +38,8 @@ def permutation_test(
         Number of permutations used for estimation.
     num_jobs: int
         Number of threads that bootstrap iterations are divided among.
+    seed: Optional[int]
+        Set seed for reproducibility purposes. Default is None (meaning no seed is used).
 
     Returns
     -------
@@ -51,15 +57,26 @@ def permutation_test(
     N = len(scores_a)
     delta = np.mean(scores_a - scores_b)
 
-    def _bootstrap_iter(delta: float):
+    # Set seeds for different jobs if applicable
+    # "Sub-seeds" for jobs are just seed argument + job index
+    seeds = (
+        [None] * num_samples
+        if seed is None
+        else [seed + offset for offset in range(1, num_samples + 1)]
+    )
+
+    def _bootstrap_iter(delta: float, seed: Optional[int] = None):
         """
         One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
         """
         # When running multiple jobs, modules have to be re-imported for some reason to avoid an error
         # Use dir() to check whether module is available in local scope:
         # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
-        if "numpy" not in dir():
+        if "np" not in dir():
             import numpy as np
+
+        if seed is not None:
+            np.random.seed(seed)
 
         swapped_a, swapped_b = zip(
             *[
@@ -75,7 +92,10 @@ def permutation_test(
 
     # Initialize worker pool and start iterations
     parallel = Parallel(n_jobs=num_jobs)
-    samples = parallel(delayed(_bootstrap_iter)(delta) for _ in range(num_samples))
+    samples = parallel(
+        delayed(_bootstrap_iter)(delta, seed)
+        for _, seed in zip(range(num_samples), seeds)
+    )
 
     p_value = (sum(samples) + 1) / (num_samples + 1)
 

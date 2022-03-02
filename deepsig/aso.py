@@ -145,7 +145,7 @@ def aso(
         # When running multiple jobs, these modules have to be re-imported for some reason to avoid an error
         # Use dir() to check whether module is available in local scope:
         # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
-        if "numpy" not in dir() or "deepsig" not in dir():
+        if "np" not in dir() or "deepsig" not in dir():
             import numpy as np
             from deepsig.aso import compute_violation_ratio
 
