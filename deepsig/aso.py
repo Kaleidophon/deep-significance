@@ -328,7 +328,7 @@ def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -
 
     if squared_wasserstein_dist == 0:
         warn("Division by zero encountered in violation ratio.")
-        violation_ratio = 0
+        violation_ratio = 0.5
 
     else:
         violation_ratio = int_violation_set / squared_wasserstein_dist
@@ -353,7 +353,7 @@ def get_quantile_function(scores: np.array) -> Callable:
     # When running multiple jobs via joblib, numpy has to be re-imported for some reason to avoid an error
     # Use dir() to check whether module is available in local scope:
     # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
-    if "numpy" not in dir():
+    if "np" not in dir():
         import numpy as np
 
     def _quantile_function(p: float) -> float:
