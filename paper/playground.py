@@ -9,6 +9,7 @@ import numpy as np
 from scipy.stats import norm as normal
 from tqdm import tqdm
 from joblib import Parallel, delayed
+from joblib.externals.loky import set_loky_pickler
 from deepsig.conversion import score_pair_conversion
 from deepsig.aso import ArrayLike, compute_violation_ratio, get_quantile_function
 
@@ -16,6 +17,9 @@ from deepsig.aso import ArrayLike, compute_violation_ratio, get_quantile_functio
 SAMPLE_SIZES = [5, 10, 15, 20, 25]
 SAVE_DIR = "./img"
 NUM_SIMULATIONS = 200
+
+# MISC
+set_loky_pickler("dill")  # Avoid weird joblib error with multi_aso
 
 
 @score_pair_conversion
