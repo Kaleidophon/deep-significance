@@ -169,14 +169,11 @@ def aso(
     const2 = np.sqrt(
         num_samples ** 2 / (2 * num_samples)
     )  # This one is based on the number of re-sampled scores
-    sigma_hat = np.std(const2 * (samples - violation_ratio))
+    sigma_hat = np.var(const2 * (samples - violation_ratio))
 
     # Compute eps_min and make sure it stays in [0, 1]
-    min_epsilon = min(
-        max(
-            violation_ratio - (1 / const1) * sigma_hat * normal.ppf(confidence_level), 0
-        ),
-        1,
+    min_epsilon = np.clip(
+        violation_ratio - (1 / const1) * sigma_hat * normal.ppf(confidence_level), 0, 1
     )
 
     return min_epsilon
