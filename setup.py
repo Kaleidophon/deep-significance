@@ -8,7 +8,7 @@ with open("requirements.txt") as f:
 
 setup(
     name="deepsig",
-    version="1.2.1",
+    version="1.2.2",
     author="Dennis Ulmer",
     description="Easy Significance Testing for Deep Neural Networks.",
     long_description=long_description,
@@ -21,7 +21,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     license="GPL",
-    python_requires=">=3.5.3",
+    python_requires=">=3.7.0",
     keywords=[
         "machine learning",
         "deep learning",
