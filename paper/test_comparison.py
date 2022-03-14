@@ -17,16 +17,23 @@ from tqdm import tqdm
 from deepsig import aso, bootstrap_test, permutation_test
 
 # CONST
+NUM_JOBS = 16
 CONSIDERED_TESTS = {
-    "ASO": lambda a, b: aso(a, b, show_progress=False, num_jobs=4),
+    "ASO (pi)": lambda a, b: aso(
+        a, b, show_progress=False, num_jobs=NUM_JOBS, estimator="pi"
+    ),
+    "ASO (gamma)": lambda a, b: aso(
+        a, b, show_progress=False, num_jobs=NUM_JOBS, estimator="gamma"
+    ),
     "Student's t": lambda a, b: ttest_ind(a, b, equal_var=False, alternative="greater")[
         1
     ],
-    "Bootstrap": lambda a, b: bootstrap_test(a, b, num_jobs=4),
-    "Permutation": lambda a, b: permutation_test(a, b, num_jobs=4),
+    "Bootstrap": lambda a, b: bootstrap_test(a, b, num_jobs=NUM_JOBS),
+    "Permutation": lambda a, b: permutation_test(a, b, num_jobs=NUM_JOBS),
 }
 CONSIDERED_TEST_COLORS_MARKERS = {
-    "ASO": ("darkred", "*"),
+    "ASO (pi)": ("darkred", "*"),
+    "ASO (gamma)": ("darkviolet", "p"),
     "Student's t": ("darkblue", "o"),
     "Bootstrap": ("forestgreen", "^"),
     "Permutation": ("darkorange", "P"),
@@ -34,13 +41,19 @@ CONSIDERED_TEST_COLORS_MARKERS = {
 SAMPLE_SIZES = [5, 10, 15, 20, 25]
 MEAN_DIFFS = [0.25, 0.5, 0.75, 1]
 SAVE_DIR = "./img"
-NUM_SIMULATIONS = 100
+NUM_SIMULATIONS = {
+    "ASO (pi)": 250,
+    "ASO (gamma)": 250,
+    "Student's t": 1000,
+    "Bootstrap": 1000,
+    "Permutation": 1000,
+}
 
 
 def test_type1_error(
     tests: Dict[str, Callable],
     sample_sizes: List[int],
-    num_simulations: int = 200,
+    num_simulations: Dict[str, int],
     dist_func: Callable = np.random.normal,
     dist_params: Dict[str, Any] = {"loc": 0, "scale": 1.5},
     threshold: float = 0.05,
@@ -56,8 +69,8 @@ def test_type1_error(
         Considered tests.
     sample_sizes: List[int]
         Samples sizes that are being tested.
-    num_simulations: int
-        Number of simulations conducted.
+    num_simulations: Dict[str, int]
+        Number of simulations conducted per method as dict.
     dist_func: Callable
         Distribution function that is used for sampling.
     dist_params: Dict[str, Any]
@@ -73,20 +86,23 @@ def test_type1_error(
         test_name: {sample_size: [] for sample_size in sample_sizes}
         for test_name in tests
     }
+    max_simulations = max(num_simulations.values())
 
-    with tqdm(total=len(sample_sizes) * num_simulations * len(tests)) as progress_bar:
+    with tqdm(total=len(sample_sizes) * sum(num_simulations.values())) as progress_bar:
         for sample_size in sample_sizes:
-            for _ in range(num_simulations):
+            for simulation_idx in range(max_simulations):
 
                 # Sample scores for this round
                 scores_a = dist_func(**dist_params, size=sample_size)
                 scores_b = dist_func(**dist_params, size=sample_size)
 
                 for test_name, test_func in tests.items():
-                    simulation_results[test_name][sample_size].append(
-                        test_func(scores_a, scores_b)
-                    )
-                    progress_bar.update(1)
+
+                    if simulation_idx < num_simulations[test_name]:
+                        simulation_results[test_name][sample_size].append(
+                            test_func(scores_a, scores_b)
+                        )
+                        progress_bar.update(1)
 
     with open(f"{save_dir}/type1_rates.pkl", "wb") as out_file:
         pickle.dump(simulation_results, out_file)
@@ -105,7 +121,11 @@ def test_type1_error(
             marker_size = 16
 
         y = [
+            # Consider 1 - threshold for ASO due to symmetry property
             (np.array(data[sample_size]) <= threshold).astype(float).mean()
+            + (np.array(data[sample_size]) >= 1 - threshold).astype(float).mean()
+            if "ASO" in test_name
+            else (np.array(data[sample_size]) <= threshold).astype(float).mean()
             for sample_size in sample_sizes
         ]
         plt.plot(
@@ -196,7 +216,7 @@ def test_type1_error(
 def test_type2_error_sample_size(
     tests: Dict[str, Callable],
     sample_sizes: List[int],
-    num_simulations: int = 200,
+    num_simulations: Dict[str, int],
     dist_func: Callable = np.random.normal,
     dist1_params: Dict[str, Any] = {"loc": 0.5, "scale": 1.5},
     dist2_params: Dict[str, Any] = {"loc": 0, "scale": 1.5},
@@ -213,8 +233,8 @@ def test_type2_error_sample_size(
         Considered tests.
     sample_sizes: List[int]
         Samples sizes that are being tested.
-    num_simulations: int
-        Number of simulations conducted.
+    num_simulations: Dict[str, int]
+        Number of simulations conducted per method as dict.
     dist_func: Callable
         Distribution function that is used for sampling.
     dist1_params: Dict[str, Any]
@@ -232,20 +252,23 @@ def test_type2_error_sample_size(
         test_name: {sample_size: [] for sample_size in sample_sizes}
         for test_name in tests
     }
+    max_simulations = max(num_simulations.values())
 
-    with tqdm(total=len(sample_sizes) * num_simulations * len(tests)) as progress_bar:
+    with tqdm(total=len(sample_sizes) * sum(num_simulations.values())) as progress_bar:
         for sample_size in sample_sizes:
-            for _ in range(num_simulations):
+            for simulation_idx in range(max_simulations):
 
                 # Sample scores for this round
                 scores_a = dist_func(**dist1_params, size=sample_size)
                 scores_b = dist_func(**dist2_params, size=sample_size)
 
                 for test_name, test_func in tests.items():
-                    simulation_results[test_name][sample_size].append(
-                        test_func(scores_a, scores_b)
-                    )
-                    progress_bar.update(1)
+
+                    if simulation_idx < num_simulations[test_name]:
+                        simulation_results[test_name][sample_size].append(
+                            test_func(scores_a, scores_b)
+                        )
+                        progress_bar.update(1)
 
     with open(f"{save_dir}/type2_rates.pkl", "wb") as out_file:
         pickle.dump(simulation_results, out_file)
@@ -297,7 +320,7 @@ def test_type2_error_sample_size(
 def test_type2_error_mean_difference(
     tests: Dict[str, Callable],
     mean_differences: List[float],
-    num_simulations: int = 200,
+    num_simulations: Dict[str, int],
     target_param: str = "loc",
     dist_func: Callable = np.random.normal,
     dist_params: Dict[str, Any] = {"loc": 0, "scale": 1.5},
@@ -316,8 +339,8 @@ def test_type2_error_mean_difference(
         Considered tests.
     mean_differences: List[float]
         Mean differences between distributions that simulations are run for.
-    num_simulations: int
-        Number of simulations conducted.
+    num_simulations: Dict[str, int]
+        Number of simulations conducted per method as dict.
     target_param: str
         Name of parameter affected by mean_differences.
     dist_func: Callable
@@ -337,12 +360,13 @@ def test_type2_error_mean_difference(
         test_name: {mean_diff: [] for mean_diff in mean_differences}
         for test_name in tests
     }
+    max_simulations = max(num_simulations.values())
 
     with tqdm(
-        total=len(mean_differences) * num_simulations * len(tests)
+        total=len(mean_differences) * sum(num_simulations.values())
     ) as progress_bar:
         for mean_diff in mean_differences:
-            for _ in range(num_simulations):
+            for simulation_idx in range(max_simulations):
 
                 # Sample scores for this round
                 modified_dist_params = {
@@ -353,10 +377,12 @@ def test_type2_error_mean_difference(
                 scores_b = dist_func(**dist_params, size=sample_size)
 
                 for test_name, test_func in tests.items():
-                    simulation_results[test_name][mean_diff].append(
-                        test_func(scores_a, scores_b)
-                    )
-                    progress_bar.update(1)
+
+                    if simulation_idx < num_simulations[test_name]:
+                        simulation_results[test_name][sample_size].append(
+                            test_func(scores_a, scores_b)
+                        )
+                        progress_bar.update(1)
 
     with open(f"{save_dir}/type2_mean_rates.pkl", "wb") as out_file:
         pickle.dump(simulation_results, out_file)

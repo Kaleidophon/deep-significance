@@ -94,6 +94,19 @@ def aso_debug(
     quantile_func_a = get_quantile_function(scores_a)
     quantile_func_b = get_quantile_function(scores_b)
 
+    # Experimental: New estimator for violation ratio
+    psi_func = lambda gamma: quantile_func_a(gamma) - quantile_func_b(gamma)
+    mean_term = np.mean(scores_a) - np.mean(scores_b)
+
+    gammas = np.cumsum(psi_func(np.arange(0, 1, dt))) - mean_term
+
+    max_gammas_indices = np.arange(int(1 / dt))[gammas == np.max(gammas)]
+    min_gamma = min(gammas[max_gammas_indices])
+
+    violation_ratio_gamma = (
+        min_gamma if psi_func(min_gamma) - mean_term >= 0 else 1 - min_gamma
+    )
+
     def _progress_iter(high: int, progress_bar: tqdm):
         """
         This function is used when a shared progress bar is passed from multi_aso() - every time the iterator yields an
@@ -148,9 +161,12 @@ def aso_debug(
 
         sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, num_samples))
         sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, num_samples))
+
+        # # TODOL Use estimator as an argument here
         sample = compute_violation_ratio(
             sampled_scores_a,
             sampled_scores_b,
+            "pi",
             dt,
         )
 
@@ -163,10 +179,9 @@ def aso_debug(
     const2 = np.sqrt(
         num_samples ** 2 / (2 * num_samples)
     )  # This one is based on the number of re-sampled scores
-    sigma_hat = np.var(const2 * (samples - violation_ratio))
-    sigma_hat2 = np.std(const2 * (samples - violation_ratio))  # TODO: Debug
-    sigma_hat3 = np.var(1 / const1 * (samples - violation_ratio))  # TODO: Debug
-    sigma_hat4 = np.std(1 / const1 * (samples - violation_ratio))  # TODO: Debug
+    sigma_hat = np.std(const2 * (samples - violation_ratio))
+    sigma_hat2 = np.var(1 / const1 * (samples - violation_ratio))  # TODO: Debug
+    sigma_hat3 = np.var(1 / const1 * (samples - violation_ratio_gamma))  # TODO: Debug
 
     # Compute eps_min and make sure it stays in [0, 1]
     min_epsilon = np.clip(
@@ -176,13 +191,13 @@ def aso_debug(
         violation_ratio - (1 / const1) * sigma_hat2 * normal.ppf(confidence_level), 0, 1
     )  # TODO: Debug
     min_epsilon3 = np.clip(
-        violation_ratio - (1 / const1) * sigma_hat3 * normal.ppf(confidence_level), 0, 1
-    )  # TODO: Debug
-    min_epsilon4 = np.clip(
-        violation_ratio - (1 / const1) * sigma_hat4 * normal.ppf(confidence_level), 0, 1
+        violation_ratio_gamma
+        - (1 / const1) * sigma_hat3 * normal.ppf(confidence_level),
+        0,
+        1,
     )  # TODO: Debug
 
-    return min_epsilon, min_epsilon2, min_epsilon3, min_epsilon4
+    return min_epsilon, min_epsilon2, min_epsilon3
 
 
 def test_type1_error(
@@ -218,7 +233,7 @@ def test_type1_error(
     """
     simulation_results = {
         test_name: {sample_size: [] for sample_size in sample_sizes}
-        for test_name in range(4)
+        for test_name in range(3)
     }
 
     with tqdm(total=len(sample_sizes) * num_simulations) as progress_bar:
@@ -252,8 +267,7 @@ def test_type1_error(
             marker_size = 16
 
         y = [
-            threshold
-            >= np.array(data[sample_size]).astype(float).mean()
+            (threshold >= np.array(data[sample_size]).astype(float).mean())
             + (1 - threshold <= np.array(data[sample_size]).astype(float).mean())
             for sample_size in sample_sizes
         ]
@@ -277,7 +291,7 @@ def test_type1_error(
 
     if save_dir is not None:
         plt.tight_layout()
-        plt.savefig(f"{save_dir}/type1_pg_rates.png")
+        plt.savefig(f"{save_dir}/type1_pg_rates2.png")
     else:
         plt.show()
 
@@ -297,7 +311,7 @@ def test_type1_error(
 
     # Create offsets for box plots
     spacing = 0.5
-    offsets = np.arange(0, spacing * 4, spacing) - spacing * (4 - 1) / 2
+    offsets = np.arange(0, spacing * 3, spacing) - spacing * (3 - 1) / 2
 
     for test_name, test_data, offset in zip(range(4), data, offsets):
         color, marker = (
@@ -308,7 +322,7 @@ def test_type1_error(
 
         box_plot = plt.boxplot(
             test_data,
-            positions=np.arange(0, len(sample_sizes)) * 4 + offset,
+            positions=np.arange(0, len(sample_sizes)) * 3 + offset,
             sym=marker,
             widths=0.45,
             flierprops={"marker": marker},
@@ -324,16 +338,16 @@ def test_type1_error(
 
     ax = plt.gca()
     ax.set_ylim(0, 1)
-    ax.set_xlim(-2, len(sample_sizes) * 4)
+    ax.set_xlim(-2, len(sample_sizes) * 3)
     ax.yaxis.grid()
-    plt.xticks(np.arange(0, len(sample_sizes) * 4, 4), sample_sizes)
+    plt.xticks(np.arange(0, len(sample_sizes) * 3, 3), sample_sizes)
     plt.xlabel("Sample Size")
     plt.ylabel(r"$p$-value / $\varepsilon_\mathrm{min}$")
     plt.legend()
 
     if save_dir is not None:
         plt.tight_layout()
-        plt.savefig(f"{save_dir}/type1_pg_dists.png")
+        plt.savefig(f"{save_dir}/type1_pg_dists2.png")
     else:
         plt.show()
 

@@ -35,6 +35,7 @@ def aso(
     confidence_level: float = 0.05,
     num_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
+    estimator: str = "pi",
     dt: float = 0.005,
     num_jobs: int = 1,
     show_progress: bool = True,
@@ -53,6 +54,9 @@ def aso(
     violation ratio denotes the degree to which total stochastic order (algorithm A is *always* better than B) is being
     violated. The more scores and the higher num_samples / num_bootstrap_iterations, the more reliable is the result.
 
+    [1] https://projecteuclid.org/journals/statistical-science/volume-32/issue-3/Models-for-the-Assessment-of-Treatment-
+    Improvement--The-Ideal/10.1214/17-STS616.full
+
     Parameters
     ----------
     scores_a: List[float]
@@ -65,6 +69,8 @@ def aso(
         Number of samples from the score distributions during every bootstrap iteration when estimating sigma.
     num_bootstrap_iterations: int
         Number of bootstrap iterations when estimating sigma.
+    estimator: str
+        Determine whether the pi or the gamma estimator by Álvarez-Esteban et al. (2017) [1] should be used.
     dt: float
         Differential for t during integral calculation.
     num_jobs: int
@@ -93,8 +99,12 @@ def aso(
     assert num_jobs > 0, "Number of jobs has to be at least 1, {} found.".format(
         num_jobs
     )
+    assert estimator in (
+        "pi",
+        "gamma",
+    ), f"Estimator has to be either 'pi' or 'gamma', '{estimator}' found."
 
-    violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
+    violation_ratio = compute_violation_ratio(scores_a, scores_b, estimator, dt)
     # Based on the actual number of samples
     const1 = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
     quantile_func_a = get_quantile_function(scores_a)
@@ -157,6 +167,7 @@ def aso(
         sample = compute_violation_ratio(
             sampled_scores_a,
             sampled_scores_b,
+            estimator,
             dt,
         )
 
@@ -295,9 +306,15 @@ def multi_aso(
     return eps_min
 
 
-def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -> float:
+def compute_violation_ratio(
+    scores_a: np.array, scores_b: np.array, estimator: str, dt: float
+) -> float:
     """
     Compute the violation ration e_W2 (equation 4 + 5).
+
+    [1] https://projecteuclid.org/journals/statistical-science/volume-32/issue-3/Models-for-the-Assessment-of-Treatment-
+    Improvement--The-Ideal/10.1214/17-STS616.full
+
 
     Parameters
     ----------
@@ -305,6 +322,8 @@ def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -
         Scores of algorithm A.
     scores_b: List[float]
         Scores of algorithm B.
+    estimator: str
+        Determine whether the pi or the gamma estimator by Álvarez-Esteban et al. (2017) [1] should be used.
     dt: float
         Differential for t during integral calculation.
 
@@ -313,22 +332,37 @@ def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -
     float
         Return violation ratio.
     """
-    squared_wasserstein_dist = 0
-    int_violation_set = 0  # Integral over violation set A_X
     quantile_func_a = get_quantile_function(scores_a)
     quantile_func_b = get_quantile_function(scores_b)
+    violation_ratio = 0.5
 
-    for p in np.arange(0, 1, dt):
-        diff = quantile_func_b(p) - quantile_func_a(p)
-        squared_wasserstein_dist += (diff ** 2) * dt
-        int_violation_set += (max(diff, 0) ** 2) * dt
+    if estimator == "pi":
+        squared_wasserstein_dist = 0
+        int_violation_set = 0  # Integral over violation set A_X
 
-    if squared_wasserstein_dist == 0:
-        warn("Division by zero encountered in violation ratio.")
-        violation_ratio = 0.5
+        for p in np.arange(0, 1, dt):
+            diff = quantile_func_b(p) - quantile_func_a(p)
+            squared_wasserstein_dist += (diff ** 2) * dt
+            int_violation_set += (max(diff, 0) ** 2) * dt
 
-    else:
-        violation_ratio = int_violation_set / squared_wasserstein_dist
+        if squared_wasserstein_dist == 0:
+            warn("Division by zero encountered in violation ratio.")
+            violation_ratio = 0.5
+
+        else:
+            violation_ratio = int_violation_set / squared_wasserstein_dist
+
+    elif estimator == "gamma":
+        psi_func = lambda gammas: quantile_func_a(gammas) - quantile_func_b(gammas)
+        mean_term = np.mean(scores_a) - np.mean(scores_b)
+
+        gammas = np.cumsum(psi_func(np.arange(0, 1, dt))) - mean_term
+        max_gammas_indices = np.arange(int(1 / dt))[gammas == np.max(gammas)]
+        min_gamma = min(gammas[max_gammas_indices])
+
+        violation_ratio = (
+            min_gamma if psi_func(min_gamma) - mean_term >= 0 else 1 - min_gamma
+        )
 
     return violation_ratio
 
