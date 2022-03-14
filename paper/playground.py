@@ -14,9 +14,9 @@ from deepsig.conversion import score_pair_conversion
 from deepsig.aso import ArrayLike, compute_violation_ratio, get_quantile_function
 
 # CONST
-SAMPLE_SIZES = [5, 10, 15, 20, 25]
+SAMPLE_SIZES = [5, 10, 15, 20]
 SAVE_DIR = "./img"
-NUM_SIMULATIONS = 200
+NUM_SIMULATIONS = 100
 
 # MISC
 set_loky_pickler("dill")  # Avoid weird joblib error with multi_aso
@@ -235,8 +235,8 @@ def test_type1_error(
                     simulation_results[i][sample_size].append(res)
                     progress_bar.update(1)
 
-    with open(f"{save_dir}/type1_pg_rates.pkl", "wb") as out_file:
-        pickle.dump(simulation_results, out_file)
+    # with open(f"{save_dir}/type1_pg_rates.pkl", "wb") as out_file:
+    #    pickle.dump(simulation_results, out_file)
 
     # Plot Type I error rates as line plot
     plt.figure(figsize=(8, 6))
