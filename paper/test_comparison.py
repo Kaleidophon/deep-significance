@@ -122,6 +122,10 @@ def test_type1_error(
             with open(f"{save_dir}/type1_rates.pkl", "rb") as in_file:
                 simulation_results = pickle.load(in_file)
 
+            # Overwrite with sample_sizes actually found in loaded pickle
+            first_key = list(simulation_results.keys())[0]
+            sample_sizes = list(simulation_results[first_key].keys())
+
         except FileNotFoundError:
             warnings.warn(
                 f"File '{save_dir}/type1_rates.pkl' not found, no plots generated."
@@ -240,6 +244,10 @@ def test_type2_error_sample_size(
             with open(f"{save_dir}/type2_rates.pkl", "rb") as in_file:
                 simulation_results = pickle.load(in_file)
 
+            # Overwrite with sample_sizes actually found in loaded pickle
+            first_key = list(simulation_results.keys())[0]
+            sample_sizes = list(simulation_results[first_key].keys())
+
         except FileNotFoundError:
             warnings.warn(
                 f"File '{save_dir}/type2_rates.pkl' not found, no plots generated."
@@ -347,6 +355,10 @@ def test_type2_error_mean_difference(
         try:
             with open(f"{save_dir}/type2_mean_rates.pkl", "rb") as in_file:
                 simulation_results = pickle.load(in_file)
+
+            # Overwrite with sample_sizes actually found in loaded pickle
+            first_key = list(simulation_results.keys())[0]
+            mean_differences = list(simulation_results[first_key].keys())
 
         except FileNotFoundError:
             warnings.warn(
