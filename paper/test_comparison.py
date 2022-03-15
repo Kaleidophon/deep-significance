@@ -19,19 +19,20 @@ from tqdm import tqdm
 from deepsig import aso, bootstrap_test, permutation_test
 
 # CONST
-NUM_JOBS = 16
+NUM_JOBS_ASO = 16
+NUM_JOBS_REST = 4
 CONSIDERED_TESTS = {
     "ASO (pi)": lambda a, b: aso(
-        a, b, show_progress=False, num_jobs=NUM_JOBS, estimator="pi"
+        a, b, show_progress=False, num_jobs=NUM_JOBS_ASO, estimator="pi"
     ),
     "ASO (gamma)": lambda a, b: aso(
-        a, b, show_progress=False, num_jobs=NUM_JOBS, estimator="gamma"
+        a, b, show_progress=False, num_jobs=NUM_JOBS_ASO, estimator="gamma"
     ),
     "Student's t": lambda a, b: ttest_ind(a, b, equal_var=False, alternative="greater")[
         1
     ],
-    "Bootstrap": lambda a, b: bootstrap_test(a, b, num_jobs=NUM_JOBS),
-    "Permutation": lambda a, b: permutation_test(a, b, num_jobs=NUM_JOBS),
+    "Bootstrap": lambda a, b: bootstrap_test(a, b, num_jobs=NUM_JOBS_REST),
+    "Permutation": lambda a, b: permutation_test(a, b, num_jobs=NUM_JOBS_REST),
 }
 CONSIDERED_TEST_COLORS_MARKERS = {
     "ASO (pi)": ("darkred", "*"),
