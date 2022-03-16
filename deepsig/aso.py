@@ -105,8 +105,6 @@ def aso(
     ), f"Estimator has to be either 'pi' or 'gamma', '{estimator}' found."
 
     violation_ratio = compute_violation_ratio(scores_a, scores_b, estimator, dt)
-    # Based on the actual number of samples
-    const1 = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
     quantile_func_a = get_quantile_function(scores_a)
     quantile_func_b = get_quantile_function(scores_b)
 
@@ -177,14 +175,12 @@ def aso(
     parallel = Parallel(n_jobs=num_jobs)
     samples = parallel(delayed(_bootstrap_iter)(seed) for seed, _ in zip(seeds, iters))
 
-    const2 = np.sqrt(
-        num_samples ** 2 / (2 * num_samples)
-    )  # This one is based on the number of re-sampled scores
-    sigma_hat = np.var(const2 * (samples - violation_ratio))
+    const = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
+    sigma_hat = np.std(const * (samples - violation_ratio))
 
     # Compute eps_min and make sure it stays in [0, 1]
     min_epsilon = np.clip(
-        violation_ratio - (1 / const1) * sigma_hat * normal.ppf(confidence_level), 0, 1
+        violation_ratio - (1 / const) * sigma_hat * normal.ppf(confidence_level), 0, 1
     )
 
     return min_epsilon
@@ -197,6 +193,7 @@ def multi_aso(
     use_symmetry: bool = True,
     num_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
+    estimator: str = "pi",
     dt: float = 0.005,
     num_jobs: int = 1,
     return_df: bool = False,
@@ -207,6 +204,9 @@ def multi_aso(
     Provides easy function to compare the scores of multiple models at ones. Scores can be supplied in various forms
     (dictionary, nested list, 2D arrays or tensors). Returns a matrix (or pandas.DataFrame) with results. Applies
     Bonferroni correction to confidence level by default, but can be disabled by use_bonferroni=False.
+
+    [1] https://projecteuclid.org/journals/statistical-science/volume-32/issue-3/Models-for-the-Assessment-of-Treatment-
+    Improvement--The-Ideal/10.1214/17-STS616.full
 
     Parameters
     ----------
@@ -226,6 +226,8 @@ def multi_aso(
         Number of samples from the score distributions during every bootstrap iteration when estimating sigma.
     num_bootstrap_iterations: int
         Number of bootstrap iterations when estimating sigma.
+    estimator: str
+        Determine whether the pi or the gamma estimator by Álvarez-Esteban et al. (2017) [1] should be used.
     dt: float
         Differential for t during integral calculation.
     num_jobs: int
@@ -273,6 +275,7 @@ def multi_aso(
                 confidence_level=confidence_level,
                 num_samples=num_samples,
                 num_bootstrap_iterations=num_bootstrap_iterations,
+                estimator=estimator,
                 dt=dt,
                 num_jobs=num_jobs,
                 show_progress=False,
@@ -292,6 +295,7 @@ def multi_aso(
                     confidence_level=confidence_level,
                     num_samples=num_samples,
                     num_bootstrap_iterations=num_bootstrap_iterations,
+                    estimator=estimator,
                     dt=dt,
                     num_jobs=num_jobs,
                     show_progress=False,

@@ -7,7 +7,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 [![DOI](https://zenodo.org/badge/341677886.svg)](https://zenodo.org/badge/latestdoi/341677886)
 
-![](img/logo.png)
+![](../img/logo.png)
 
 **Contents**
 
@@ -127,7 +127,7 @@ Order* (ASO), a test to compare two score distributions.
 It builds on the concept of *stochastic order*: We can compare two distributions and declare one as *stochastically dominant*
 by comparing their cumulative distribution functions: 
 
-![](img/so.png)
+![](../img/so.png)
 
 Here, the CDF of A is given in red and in green for B. If the CDF of A is lower than B for every <img src="332cc365a4987aacce0ead01b8bdcc0b.svg?invert_in_darkmode" align=middle width=9.39498779999999pt height=14.15524440000002pt/>, we know the 
 algorithm A to score higher. However, in practice these cases are rarely so clear-cut (imagine e.g. two normal 
@@ -135,7 +135,7 @@ distributions with the same mean but different variances).
 For this reason, Dror et al. (2019) consider the notion of *almost stochastic dominance* by quantifying the extent to 
 which stochastic order is being violated (red area):
 
-![](img/aso.png)
+![](../img/aso.png)
 
 ASO returns a value <img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>, which expresses the amount of violation of stochastic order. If 
 <img src="dabed7f05cf133d9eb92631d564a96a8.svg?invert_in_darkmode" align=middle width=72.19750559999999pt height=21.18721440000001pt/>, A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as 

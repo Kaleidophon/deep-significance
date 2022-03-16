@@ -41,15 +41,15 @@ CONSIDERED_TEST_COLORS_MARKERS = {
     "Bootstrap": ("forestgreen", "^"),
     "Permutation": ("darkorange", "P"),
 }
-SAMPLE_SIZES = [5, 10, 15, 20, 25]
+SAMPLE_SIZES = [5, 10, 15, 20]
 MEAN_DIFFS = [0.25, 0.5, 0.75, 1]
 SAVE_DIR = "./img"
 NUM_SIMULATIONS = {
     "ASO (pi)": 250,
     "ASO (gamma)": 250,
-    "Student's t": 1000,
-    "Bootstrap": 1000,
-    "Permutation": 1000,
+    "Student's t": 500,
+    "Bootstrap": 500,
+    "Permutation": 500,
 }
 
 
@@ -525,7 +525,7 @@ def plot_boxes(
             positions=np.arange(0, len(groups)) * len(tests) + offset,
             sym=marker,
             widths=0.45,
-            flierprops={"marker": marker},
+            flierprops={"marker": ".", "markerfacecolor": "color"},
         )
 
         if color is not None:
