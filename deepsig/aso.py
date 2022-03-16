@@ -160,8 +160,12 @@ def aso(
         if seed is not None:
             np.random.seed(seed)
 
-        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, num_samples))
-        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, num_samples))
+        sampled_scores_a = quantile_func_a(
+            np.random.uniform(0, 1, len(scores_a))
+        )  # TODO: Remove function arg?
+        sampled_scores_b = quantile_func_b(
+            np.random.uniform(0, 1, len(scores_b))
+        )  # TODO: Remove function arg?
         sample = compute_violation_ratio(
             sampled_scores_a,
             sampled_scores_b,

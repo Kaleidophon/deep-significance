@@ -525,7 +525,7 @@ def plot_boxes(
             positions=np.arange(0, len(groups)) * len(tests) + offset,
             sym=marker,
             widths=0.45,
-            flierprops={"marker": ".", "markerfacecolor": "color"},
+            flierprops={"marker": ".", "markerfacecolor": color},
         )
 
         if color is not None:
