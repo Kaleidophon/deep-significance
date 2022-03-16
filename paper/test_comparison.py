@@ -62,6 +62,7 @@ def test_type1_error(
     threshold: float = 0.05,
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
     save_dir: Optional[str] = None,
+    plot: bool = True,
     plot_from_pickle: bool = False,
 ):
     """
@@ -85,6 +86,8 @@ def test_type1_error(
         Colors and markers corresponding to each test for plotting.
     save_dir: Optional[str]
         Directory that plots should be saved to.
+    plot: bool
+        Indicate whether plots should be created.
     plot_from_pickle: bool
         Indicate whether simulating experiments should be skipped in favor of just loading results from a pickle.
         Default is false.
@@ -134,43 +137,47 @@ def test_type1_error(
             return
 
     # Plotting
-    y = {
-        test_name: [
-            # Consider 1 - threshold for ASO due to symmetry property
-            (np.array(simulation_results[test_name][sample_size]) <= threshold)
-            .astype(float)
-            .mean()
-            + (np.array(simulation_results[test_name][sample_size]) >= 1 - threshold)
-            .astype(float)
-            .mean()
-            if "ASO" in test_name
-            else (np.array(simulation_results[test_name][sample_size]) <= threshold)
-            .astype(float)
-            .mean()
-            for sample_size in sample_sizes
-        ]
-        for test_name in tests
-    }
-    plot_lines(
-        y=y,
-        groups=sample_sizes,
-        x_label="Sample Size",
-        y_label="Type I Error Rate",
-        save_dir=save_dir,
-        file_name="type1_rates",
-        colors_and_markers=colors_and_markers,
-    )
+    if plot or plot_from_pickle:
+        y = {
+            test_name: [
+                # Consider 1 - threshold for ASO due to symmetry property
+                (np.array(simulation_results[test_name][sample_size]) <= threshold)
+                .astype(float)
+                .mean()
+                + (
+                    np.array(simulation_results[test_name][sample_size])
+                    >= 1 - threshold
+                )
+                .astype(float)
+                .mean()
+                if "ASO" in test_name
+                else (np.array(simulation_results[test_name][sample_size]) <= threshold)
+                .astype(float)
+                .mean()
+                for sample_size in sample_sizes
+            ]
+            for test_name in tests
+        }
+        plot_lines(
+            y=y,
+            groups=sample_sizes,
+            x_label="Sample Size",
+            y_label="Type I Error Rate",
+            save_dir=save_dir,
+            file_name="type1_rates",
+            colors_and_markers=colors_and_markers,
+        )
 
-    plot_boxes(
-        results=simulation_results,
-        tests=tests,
-        groups=sample_sizes,
-        x_label="Sample Size",
-        y_label=r"$p$-value / $\varepsilon_\mathrm{min}$",
-        save_dir=save_dir,
-        file_name="type1_dists",
-        colors_and_markers=colors_and_markers,
-    )
+        plot_boxes(
+            results=simulation_results,
+            tests=tests,
+            groups=sample_sizes,
+            x_label="Sample Size",
+            y_label=r"$p$-value / $\varepsilon_\mathrm{min}$",
+            save_dir=save_dir,
+            file_name="type1_dists",
+            colors_and_markers=colors_and_markers,
+        )
 
 
 def test_type2_error_sample_size(
@@ -183,6 +190,7 @@ def test_type2_error_sample_size(
     threshold: float = 0.05,
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
     save_dir: Optional[str] = None,
+    plot: bool = True,
     plot_from_pickle: bool = False,
 ):
     """
@@ -208,6 +216,8 @@ def test_type2_error_sample_size(
         Colors and markers corresponding to each test for plotting.
     save_dir: Optional[str]
         Directory that plots should be saved to.
+    plot: bool
+        Indicate whether plots should be created.
     plot_from_pickle: bool
         Indicate whether simulating experiments should be skipped in favor of just loading results from a pickle.
         Default is false.
@@ -256,25 +266,26 @@ def test_type2_error_sample_size(
             return
 
     # Plot Type I error rates as line plot
-    y = {
-        test_name: [
-            1
-            - (np.array(simulation_results[test_name][sample_size]) <= threshold)
-            .astype(float)
-            .mean()
-            for sample_size in sample_sizes
-        ]
-        for test_name in tests
-    }
-    plot_lines(
-        y=y,
-        groups=sample_sizes,
-        x_label="Sample Size",
-        y_label="Type II Error Rate",
-        save_dir=save_dir,
-        file_name="type2_rates",
-        colors_and_markers=colors_and_markers,
-    )
+    if plot or plot_from_pickle:
+        y = {
+            test_name: [
+                1
+                - (np.array(simulation_results[test_name][sample_size]) <= threshold)
+                .astype(float)
+                .mean()
+                for sample_size in sample_sizes
+            ]
+            for test_name in tests
+        }
+        plot_lines(
+            y=y,
+            groups=sample_sizes,
+            x_label="Sample Size",
+            y_label="Type II Error Rate",
+            save_dir=save_dir,
+            file_name="type2_rates",
+            colors_and_markers=colors_and_markers,
+        )
 
 
 def test_type2_error_mean_difference(
@@ -288,6 +299,7 @@ def test_type2_error_mean_difference(
     threshold: float = 0.05,
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
     save_dir: Optional[str] = None,
+    plot: bool = True,
     plot_from_pickle: bool = False,
 ):
     """
@@ -316,6 +328,8 @@ def test_type2_error_mean_difference(
         Colors and markers corresponding to each test for plotting.
     save_dir: Optional[str]
         Directory that plots should be saved to.
+    plot: bool
+        Indicate whether plots should be created.
     plot_from_pickle: bool
         Indicate whether simulating experiments should be skipped in favor of just loading results from a pickle.
         Default is false.
@@ -368,25 +382,29 @@ def test_type2_error_mean_difference(
             return
 
     # Plot Type II error rates as line plot
-    y = {
-        test_name: [
-            1
-            - (np.array(simulation_results[test_name][mean_difference]) <= threshold)
-            .astype(float)
-            .mean()
-            for mean_difference in mean_differences
-        ]
-        for test_name in tests
-    }
-    plot_lines(
-        y=y,
-        groups=mean_differences,
-        x_label="Mean difference",
-        y_label="Type II Error Rate",
-        save_dir=save_dir,
-        file_name="type2_mean_rates",
-        colors_and_markers=colors_and_markers,
-    )
+    if plot or plot_from_pickle:
+        y = {
+            test_name: [
+                1
+                - (
+                    np.array(simulation_results[test_name][mean_difference])
+                    <= threshold
+                )
+                .astype(float)
+                .mean()
+                for mean_difference in mean_differences
+            ]
+            for test_name in tests
+        }
+        plot_lines(
+            y=y,
+            groups=mean_differences,
+            x_label="Mean difference",
+            y_label="Type II Error Rate",
+            save_dir=save_dir,
+            file_name="type2_mean_rates",
+            colors_and_markers=colors_and_markers,
+        )
 
 
 def plot_lines(
@@ -536,6 +554,7 @@ def plot_boxes(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--plot-from-pickle", action="store_true", default=False)
+    parser.add_argument("--plot", action="store_true", default=False)
     args = parser.parse_args()
 
     for dist_func, target_param, dist1_params, dist2_params, save_dir in zip(
@@ -557,6 +576,7 @@ if __name__ == "__main__":
             colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
             save_dir=save_dir,
             num_simulations=NUM_SIMULATIONS,
+            plot=args.plot,
             plot_from_pickle=args.plot_from_pickle,
         )
 
@@ -570,6 +590,7 @@ if __name__ == "__main__":
                 colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
                 save_dir=save_dir,
                 num_simulations=NUM_SIMULATIONS,
+                plot=args.plot,
                 plot_from_pickle=args.plot_from_pickle,
             )
 
@@ -582,5 +603,6 @@ if __name__ == "__main__":
                 colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
                 save_dir=save_dir,
                 num_simulations=NUM_SIMULATIONS,
+                plot=args.plot,
                 plot_from_pickle=args.plot_from_pickle,
             )
