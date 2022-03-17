@@ -22,12 +22,7 @@ from deepsig import aso, bootstrap_test, permutation_test
 NUM_JOBS_ASO = 16
 NUM_JOBS_REST = 4
 CONSIDERED_TESTS = {
-    "ASO (pi)": lambda a, b: aso(
-        a, b, show_progress=False, num_jobs=NUM_JOBS_ASO, estimator="pi"
-    ),
-    "ASO (gamma)": lambda a, b: aso(
-        a, b, show_progress=False, num_jobs=NUM_JOBS_ASO, estimator="gamma"
-    ),
+    "ASO": lambda a, b: aso(a, b, show_progress=False, num_jobs=NUM_JOBS_ASO),
     "Student's t": lambda a, b: ttest_ind(a, b, equal_var=False, alternative="greater")[
         1
     ],
@@ -35,8 +30,7 @@ CONSIDERED_TESTS = {
     "Permutation": lambda a, b: permutation_test(a, b, num_jobs=NUM_JOBS_REST),
 }
 CONSIDERED_TEST_COLORS_MARKERS = {
-    "ASO (pi)": ("darkred", "*"),
-    "ASO (gamma)": ("darkviolet", "p"),
+    "ASO": ("darkred", "*"),
     "Student's t": ("darkblue", "o"),
     "Bootstrap": ("forestgreen", "^"),
     "Permutation": ("darkorange", "P"),
@@ -45,8 +39,7 @@ SAMPLE_SIZES = [5, 10, 15, 20]
 MEAN_DIFFS = [0.25, 0.5, 0.75, 1]
 SAVE_DIR = "./img"
 NUM_SIMULATIONS = {
-    "ASO (pi)": 250,
-    "ASO (gamma)": 250,
+    "ASO": 250,
     "Student's t": 500,
     "Bootstrap": 500,
     "Permutation": 500,

@@ -14,7 +14,7 @@ from deepsig.conversion import score_pair_conversion
 from deepsig.aso import ArrayLike, compute_violation_ratio, get_quantile_function
 
 # CONST
-SAMPLE_SIZES = [5, 10, 15, 20]
+SAMPLE_SIZES = [5, 10, 15]
 SAVE_DIR = "./img"
 NUM_SIMULATIONS = 100
 
@@ -29,7 +29,7 @@ def aso_debug(
     confidence_level: float = 0.05,
     num_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
-    dt: float = 0.005,
+    dt: float = 0.001,
     num_jobs: int = 4,
     show_progress: bool = False,
     seed: Optional[int] = None,
@@ -88,24 +88,11 @@ def aso_debug(
         num_jobs
     )
 
-    violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
+    violation_ratio = compute_violation_ratio(scores_a, scores_b, "pi", dt)
     # Based on the actual number of samples
     const1 = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
     quantile_func_a = get_quantile_function(scores_a)
     quantile_func_b = get_quantile_function(scores_b)
-
-    # Experimental: New estimator for violation ratio
-    psi_func = lambda gamma: quantile_func_a(gamma) - quantile_func_b(gamma)
-    mean_term = np.mean(scores_a) - np.mean(scores_b)
-
-    gammas = np.cumsum(psi_func(np.arange(0, 1, dt))) - mean_term
-
-    max_gammas_indices = np.arange(int(1 / dt))[gammas == np.max(gammas)]
-    min_gamma = min(gammas[max_gammas_indices])
-
-    violation_ratio_gamma = (
-        min_gamma if psi_func(min_gamma) - mean_term >= 0 else 1 - min_gamma
-    )
 
     def _progress_iter(high: int, progress_bar: tqdm):
         """
@@ -159,8 +146,8 @@ def aso_debug(
         if seed is not None:
             np.random.seed(seed)
 
-        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, num_samples))
-        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, num_samples))
+        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, len(scores_a)))
+        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, len(scores_b)))
 
         # # TODOL Use estimator as an argument here
         sample = compute_violation_ratio(
@@ -180,19 +167,28 @@ def aso_debug(
         num_samples ** 2 / (2 * num_samples)
     )  # This one is based on the number of re-sampled scores
     sigma_hat = np.std(const2 * (samples - violation_ratio))
-    sigma_hat2 = np.var(1 / const1 * (samples - violation_ratio))  # TODO: Debug
-    sigma_hat3 = np.var(1 / const1 * (samples - violation_ratio_gamma))  # TODO: Debug
+    sigma_hat2 = np.var(const1 * (samples - violation_ratio))  # TODO: Debug
+
+    t = np.arange(violation_ratio, 1 + dt, dt)
+    lambda_ = len(scores_a) / (len(scores_a) + len(scores_b))
+    sigmas = np.sqrt(
+        lambda_ * t * (1 - t)
+        + (1 - lambda_) * (t - violation_ratio) * (1 - t + violation_ratio)
+    )
+    sigmas = np.nan_to_num(sigmas)
+    sigma_hat3 = min(sigmas)
 
     # Compute eps_min and make sure it stays in [0, 1]
     min_epsilon = np.clip(
         violation_ratio - (1 / const1) * sigma_hat * normal.ppf(confidence_level), 0, 1
     )
     min_epsilon2 = np.clip(
-        violation_ratio - (1 / const1) * sigma_hat2 * normal.ppf(confidence_level), 0, 1
+        np.mean(samples) - (1 / const1) * sigma_hat2 * normal.ppf(confidence_level),
+        0,
+        1,
     )  # TODO: Debug
     min_epsilon3 = np.clip(
-        violation_ratio_gamma
-        - (1 / const1) * sigma_hat3 * normal.ppf(confidence_level),
+        np.mean(samples) - (1 / const1) * sigma_hat3 * normal.ppf(confidence_level),
         0,
         1,
     )  # TODO: Debug
@@ -306,7 +302,7 @@ def test_type1_error(
     # Create datastructure for boxplots
     data = [
         [simulation_results[test_name][size] for size in sample_sizes]
-        for test_name in range(4)
+        for test_name in range(3)
     ]
 
     # Create offsets for box plots
