@@ -1,7 +1,9 @@
 # STD
+import math
 import os
 from typing import Optional, Dict, Callable, Any, Tuple, List
-import pickle
+from warnings import warn
+import itertools
 
 # EXT
 import matplotlib.pyplot as plt
@@ -11,15 +13,63 @@ from tqdm import tqdm
 from joblib import Parallel, delayed
 from joblib.externals.loky import set_loky_pickler
 from deepsig.conversion import score_pair_conversion
-from deepsig.aso import ArrayLike, compute_violation_ratio, get_quantile_function
+from deepsig.aso import ArrayLike, get_quantile_function
 
 # CONST
-SAMPLE_SIZES = [5, 10, 15]
+SAMPLE_SIZES = [5, 10]
 SAVE_DIR = "./img"
 NUM_SIMULATIONS = 100
 
 # MISC
 set_loky_pickler("dill")  # Avoid weird joblib error with multi_aso
+
+
+def compute_violation_ratio(
+    scores_a: np.array,
+    scores_b: np.array,
+    dt: float,
+    quantile_func_a: Optional[Callable] = None,
+    quantile_func_b: Optional[Callable] = None,
+) -> float:
+    """
+    Compute the violation ration e_W2 (equation 4 + 5).
+
+    Parameters
+    ----------
+    scores_a: List[float]
+        Scores of algorithm A.
+    scores_b: List[float]
+        Scores of algorithm B.
+    dt: float
+        Differential for t during integral calculation.
+
+    Returns
+    -------
+    float
+        Return violation ratio.
+    """
+    if quantile_func_a is None:
+        quantile_func_a = get_quantile_function(scores_a)
+
+    if quantile_func_b is None:
+        quantile_func_b = get_quantile_function(scores_b)
+
+    squared_wasserstein_dist = 0
+    int_violation_set = 0  # Integral over violation set A_X
+
+    for p in np.arange(0 + dt, 1 - dt, dt):
+        diff = quantile_func_a(p) - quantile_func_b(p)
+        squared_wasserstein_dist += (diff ** 2) * dt
+        int_violation_set += (max(diff, 0) ** 2) * dt
+
+    if squared_wasserstein_dist == 0:
+        warn("Division by zero encountered in violation ratio.")
+        violation_ratio = 0.5
+
+    else:
+        violation_ratio = int_violation_set / squared_wasserstein_dist
+
+    return violation_ratio
 
 
 @score_pair_conversion
@@ -29,8 +79,8 @@ def aso_debug(
     confidence_level: float = 0.05,
     num_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
-    dt: float = 0.001,
-    num_jobs: int = 4,
+    dt: float = 0.005,
+    num_jobs: int = 2,
     show_progress: bool = False,
     seed: Optional[int] = None,
     _progress_bar: Optional[tqdm] = None,
@@ -88,7 +138,9 @@ def aso_debug(
         num_jobs
     )
 
-    violation_ratio = compute_violation_ratio(scores_a, scores_b, "pi", dt)
+    SAMPLES_PER_PROCESS = 5
+
+    violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
     # Based on the actual number of samples
     const1 = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
     quantile_func_a = get_quantile_function(scores_a)
@@ -129,7 +181,12 @@ def aso_debug(
     seeds = (
         [None] * num_bootstrap_iterations
         if seed is None
-        else [seed + offset for offset in range(1, num_bootstrap_iterations + 1)]
+        else [
+            seed + offset
+            for offset in range(
+                1, math.ceil((num_bootstrap_iterations + 1) / SAMPLES_PER_PROCESS)
+            )
+        ]
     )
 
     def _bootstrap_iter(seed: Optional[int] = None):
@@ -148,12 +205,9 @@ def aso_debug(
 
         sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, len(scores_a)))
         sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, len(scores_b)))
-
-        # # TODOL Use estimator as an argument here
         sample = compute_violation_ratio(
             sampled_scores_a,
             sampled_scores_b,
-            "pi",
             dt,
         )
 
@@ -163,37 +217,69 @@ def aso_debug(
     parallel = Parallel(n_jobs=num_jobs)
     samples = parallel(delayed(_bootstrap_iter)(seed) for seed, _ in zip(seeds, iters))
 
-    const2 = np.sqrt(
-        num_samples ** 2 / (2 * num_samples)
-    )  # This one is based on the number of re-sampled scores
-    sigma_hat = np.std(const2 * (samples - violation_ratio))
-    sigma_hat2 = np.var(const1 * (samples - violation_ratio))  # TODO: Debug
+    # Flatten
+
+    sigma_hat = np.std(const1 * (samples - violation_ratio))
+    bootstrap_violation_ratio = np.mean(samples)
+    corrected_bootstrap_violation_ratio = np.clip(
+        2 * violation_ratio - bootstrap_violation_ratio, 0, 1
+    )
 
     t = np.arange(violation_ratio, 1 + dt, dt)
+    xs = quantile_func_a(t - violation_ratio)
+    ys = quantile_func_b(t)
+    crossing_points = [
+        ys[i - 1] <= xs[i] <= ys[i] or xs[i - 1] <= ys[i] <= xs[i]
+        for i in np.arange(1, t.shape[0])
+    ]
     lambda_ = len(scores_a) / (len(scores_a) + len(scores_b))
-    sigmas = np.sqrt(
-        lambda_ * t * (1 - t)
-        + (1 - lambda_) * (t - violation_ratio) * (1 - t + violation_ratio)
+    sigmas = lambda_ * t * (1 - t) + (1 - lambda_) * (t - violation_ratio) * (
+        1 - t + violation_ratio
     )
-    sigmas = np.nan_to_num(sigmas)
-    sigma_hat3 = min(sigmas)
+
+    sigma_hat3 = max(0, min(sigmas))
+
+    if sigma_hat3 != 0:
+        sigma_hat3 = np.sqrt(sigma_hat3)
+
+    crossing_ts = np.stack(
+        (t[[False] + crossing_points], t[crossing_points + [False]]), axis=0
+    )
+    crossing_ts = np.mean(crossing_ts, axis=0)
+
+    if len(crossing_ts) > 0:
+        t = crossing_ts
+
+    sigmas2 = lambda_ * t * (1 - t) + (1 - lambda_) * (t - violation_ratio) * (
+        1 - t + violation_ratio
+    )
+
+    sigma_hat4 = max(0, min(sigmas2))
+
+    if sigma_hat4 != 0:
+        sigma_hat4 = np.sqrt(sigma_hat4)
 
     # Compute eps_min and make sure it stays in [0, 1]
     min_epsilon = np.clip(
-        violation_ratio - (1 / const1) * sigma_hat * normal.ppf(confidence_level), 0, 1
+        corrected_bootstrap_violation_ratio
+        - (1 / const1) * sigma_hat * normal.ppf(confidence_level),
+        0,
+        1,
     )
-    min_epsilon2 = np.clip(
-        np.mean(samples) - (1 / const1) * sigma_hat2 * normal.ppf(confidence_level),
+    min_epsilon3 = np.clip(
+        corrected_bootstrap_violation_ratio
+        - (1 / const1) * sigma_hat3 * normal.ppf(confidence_level),
         0,
         1,
     )  # TODO: Debug
-    min_epsilon3 = np.clip(
-        np.mean(samples) - (1 / const1) * sigma_hat3 * normal.ppf(confidence_level),
+    min_epsilon4 = np.clip(
+        corrected_bootstrap_violation_ratio
+        - (1 / const1) * sigma_hat4 * normal.ppf(confidence_level),
         0,
         1,
     )  # TODO: Debug
 
-    return min_epsilon, min_epsilon2, min_epsilon3
+    return min_epsilon, min_epsilon3, min_epsilon4
 
 
 def test_type1_error(
@@ -263,10 +349,10 @@ def test_type1_error(
             marker_size = 16
 
         y = [
-            (threshold >= np.array(data[sample_size]).astype(float).mean())
-            + (1 - threshold <= np.array(data[sample_size]).astype(float).mean())
+            (threshold >= np.array(data[sample_size])).astype(float).mean()
             for sample_size in sample_sizes
         ]
+        print(test_name, y)
         plt.plot(
             sample_sizes,
             y,
@@ -351,6 +437,7 @@ def test_type1_error(
 
 
 if __name__ == "__main__":
+
     if not os.path.exists(SAVE_DIR):
         os.mkdir(SAVE_DIR)
 

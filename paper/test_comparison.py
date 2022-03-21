@@ -133,18 +133,7 @@ def test_type1_error(
     if plot or plot_from_pickle:
         y = {
             test_name: [
-                # Consider 1 - threshold for ASO due to symmetry property
                 (np.array(simulation_results[test_name][sample_size]) <= threshold)
-                .astype(float)
-                .mean()
-                + (
-                    np.array(simulation_results[test_name][sample_size])
-                    >= 1 - threshold
-                )
-                .astype(float)
-                .mean()
-                if "ASO" in test_name
-                else (np.array(simulation_results[test_name][sample_size]) <= threshold)
                 .astype(float)
                 .mean()
                 for sample_size in sample_sizes

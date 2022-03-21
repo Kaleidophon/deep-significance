@@ -33,7 +33,6 @@ def aso(
     scores_a: ArrayLike,
     scores_b: ArrayLike,
     confidence_level: float = 0.05,
-    num_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
     dt: float = 0.005,
     num_jobs: int = 1,
@@ -61,8 +60,6 @@ def aso(
         Scores of algorithm B.
     confidence_level: float
         Desired confidence level of test. Set to 0.05 by default.
-    num_samples: int
-        Number of samples from the score distributions during every bootstrap iteration when estimating sigma.
     num_bootstrap_iterations: int
         Number of bootstrap iterations when estimating sigma.
     dt: float
@@ -84,9 +81,6 @@ def aso(
     assert (
         len(scores_a) > 0 and len(scores_b) > 0
     ), "Both lists of scores must be non-empty."
-    assert num_samples > 0, "num_samples must be positive, {} found.".format(
-        num_samples
-    )
     assert (
         num_bootstrap_iterations > 0
     ), "num_samples must be positive, {} found.".format(num_bootstrap_iterations)
@@ -151,12 +145,8 @@ def aso(
         if seed is not None:
             np.random.seed(seed)
 
-        sampled_scores_a = quantile_func_a(
-            np.random.uniform(0, 1, len(scores_a))
-        )  # TODO: Remove function arg?
-        sampled_scores_b = quantile_func_b(
-            np.random.uniform(0, 1, len(scores_b))
-        )  # TODO: Remove function arg?
+        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, len(scores_a)))
+        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, len(scores_b)))
         sample = compute_violation_ratio(
             sampled_scores_a,
             sampled_scores_b,
@@ -169,17 +159,44 @@ def aso(
     parallel = Parallel(n_jobs=num_jobs)
     samples = parallel(delayed(_bootstrap_iter)(seed) for seed, _ in zip(seeds, iters))
 
-    # Compute sample variance
-    t = np.arange(violation_ratio, 1 + dt, dt)
-    lambda_ = len(scores_a) / (len(scores_a) + len(scores_b))
-    sigmas = np.sqrt(
-        lambda_ * t * (1 - t)
-        + (1 - lambda_) * (t - violation_ratio) * (1 - t + violation_ratio)
-    )
-    sigma_hat = np.min(np.nan_to_num(sigmas))
-
+    # Compute bootstrapped violation ratio
+    bootstrap_violation_ratio = np.clip(2 * violation_ratio - np.mean(samples), 0, 1)
     const = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
-    bootstrap_violation_ratio = np.clip(np.mean(samples), 0, 1)
+    lambda_ = len(scores_a) / (len(scores_a) + len(scores_b))
+
+    # Compute sample variance
+    t = np.arange(violation_ratio, 1 + dt, dt)  # Set T(F_n, G_m, e_W2(F_n, G_m))
+
+    # We need to narrow down this set to all t's for which F_n(x) = t - e_W2(F_n, G_m) and G_m = t for some x -
+    # but since we do not have access to the exact CDFs and we can't check all x this is hard. Thus, run all t's and
+    # t's - e_W2(F_n, G_m) through the *inverse* CDFs and identify t's between which
+    # F_n^-1( t - e_W2(F_n, G_m)) = G_m^-1(t). If none such points were identified, fall back onto the original set of
+    # t values.
+    xs = quantile_func_a(t - violation_ratio)
+    ys = quantile_func_b(t)
+    crossing_points = [
+        # Since cdf scores are sorted, we only have to check this direction of the inequality
+        ys[i - 1] <= xs[i] <= ys[i] or xs[i - 1] <= ys[i] <= xs[i]
+        for i in np.arange(1, t.shape[0])
+    ]
+
+    # Linearly interpolate the two t values around a crossing point
+    crossing_ts = np.stack(
+        (t[[False] + crossing_points], t[crossing_points + [False]]), axis=0
+    )
+    crossing_ts = np.mean(crossing_ts, axis=0)
+
+    # If some were found, use this smaller set T instead
+    if len(crossing_ts) > 0:
+        t = crossing_ts
+
+    sigmas = lambda_ * t * (1 - t) + (1 - lambda_) * (t - violation_ratio) * (
+        1 - t + violation_ratio
+    )
+    sigma_hat = max(0, min(sigmas))
+
+    if sigma_hat != 0:  # Avoid nan
+        sigma_hat = np.sqrt(sigma_hat)
 
     # Compute eps_min and make sure it stays in [0, 1]
     min_epsilon = np.clip(
@@ -308,7 +325,11 @@ def multi_aso(
     return eps_min
 
 
-def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -> float:
+def compute_violation_ratio(
+    scores_a: np.array,
+    scores_b: np.array,
+    dt: float,
+) -> float:
     """
     Compute the violation ration e_W2 (equation 4 + 5).
 
@@ -332,8 +353,8 @@ def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -
     squared_wasserstein_dist = 0
     int_violation_set = 0  # Integral over violation set A_X
 
-    for p in np.arange(0, 1, dt):
-        diff = quantile_func_b(p) - quantile_func_a(p)
+    for p in np.arange(dt, 1, dt):
+        diff = quantile_func_a(p) - quantile_func_b(p)
         squared_wasserstein_dist += (diff ** 2) * dt
         int_violation_set += (max(diff, 0) ** 2) * dt
 
