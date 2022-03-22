@@ -39,10 +39,10 @@ SAMPLE_SIZES = [5, 10, 15, 20]
 MEAN_DIFFS = [0.25, 0.5, 0.75, 1]
 SAVE_DIR = "./img"
 NUM_SIMULATIONS = {
-    "ASO": 250,
-    "Student's t": 500,
-    "Bootstrap": 500,
-    "Permutation": 500,
+    "ASO": 500,
+    "Student's t": 750,
+    "Bootstrap": 750,
+    "Permutation": 750,
 }
 
 
@@ -340,7 +340,7 @@ def test_type2_error_mean_difference(
                     for test_name, test_func in tests.items():
 
                         if simulation_idx < num_simulations[test_name]:
-                            simulation_results[test_name][sample_size].append(
+                            simulation_results[test_name][mean_diff].append(
                                 test_func(scores_a, scores_b)
                             )
                             progress_bar.update(1)

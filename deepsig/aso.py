@@ -161,7 +161,7 @@ def aso(
 
     # Compute bootstrapped violation ratio
     bootstrap_violation_ratio = np.clip(2 * violation_ratio - np.mean(samples), 0, 1)
-    const = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
+    const = np.sqrt((len(scores_a) + len(scores_b)) / len(scores_a) * len(scores_b))
     lambda_ = len(scores_a) / (len(scores_a) + len(scores_b))
 
     # Compute sample variance
@@ -200,8 +200,7 @@ def aso(
 
     # Compute eps_min and make sure it stays in [0, 1]
     min_epsilon = np.clip(
-        bootstrap_violation_ratio
-        - (1 / const) * sigma_hat * normal.ppf(confidence_level),
+        bootstrap_violation_ratio - const * sigma_hat * normal.ppf(confidence_level),
         0,
         1,
     )
