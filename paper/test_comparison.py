@@ -40,9 +40,9 @@ MEAN_DIFFS = [0.25, 0.5, 0.75, 1]
 SAVE_DIR = "./img"
 NUM_SIMULATIONS = {
     "ASO": 500,
-    "Student's t": 750,
-    "Bootstrap": 750,
-    "Permutation": 750,
+    "Student's t": 1000,
+    "Bootstrap": 1000,
+    "Permutation": 1000,
 }
 
 
