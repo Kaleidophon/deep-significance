@@ -94,6 +94,13 @@ def aso(
         num_jobs
     )
 
+    # TODO: Remove in future version
+    if num_samples != 1000:
+        warn(
+            "'num_samples' argument is being ignored in the current version and will be deprecated in version 1.3!",
+            DeprecationWarning,
+        )
+
     violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
     # Based on the actual number of samples
     quantile_func_a = get_quantile_function(scores_a)
@@ -151,8 +158,8 @@ def aso(
         if seed is not None:
             np.random.seed(seed)
 
-        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, num_samples))
-        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, num_samples))
+        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, len(scores_a)))
+        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, len(scores_b)))
         sample = compute_violation_ratio(
             sampled_scores_a,
             sampled_scores_b,
@@ -229,6 +236,13 @@ def multi_aso(
     Union[np.array, pd.DataFrame]
         2D numpy array or pandas Dataframe (if scores is dictionary and return_df=True) with result of ASO.
     """
+    # TODO: Remove in future version
+    if num_samples != 1000:
+        warn(
+            "'num_samples' argument is being ignored in the current version and will be deprecated in version 1.3!",
+            DeprecationWarning,
+        )
+
     num_models = _get_num_models(scores)
     num_comparisons = num_models * (num_models - 1) / 2
     eps_min = np.eye(num_models)  # Initialize score matrix
@@ -257,7 +271,7 @@ def multi_aso(
                 scores_a,
                 scores_b,
                 confidence_level=confidence_level,
-                num_samples=num_samples,
+                num_samples=1000,  # TODO: Avoid double warning, remove in future version
                 num_bootstrap_iterations=num_bootstrap_iterations,
                 dt=dt,
                 num_jobs=num_jobs,
@@ -276,7 +290,7 @@ def multi_aso(
                     scores_b,
                     scores_a,
                     confidence_level=confidence_level,
-                    num_samples=num_samples,
+                    num_samples=1000,  # TODO: Avoid double warning, remove in future version
                     num_bootstrap_iterations=num_bootstrap_iterations,
                     dt=dt,
                     num_jobs=num_jobs,

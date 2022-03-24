@@ -152,7 +152,7 @@ class MultiASOTests(unittest.TestCase):
         self.aso_kwargs = {
             "num_samples": 100,
             "num_bootstrap_iterations": 100,
-            "num_jobs": 2,
+            "num_jobs": 4,
         }
         self.num_models = 3
         self.num_seeds = 100
@@ -276,7 +276,7 @@ class ASOSanityChecks(unittest.TestCase):
 
     def setUp(self) -> None:
         self.num_samples = 1000
-        self.num_bootstrap_iters = 500
+        self.num_bootstrap_iters = 1000
 
     def test_extreme_cases(self):
         """
@@ -295,7 +295,7 @@ class ASOSanityChecks(unittest.TestCase):
             samples_normal1 + 1e-8,
             num_bootstrap_iterations=self.num_bootstrap_iters,
             show_progress=False,
-            num_jobs=2,
+            num_jobs=4,
         )
         self.assertAlmostEqual(eps_min, 1, delta=0.001)
 
@@ -308,7 +308,7 @@ class ASOSanityChecks(unittest.TestCase):
             samples_normal2,
             num_bootstrap_iterations=self.num_bootstrap_iters,
             show_progress=False,
-            num_jobs=2,
+            num_jobs=4,
         )
         self.assertAlmostEqual(eps_min2, 0, delta=0.01)
 
@@ -332,7 +332,7 @@ class ASOSanityChecks(unittest.TestCase):
                 confidence_level=alpha,
                 num_bootstrap_iterations=100,
                 show_progress=False,
-                num_jobs=2,
+                num_jobs=4,
                 seed=seed,
             )
             min_epsilons.append(min_eps)
@@ -359,7 +359,7 @@ class ASOSanityChecks(unittest.TestCase):
                 samples_normal2,
                 num_bootstrap_iterations=100,
                 show_progress=False,
-                num_jobs=2,
+                num_jobs=4,
                 seed=seed,
             )
             min_epsilons.append(min_eps)
@@ -391,14 +391,14 @@ class ASOSanityChecks(unittest.TestCase):
                 samples_normal1,
                 samples_normal2,
                 show_progress=True,  # Show progress so travis CI build doesn't time out
-                num_jobs=2,
+                num_jobs=4,
                 num_bootstrap_iterations=1000,
             )
             eps_min2 = aso(
                 samples_normal2,
                 samples_normal1,
                 show_progress=True,  # Show progress so travis CI build doesn't time out
-                num_jobs=2,
+                num_jobs=4,
                 num_bootstrap_iterations=1000,
             )
             self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=0.2)
