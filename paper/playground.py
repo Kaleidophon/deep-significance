@@ -219,11 +219,18 @@ def aso_debug(
 
     # Flatten
 
-    sigma_hat = np.std(const1 * (samples - violation_ratio))
-    bootstrap_violation_ratio = np.mean(samples)
-    corrected_bootstrap_violation_ratio = np.clip(
-        2 * violation_ratio - bootstrap_violation_ratio, 0, 1
+    sigma_hat = np.std(
+        1 / (num_bootstrap_iterations - 1) * (samples - np.mean(samples))
     )
+    bootstrap_violation_ratio = np.mean(samples)
+    bias = bootstrap_violation_ratio - violation_ratio
+
+    if bias < sigma_hat:
+        corrected_bootstrap_violation_ratio = violation_ratio
+    else:
+        corrected_bootstrap_violation_ratio = np.clip(
+            2 * violation_ratio - bootstrap_violation_ratio, 0, 1
+        )
 
     t = np.arange(violation_ratio, 1 + dt, dt)
     xs = quantile_func_a(t - violation_ratio)
@@ -233,14 +240,6 @@ def aso_debug(
         for i in np.arange(1, t.shape[0])
     ]
     lambda_ = len(scores_a) / (len(scores_a) + len(scores_b))
-    sigmas = lambda_ * t * (1 - t) + (1 - lambda_) * (t - violation_ratio) * (
-        1 - t + violation_ratio
-    )
-
-    sigma_hat3 = max(0, min(sigmas))
-
-    if sigma_hat3 != 0:
-        sigma_hat3 = np.sqrt(sigma_hat3)
 
     crossing_ts = np.stack(
         (t[[False] + crossing_points], t[crossing_points + [False]]), axis=0
@@ -268,7 +267,7 @@ def aso_debug(
     )
     min_epsilon3 = np.clip(
         corrected_bootstrap_violation_ratio
-        - (1 / const1) * sigma_hat3 * normal.ppf(confidence_level),
+        - (1 / const1) * sigma_hat4 * normal.ppf(confidence_level),
         0,
         1,
     )  # TODO: Debug
