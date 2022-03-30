@@ -12,7 +12,7 @@ import warnings
 # EXT
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.stats import ttest_ind
+from scipy.stats import ttest_ind, wilcoxon, mannwhitneyu
 from tqdm import tqdm
 
 # PACKAGE
@@ -28,12 +28,16 @@ CONSIDERED_TESTS = {
     ],
     "Bootstrap": lambda a, b: bootstrap_test(a, b, num_jobs=NUM_JOBS_REST),
     "Permutation": lambda a, b: permutation_test(a, b, num_jobs=NUM_JOBS_REST),
+    "Wilcoxon": lambda a, b: wilcoxon(a, b, alternative="greater").pvalue,
+    "Mann-Whitney U": lambda a, b: mannwhitneyu(a, b, alternative="greater").pvalue,
 }
 CONSIDERED_TEST_COLORS_MARKERS = {
     "ASO": ("darkred", "*"),
     "Student's t": ("darkblue", "o"),
     "Bootstrap": ("forestgreen", "^"),
     "Permutation": ("darkorange", "P"),
+    "Wilcoxon": ("darkorange", "x"),
+    "Mann-Whitney U": ("darkorange", "p"),
 }
 SAMPLE_SIZES = [5, 10, 15, 20]
 MEAN_DIFFS = [0.25, 0.5, 0.75, 1]
@@ -43,6 +47,8 @@ NUM_SIMULATIONS = {
     "Student's t": 1000,
     "Bootstrap": 1000,
     "Permutation": 1000,
+    "Wilcoxon": 1000,
+    "Mann-Whitney U": 1000,
 }
 
 
@@ -269,6 +275,17 @@ def test_type2_error_sample_size(
             colors_and_markers=colors_and_markers,
         )
 
+        plot_boxes(
+            results=simulation_results,
+            tests=tests,
+            groups=sample_sizes,
+            x_label="Sample Size",
+            y_label=r"$p$-value / $\varepsilon_\mathrm{min}$",
+            save_dir=save_dir,
+            file_name="type2_dists",
+            colors_and_markers=colors_and_markers,
+        )
+
 
 def test_type2_error_mean_difference(
     tests: Dict[str, Callable],
@@ -385,6 +402,17 @@ def test_type2_error_mean_difference(
             y_label="Type II Error Rate",
             save_dir=save_dir,
             file_name="type2_mean_rates",
+            colors_and_markers=colors_and_markers,
+        )
+
+        plot_boxes(
+            results=simulation_results,
+            tests=tests,
+            groups=mean_differences,
+            x_label="Mean difference",
+            y_label=r"$p$-value / $\varepsilon_\mathrm{min}$",
+            save_dir=save_dir,
+            file_name="type2_mean_dists",
             colors_and_markers=colors_and_markers,
         )
 
@@ -539,12 +567,44 @@ if __name__ == "__main__":
     parser.add_argument("--plot", action="store_true", default=False)
     args = parser.parse_args()
 
+    def normal_mixture(
+        loc: float,
+        scale: float,
+        size: int,
+        loc2: float = -0.5,
+        scale2: float = 1,
+        mixture_coeff: float = 0.6,
+    ):
+        """
+        Define a simple sampling procedure from a mixture of two normal distributions.
+        """
+        samples1 = np.random.normal(
+            loc=loc, scale=scale, size=int(size * mixture_coeff)
+        )
+        samples2 = np.random.normal(
+            loc=loc2, scale=scale2, size=size - int(size * mixture_coeff)
+        )
+
+        combined_samples = np.concatenate((samples1, samples2))
+
+        return combined_samples
+
     for dist_func, target_param, dist1_params, dist2_params, save_dir in zip(
-        [np.random.normal, np.random.laplace, np.random.rayleigh],
-        ["loc", "loc", "scale"],
-        [{"loc": 0.5, "scale": 1.5}, {"loc": 0.5, "scale": 1.5}, {"scale": 1}],
+        [np.random.normal, normal_mixture, np.random.laplace, np.random.rayleigh],
+        ["loc", "loc", "loc", "scale"],
+        [
+            {"loc": 0.5, "scale": 1.5},
+            {"loc": 0.5, "scale": 1.5},
+            {"loc": 0.5, "scale": 1.5},
+            {"scale": 1},
+        ],
         [{"loc": 0, "scale": 1.5}, {"loc": 0, "scale": 1.5}, {"scale": 0.5}],
-        [f"{SAVE_DIR}/normal", f"{SAVE_DIR}/laplace", f"{SAVE_DIR}/rayleigh"],
+        [
+            f"{SAVE_DIR}/normal",
+            f"{SAVE_DIR}/normal_mix",
+            f"{SAVE_DIR}/laplace",
+            f"{SAVE_DIR}/rayleigh",
+        ],
     ):
 
         if not os.path.exists(save_dir):

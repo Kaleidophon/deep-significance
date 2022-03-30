@@ -219,61 +219,45 @@ def aso_debug(
 
     # Flatten
 
-    sigma_hat = np.std(
+    sigma_hat_corr = np.std(
         1 / (num_bootstrap_iterations - 1) * (samples - np.mean(samples))
     )
     bootstrap_violation_ratio = np.mean(samples)
     bias = bootstrap_violation_ratio - violation_ratio
 
-    if bias < sigma_hat:
+    if bias < sigma_hat_corr:
         corrected_bootstrap_violation_ratio = violation_ratio
     else:
         corrected_bootstrap_violation_ratio = np.clip(
             2 * violation_ratio - bootstrap_violation_ratio, 0, 1
         )
 
-    t = np.arange(violation_ratio, 1 + dt, dt)
-    xs = quantile_func_a(t - violation_ratio)
-    ys = quantile_func_b(t)
-    crossing_points = [
-        ys[i - 1] <= xs[i] <= ys[i] or xs[i - 1] <= ys[i] <= xs[i]
-        for i in np.arange(1, t.shape[0])
-    ]
-    lambda_ = len(scores_a) / (len(scores_a) + len(scores_b))
+    sigma_hat = np.var(const1 * (samples - violation_ratio))
 
-    crossing_ts = np.stack(
-        (t[[False] + crossing_points], t[crossing_points + [False]]), axis=0
-    )
-    crossing_ts = np.mean(crossing_ts, axis=0)
+    if sigma_hat > 0:
+        sigma_hat = np.sqrt(sigma_hat)
 
-    if len(crossing_ts) > 0:
-        t = crossing_ts
+    sigma_hat2 = np.var(const1 * (samples - corrected_bootstrap_violation_ratio))
 
-    sigmas2 = lambda_ * t * (1 - t) + (1 - lambda_) * (t - violation_ratio) * (
-        1 - t + violation_ratio
-    )
-
-    sigma_hat4 = max(0, min(sigmas2))
-
-    if sigma_hat4 != 0:
-        sigma_hat4 = np.sqrt(sigma_hat4)
+    if sigma_hat2 > 0:
+        sigma_hat2 = np.sqrt(sigma_hat2)
 
     # Compute eps_min and make sure it stays in [0, 1]
     min_epsilon = np.clip(
         corrected_bootstrap_violation_ratio
-        - (1 / const1) * sigma_hat * normal.ppf(confidence_level),
+        - (1 / const1) * sigma_hat_corr * normal.ppf(confidence_level),
         0,
         1,
     )
     min_epsilon3 = np.clip(
         corrected_bootstrap_violation_ratio
-        - (1 / const1) * sigma_hat4 * normal.ppf(confidence_level),
+        - (1 / const1) * sigma_hat * normal.ppf(confidence_level),
         0,
         1,
     )  # TODO: Debug
     min_epsilon4 = np.clip(
         corrected_bootstrap_violation_ratio
-        - (1 / const1) * sigma_hat4 * normal.ppf(confidence_level),
+        - (1 / const1) * sigma_hat2 * normal.ppf(confidence_level),
         0,
         1,
     )  # TODO: Debug
