@@ -36,8 +36,8 @@ CONSIDERED_TEST_COLORS_MARKERS = {
     "Student's t": ("darkblue", "o"),
     "Bootstrap": ("forestgreen", "^"),
     "Permutation": ("darkorange", "P"),
-    "Wilcoxon": ("darkorange", "x"),
-    "Mann-Whitney U": ("darkorange", "p"),
+    "Wilcoxon": ("darkviolet", "x"),
+    "Mann-Whitney U": ("slategray", "p"),
 }
 SAMPLE_SIZES = [5, 10, 15, 20]
 MEAN_DIFFS = [0.25, 0.5, 0.75, 1]
@@ -572,8 +572,8 @@ if __name__ == "__main__":
         scale: float,
         size: int,
         loc2: float = -0.5,
-        scale2: float = 1,
-        mixture_coeff: float = 0.6,
+        scale2: float = 0.25,
+        mixture_coeff: float = 0.7,
     ):
         """
         Define a simple sampling procedure from a mixture of two normal distributions.
@@ -594,11 +594,16 @@ if __name__ == "__main__":
         ["loc", "loc", "loc", "scale"],
         [
             {"loc": 0.5, "scale": 1.5},
+            {"loc": 2.5, "scale": 1},
             {"loc": 0.5, "scale": 1.5},
-            {"loc": 0.5, "scale": 1.5},
+            {"scale": 2},
+        ],
+        [
+            {"loc": 0, "scale": 1.5},
+            {"loc": 1.5, "scale": 1},
+            {"loc": 0, "scale": 1.5},
             {"scale": 1},
         ],
-        [{"loc": 0, "scale": 1.5}, {"loc": 0, "scale": 1.5}, {"scale": 0.5}],
         [
             f"{SAVE_DIR}/normal",
             f"{SAVE_DIR}/normal_mix",
@@ -622,7 +627,7 @@ if __name__ == "__main__":
             plot_from_pickle=args.plot_from_pickle,
         )
 
-        if dist_func == np.random.normal:
+        if dist_func in (np.random.normal, normal_mixture):
             test_type2_error_sample_size(
                 tests=CONSIDERED_TESTS,
                 dist_func=dist_func,
