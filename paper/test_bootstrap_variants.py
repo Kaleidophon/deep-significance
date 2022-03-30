@@ -1,9 +1,10 @@
 # STD
+from collections import defaultdict
 import math
 import os
-from typing import Optional, Dict, Callable, Any, Tuple, List
+import scipy
+from typing import Optional, Dict, Callable, Any, List
 from warnings import warn
-import itertools
 
 # EXT
 import matplotlib.pyplot as plt
@@ -16,9 +17,18 @@ from deepsig.conversion import score_pair_conversion
 from deepsig.aso import ArrayLike, get_quantile_function
 
 # CONST
-SAMPLE_SIZES = [5, 10]
+SAMPLE_SIZE = 20
 SAVE_DIR = "./img"
-NUM_SIMULATIONS = 100
+NUM_SIMULATIONS = 500
+VARIANT_COLORS = {
+    "Classic Bootstrap": "darkred",
+    "Dror et al. (2019)": "darkblue",
+    r"Bootstrap $\varepsilon_{\mathcal{W}_2}$ mean": "forestgreen",
+    "Bootstrap correction": "darkorange",
+    "Cond. Bootstrap corr.": "darkviolet",
+    "Cond. Bootstrap corr. 2": "slategray",
+    "ASO": "darkred",
+}
 
 # MISC
 set_loky_pickler("dill")  # Avoid weird joblib error with multi_aso
@@ -58,7 +68,7 @@ def compute_violation_ratio(
     int_violation_set = 0  # Integral over violation set A_X
 
     for p in np.arange(0 + dt, 1 - dt, dt):
-        diff = quantile_func_a(p) - quantile_func_b(p)
+        diff = quantile_func_b(p) - quantile_func_a(p)
         squared_wasserstein_dist += (diff ** 2) * dt
         int_violation_set += (max(diff, 0) ** 2) * dt
 
@@ -73,7 +83,7 @@ def compute_violation_ratio(
 
 
 @score_pair_conversion
-def aso_debug(
+def aso_bootstrap_comparisons(
     scores_a: ArrayLike,
     scores_b: ArrayLike,
     confidence_level: float = 0.05,
@@ -84,18 +94,9 @@ def aso_debug(
     show_progress: bool = False,
     seed: Optional[int] = None,
     _progress_bar: Optional[tqdm] = None,
-) -> float:
+) -> Dict[str, float]:
     """
-    Performs the Almost Stochastic Order test by Dror et al. (2019). The function takes two list of scores as input
-    (they do not have to be of the same length) and returns an upper bound to the violation ratio - the minimum epsilon
-    threshold. `scores_a` should contain scores of the algorithm which we suspect to be better (in this setup,
-    higher = better).
-
-    The null hypothesis (which we would like to reject), is that the algorithm that generated `scores_a` is
-    *not* better than the one `scores_b` originated from. If the violation ratio is below 0.5, the null hypothesis can
-    be rejected safely (and the model scores_a belongs to is deemed better than the model of scores_b). Intuitively, the
-    violation ratio denotes the degree to which total stochastic order (algorithm A is *always* better than B) is being
-    violated. The more scores and the higher num_samples / num_bootstrap_iterations, the more reliable is the result.
+    Like the package ASO function, but compares different choices of bootstrap estimator.
 
     Parameters
     ----------
@@ -138,9 +139,8 @@ def aso_debug(
         num_jobs
     )
 
-    SAMPLES_PER_PROCESS = 5
-
     violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
+
     # Based on the actual number of samples
     const1 = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
     quantile_func_a = get_quantile_function(scores_a)
@@ -183,9 +183,7 @@ def aso_debug(
         if seed is None
         else [
             seed + offset
-            for offset in range(
-                1, math.ceil((num_bootstrap_iterations + 1) / SAMPLES_PER_PROCESS)
-            )
+            for offset in range(1, math.ceil((num_bootstrap_iterations + 1)))
         ]
     )
 
@@ -217,61 +215,84 @@ def aso_debug(
     parallel = Parallel(n_jobs=num_jobs)
     samples = parallel(delayed(_bootstrap_iter)(seed) for seed, _ in zip(seeds, iters))
 
-    # Flatten
+    # Compute the different variants of the bootstrap estimator
 
-    sigma_hat_corr = np.std(
+    # 1. Classic bootstrap estimator
+    sigma_hat1 = np.std(
         1 / (num_bootstrap_iterations - 1) * (samples - np.mean(samples))
     )
-    bootstrap_violation_ratio = np.mean(samples)
-    bias = bootstrap_violation_ratio - violation_ratio
-
-    if bias < sigma_hat_corr:
-        corrected_bootstrap_violation_ratio = violation_ratio
-    else:
-        corrected_bootstrap_violation_ratio = np.clip(
-            2 * violation_ratio - bootstrap_violation_ratio, 0, 1
-        )
-
-    sigma_hat = np.var(const1 * (samples - violation_ratio))
-
-    if sigma_hat > 0:
-        sigma_hat = np.sqrt(sigma_hat)
-
-    sigma_hat2 = np.var(const1 * (samples - corrected_bootstrap_violation_ratio))
-
-    if sigma_hat2 > 0:
-        sigma_hat2 = np.sqrt(sigma_hat2)
-
-    # Compute eps_min and make sure it stays in [0, 1]
-    min_epsilon = np.clip(
-        corrected_bootstrap_violation_ratio
-        - (1 / const1) * sigma_hat_corr * normal.ppf(confidence_level),
+    min_epsilon1 = np.clip(
+        violation_ratio - (1 / const1) * sigma_hat1 * normal.ppf(confidence_level),
         0,
         1,
     )
-    min_epsilon3 = np.clip(
-        corrected_bootstrap_violation_ratio
-        - (1 / const1) * sigma_hat * normal.ppf(confidence_level),
+
+    # 2. ASO as implemented by Dror et al. (2019)
+    sigma_hat2 = np.std(const1 * (samples - violation_ratio))
+    min_epsilon2 = np.clip(
+        violation_ratio - (1 / const1) * sigma_hat2 * normal.ppf(confidence_level),
         0,
         1,
-    )  # TODO: Debug
+    )
+
+    # 3. Like 2., but using the expected violation ratio for sigma
+    sigma_hat3 = np.std(const1 * (samples - np.mean(samples)))
+    min_epsilon3 = np.clip(
+        violation_ratio - (1 / const1) * sigma_hat3 * normal.ppf(confidence_level),
+        0,
+        1,
+    )
+
+    # 4. Like 3, but with the classic bootstrap bias correction
+    corrected_bootstrap_violation_ratio = np.clip(
+        2 * violation_ratio - np.mean(samples), 0, 1
+    )
     min_epsilon4 = np.clip(
         corrected_bootstrap_violation_ratio
-        - (1 / const1) * sigma_hat2 * normal.ppf(confidence_level),
+        - (1 / const1) * sigma_hat3 * normal.ppf(confidence_level),
         0,
         1,
-    )  # TODO: Debug
+    )
 
-    return min_epsilon, min_epsilon3, min_epsilon4
+    # 5. Like 4., but with conditionally corrected bootstrap estimate
+    bias = np.mean(samples) - violation_ratio
+    sigma_hat_corr = np.std(1 / (len(samples) - 1) * (samples - np.mean(samples)))
+    min_epsilon5 = np.clip(
+        (
+            corrected_bootstrap_violation_ratio
+            if bias >= sigma_hat_corr
+            else violation_ratio
+        )
+        - (1 / const1) * sigma_hat3 * normal.ppf(confidence_level),
+        0,
+        1,
+    )
+
+    # 6. Like 5, but conditional correction happens based on the later used sigma hat
+    min_epsilon6 = np.clip(
+        (corrected_bootstrap_violation_ratio if bias >= sigma_hat3 else violation_ratio)
+        - (1 / const1) * sigma_hat3 * normal.ppf(confidence_level),
+        0,
+        1,
+    )
+
+    return {
+        "Classic Bootstrap": min_epsilon1,
+        "Dror et al. (2019)": min_epsilon2,
+        r"Bootstrap $\varepsilon_{\mathcal{W}_2}$ mean": min_epsilon3,
+        "Bootstrap correction": min_epsilon4,
+        "Cond. Bootstrap corr.": min_epsilon5,
+        "Cond. Bootstrap corr. 2": min_epsilon6,
+    }
 
 
 def test_type1_error(
-    sample_sizes: List[int],
+    sample_size: int,
+    colors: Dict[str, str],
+    name: str,
     num_simulations: int = 200,
     dist_func: Callable = np.random.normal,
     dist_params: Dict[str, Any] = {"loc": 0, "scale": 1.5},
-    threshold: float = 0.05,
-    colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
     save_dir: Optional[str] = None,
 ):
     """
@@ -279,41 +300,36 @@ def test_type1_error(
 
     Parameters
     ----------
-    tests: Dict[str, Callable]
-        Considered tests.
-    sample_sizes: List[int]
-        Samples sizes that are being tested.
+    sample_size: int
+        Sample size used in experiments.
+    colors: Dict[str, str]
+        Colors corresponding to each test for plotting.
+    name: str
+        Name of the experiment.
     num_simulations: int
         Number of simulations conducted.
     dist_func: Callable
         Distribution function that is used for sampling.
     dist_params: Dict[str, Any]
         Parameters of the distribution function.
-    threshold: float
-        Threshold that test results has to fall below in order for significance to be claimed.
-    colors_and_markers: Optional[Dict[str, Tuple[str, str]]]
-        Colors and markers corresponding to each test for plotting.
     save_dir: Optional[str]
         Directory that plots should be saved to.
     """
-    simulation_results = {
-        test_name: {sample_size: [] for sample_size in sample_sizes}
-        for test_name in range(3)
-    }
+    simulation_results = defaultdict(list)
 
-    with tqdm(total=len(sample_sizes) * num_simulations) as progress_bar:
-        for sample_size in sample_sizes:
-            for _ in range(num_simulations):
+    with tqdm(total=len(colors) * num_simulations) as progress_bar:
+        for _ in range(num_simulations):
 
-                # Sample scores for this round
-                scores_a = dist_func(**dist_params, size=sample_size)
-                scores_b = dist_func(**dist_params, size=sample_size)
+            # Sample scores for this round
+            scores_a = dist_func(**dist_params, size=sample_size)
+            scores_b = dist_func(**dist_params, size=sample_size)
 
-                results = aso_debug(scores_a, scores_b)
+            results = aso_bootstrap_comparisons(scores_a, scores_b)
 
-                for i, res in enumerate(results):
-                    simulation_results[i][sample_size].append(res)
-                    progress_bar.update(1)
+            for variant, res in results.items():
+                simulation_results[variant].append(res)
+
+            progress_bar.update(len(colors))
 
     # with open(f"{save_dir}/type1_pg_rates.pkl", "wb") as out_file:
     #    pickle.dump(simulation_results, out_file)
@@ -324,95 +340,143 @@ def test_type1_error(
         {"font.size": 18, "text.usetex": True, "legend.loc": "upper right"}
     )
 
-    for test_name, data in simulation_results.items():
-        color, marker, marker_size = None, None, None
+    # Create datastructure for boxplots
+    data = [simulation_results[test_name] for test_name in simulation_results.keys()]
 
-        if colors_and_markers is not None:
-            color, marker = colors_and_markers[test_name]
-            marker_size = 16
+    box_plot = plt.boxplot(
+        data,
+        widths=0.45,
+        patch_artist=True,
+    )
 
-        y = [
-            (threshold >= np.array(data[sample_size])).astype(float).mean()
-            for sample_size in sample_sizes
-        ]
-        print(test_name, y)
-        plt.plot(
-            sample_sizes,
-            y,
-            label=test_name,
-            color=color,
-            marker=marker,
-            markersize=marker_size,
-            alpha=0.8,
-        )
+    for variant_name, patch, color in zip(
+        simulation_results.keys(), box_plot["boxes"], colors.values()
+    ):
+        patch.set_edgecolor(color)
+        patch.set_facecolor("white")
+
+        plt.plot([], color=color, label=variant_name)
 
     ax = plt.gca()
-    # ax.set_ylim(0, 1)
+    ax.set_ylim(0, 1)
+    # ax.set_xlim(-2, 3)
     ax.yaxis.grid()
-    plt.xticks(sample_sizes, [str(size) for size in sample_sizes])
-    plt.xlabel("Sample Size")
-    plt.ylabel("Type I Error Rate")
+    plt.xlabel("Bootstrap variants")
+    plt.ylabel(r"$\varepsilon_\mathrm{min}$")
     plt.legend()
 
     if save_dir is not None:
         plt.tight_layout()
-        plt.savefig(f"{save_dir}/type1_pg_rates2.png")
+        plt.savefig(f"{save_dir}/type1_bootstrap_dists_{name}.png")
     else:
         plt.show()
 
     plt.close()
 
-    # Plot box-and-whiskers plot of values
+
+def test_type2_error(
+    sample_size: int,
+    colors: Dict[str, str],
+    name: str,
+    num_simulations: int = 200,
+    dist_func: Callable = np.random.normal,
+    inv_cdf_func: Callable = scipy.stats.norm.ppf,
+    dist_params: Dict[str, Any] = {"loc": 0, "scale": 0.5},
+    dist_params2: Dict[str, Any] = {"loc": -0.25, "scale": 1.5},
+    save_dir: Optional[str] = None,
+):
+    """
+    Test the rate of type I error (false positive) under different samples sizes.
+
+    Parameters
+    ----------
+    sample_size: int
+        Sample size used in experiments.
+    colors: Dict[str, str]
+        Colors corresponding to each test for plotting.
+    name: str
+        Name of the experiment.
+    num_simulations: int
+        Number of simulations conducted.
+    dist_func: Callable
+        Distribution function that is used for sampling.
+    inv_cdf_funcL Callable
+        Inverse cumulative distribution function in order to compute the exact violation ratio.
+    dist_params: Dict[str, Any]
+        Parameters of the distribution function.
+    dist_params2: Dict[str, Any]
+        Parameters of the comparison distribution function.
+    save_dir: Optional[str]
+        Directory that plots should be saved to.
+    """
+    simulation_results = defaultdict(list)
+
+    with tqdm(total=len(colors) * num_simulations) as progress_bar:
+        for _ in range(num_simulations):
+
+            # Sample scores for this round
+            scores_a = dist_func(**dist_params, size=sample_size)
+            scores_b = dist_func(**dist_params2, size=sample_size)
+
+            results = aso_bootstrap_comparisons(scores_a, scores_b)
+
+            for variant, res in results.items():
+                simulation_results[variant].append(res)
+
+            progress_bar.update(len(colors))
+
+    # with open(f"{save_dir}/type1_pg_rates.pkl", "wb") as out_file:
+    #    pickle.dump(simulation_results, out_file)
+
+    # Plot Type I error rates as line plot
     plt.figure(figsize=(8, 6))
     plt.rcParams.update(
-        {"font.size": 20, "text.usetex": True, "legend.loc": "upper right"}
+        {"font.size": 18, "text.usetex": True, "legend.loc": "upper right"}
     )
 
     # Create datastructure for boxplots
-    data = [
-        [simulation_results[test_name][size] for size in sample_sizes]
-        for test_name in range(3)
-    ]
+    data = [simulation_results[test_name] for test_name in simulation_results.keys()]
 
-    # Create offsets for box plots
-    spacing = 0.5
-    offsets = np.arange(0, spacing * 3, spacing) - spacing * (3 - 1) / 2
+    box_plot = plt.boxplot(
+        data,
+        widths=0.45,
+        patch_artist=True,
+    )
 
-    for test_name, test_data, offset in zip(range(4), data, offsets):
-        color, marker = (
-            (None, None)
-            if colors_and_markers is None
-            else colors_and_markers[test_name]
-        )
+    for variant_name, patch, color in zip(
+        simulation_results.keys(), box_plot["boxes"], colors.values()
+    ):
+        patch.set_edgecolor(color)
+        patch.set_facecolor("white")
 
-        box_plot = plt.boxplot(
-            test_data,
-            positions=np.arange(0, len(sample_sizes)) * 3 + offset,
-            sym=marker,
-            widths=0.45,
-            flierprops={"marker": marker},
-        )
+        plt.plot([], color=color, label=variant_name)
 
-        if color is not None:
-            plt.setp(box_plot["boxes"], color=color)
-            plt.setp(box_plot["whiskers"], color=color)
-            plt.setp(box_plot["caps"], color=color)
-            plt.setp(box_plot["medians"], color=color)
-
-            plt.plot([], color=color, label=test_name)
+    real_violation_ratio = compute_violation_ratio(
+        [],
+        [],
+        dt=0.05,
+        quantile_func_a=lambda p: inv_cdf_func(p, **dist_params),
+        quantile_func_b=lambda p: inv_cdf_func(p, **dist_params2),
+    )
 
     ax = plt.gca()
     ax.set_ylim(0, 1)
-    ax.set_xlim(-2, len(sample_sizes) * 3)
+    x = np.arange(ax.get_xlim()[0], ax.get_xlim()[1] + 1)
+    plt.plot(
+        x,
+        np.ones(len(x)) * real_violation_ratio,
+        alpha=0.8,
+        linestyle="--",
+        color="black",
+    )
     ax.yaxis.grid()
-    plt.xticks(np.arange(0, len(sample_sizes) * 3, 3), sample_sizes)
-    plt.xlabel("Sample Size")
-    plt.ylabel(r"$p$-value / $\varepsilon_\mathrm{min}$")
+    plt.xlabel("Bootstrap variants")
+    plt.ylabel(r"$\varepsilon_\mathrm{min}$")
     plt.legend()
 
     if save_dir is not None:
         plt.tight_layout()
-        plt.savefig(f"{save_dir}/type1_pg_dists2.png")
+        plt.savefig(f"{save_dir}/type2_bootstrap_dists_{name}.png")
     else:
         plt.show()
 
@@ -425,7 +489,17 @@ if __name__ == "__main__":
         os.mkdir(SAVE_DIR)
 
     test_type1_error(
-        sample_sizes=SAMPLE_SIZES,
-        save_dir=SAVE_DIR,
+        sample_size=SAMPLE_SIZE,
+        colors=VARIANT_COLORS,
         num_simulations=NUM_SIMULATIONS,
+        name="normal",
+        save_dir=SAVE_DIR,
+    )
+
+    test_type2_error(
+        sample_size=SAMPLE_SIZE,
+        colors=VARIANT_COLORS,
+        num_simulations=NUM_SIMULATIONS,
+        name="normal",
+        save_dir=SAVE_DIR,
     )

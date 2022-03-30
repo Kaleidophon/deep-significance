@@ -353,7 +353,7 @@ def compute_violation_ratio(
     int_violation_set = 0  # Integral over violation set A_X
 
     for p in np.arange(dt, 1, dt):
-        diff = quantile_func_a(p) - quantile_func_b(p)
+        diff = quantile_func_b(p) - quantile_func_a(p)
         squared_wasserstein_dist += (diff ** 2) * dt
         int_violation_set += (max(diff, 0) ** 2) * dt
 
