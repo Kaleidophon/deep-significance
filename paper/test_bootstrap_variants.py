@@ -9,6 +9,7 @@ from warnings import warn
 # EXT
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from scipy.stats import norm as normal
 from tqdm import tqdm
 from joblib import Parallel, delayed
@@ -19,7 +20,7 @@ from deepsig.aso import ArrayLike, get_quantile_function
 # CONST
 SAMPLE_SIZE = 20
 SAVE_DIR = "./img"
-NUM_SIMULATIONS = 500
+NUM_SIMULATIONS = 10
 VARIANT_COLORS = {
     "Classic Bootstrap": "darkred",
     "Dror et al. (2019)": "darkblue",
@@ -27,7 +28,6 @@ VARIANT_COLORS = {
     "Bootstrap correction": "darkorange",
     "Cond. Bootstrap corr.": "darkviolet",
     "Cond. Bootstrap corr. 2": "slategray",
-    "ASO": "darkred",
 }
 
 # MISC
@@ -291,6 +291,7 @@ def test_type1_error(
     colors: Dict[str, str],
     name: str,
     num_simulations: int = 200,
+    thresholds: List[float] = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5],
     dist_func: Callable = np.random.normal,
     dist_params: Dict[str, Any] = {"loc": 0, "scale": 1.5},
     save_dir: Optional[str] = None,
@@ -357,6 +358,14 @@ def test_type1_error(
 
         plt.plot([], color=color, label=variant_name)
 
+    plt.xticks(
+        range(1, len(colors) + 1),
+        [
+            f"{(np.array(simulation_results[variant_name]) <= thresholds[0]).astype(float).mean():.2f}"
+            for variant_name in simulation_results.keys()
+        ],
+    )
+
     ax = plt.gca()
     ax.set_ylim(0, 1)
     # ax.set_xlim(-2, 3)
@@ -371,6 +380,17 @@ def test_type1_error(
     else:
         plt.show()
 
+    with open(f"{save_dir}/type1_bootstrap_rates_{name}.txt", "w") as out_file:
+        rates_df = pd.DataFrame(index=thresholds, columns=simulation_results.keys())
+
+        for threshold in thresholds:
+            for variant_name, data in simulation_results.items():
+                rates_df.at[threshold, variant_name] = (
+                    (np.array(data) <= thresholds[0]).astype(float).mean()
+                )
+
+        out_file.write(rates_df.to_latex())
+
     plt.close()
 
 
@@ -379,6 +399,7 @@ def test_type2_error(
     colors: Dict[str, str],
     name: str,
     num_simulations: int = 200,
+    thresholds: List[float] = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5],
     dist_func: Callable = np.random.normal,
     inv_cdf_func: Callable = scipy.stats.norm.ppf,
     dist_params: Dict[str, Any] = {"loc": 0, "scale": 0.5},
@@ -459,6 +480,14 @@ def test_type2_error(
         quantile_func_b=lambda p: inv_cdf_func(p, **dist_params2),
     )
 
+    plt.xticks(
+        range(1, len(colors) + 1),
+        [
+            f"{(np.array(simulation_results[variant_name]) > thresholds[0]).astype(float).mean():.2f}"
+            for variant_name in simulation_results.keys()
+        ],
+    )
+
     ax = plt.gca()
     ax.set_ylim(0, 1)
     x = np.arange(ax.get_xlim()[0], ax.get_xlim()[1] + 1)
@@ -481,6 +510,17 @@ def test_type2_error(
         plt.show()
 
     plt.close()
+
+    with open(f"{save_dir}/type2_bootstrap_rates_{name}.txt", "w") as out_file:
+        rates_df = pd.DataFrame(index=thresholds, columns=simulation_results.keys())
+
+        for threshold in thresholds:
+            for variant_name, data in simulation_results.items():
+                rates_df.at[threshold, variant_name] = (
+                    (np.array(data) > thresholds[0]).astype(float).mean()
+                )
+
+        out_file.write(rates_df.to_latex())
 
 
 if __name__ == "__main__":
