@@ -20,7 +20,7 @@ from deepsig.aso import ArrayLike, get_quantile_function
 # CONST
 SAMPLE_SIZE = 20
 SAVE_DIR = "./img"
-NUM_SIMULATIONS = 10
+NUM_SIMULATIONS = 100
 VARIANT_COLORS = {
     "Classic Bootstrap": "darkred",
     "Dror et al. (2019)": "darkblue",
@@ -386,7 +386,7 @@ def test_type1_error(
         for threshold in thresholds:
             for variant_name, data in simulation_results.items():
                 rates_df.at[threshold, variant_name] = (
-                    (np.array(data) <= thresholds[0]).astype(float).mean()
+                    (np.array(data) <= threshold).astype(float).mean()
                 )
 
         out_file.write(rates_df.to_latex())
@@ -517,7 +517,7 @@ def test_type2_error(
         for threshold in thresholds:
             for variant_name, data in simulation_results.items():
                 rates_df.at[threshold, variant_name] = (
-                    (np.array(data) > thresholds[0]).astype(float).mean()
+                    (np.array(data) > threshold).astype(float).mean()
                 )
 
         out_file.write(rates_df.to_latex())
