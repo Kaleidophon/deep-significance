@@ -255,9 +255,9 @@ class ASOSanityChecks(unittest.TestCase):
         )
         self.assertAlmostEqual(eps_min2, 0, delta=0.01)
 
-    def test_dependency_on_alpha(self):
+    def test_dependency_on_confidence_level(self):
         """
-        Make sure that the minimum epsilon threshold increases as we increase the confidence level.
+        Make sure that the minimum epsilon threshold decreases as we increase the confidence level.
         """
         samples_normal1 = np.random.normal(
             loc=0.1, size=self.num_samples
@@ -268,11 +268,11 @@ class ASOSanityChecks(unittest.TestCase):
 
         min_epsilons = []
         seed = 6666
-        for alpha in np.arange(0.8, 0.1, -0.1):
+        for confidence_level in np.arange(0.1, 0.8, 0.1):
             min_eps = aso(
                 samples_normal1,
                 samples_normal2,
-                confidence_level=alpha,
+                confidence_level=confidence_level,
                 num_bootstrap_iterations=100,
                 show_progress=False,
                 num_jobs=4,

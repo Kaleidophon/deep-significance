@@ -27,7 +27,7 @@ set_loky_pickler("dill")  # Avoid weird joblib error with multi_aso
 def aso(
     scores_a: ArrayLike,
     scores_b: ArrayLike,
-    confidence_level: float = 0.05,
+    confidence_level: float = 0.99,
     num_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
     dt: float = 0.005,
@@ -96,6 +96,14 @@ def aso(
             DeprecationWarning,
         )
 
+    # TODO: Remove in future version
+    if confidence_level < 0.95:
+        warn(
+            "'confidence_level' was refactored in version 1.2.4 to be more intuitive and usually should be in the .95 -"
+            f".99 range, but {confidence_level} was found.",
+            DeprecationWarning,
+        )
+
     violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
     # Based on the actual number of samples
     quantile_func_a = get_quantile_function(scores_a)
@@ -120,7 +128,9 @@ def aso(
 
     # Compute eps_min and make sure it stays in [0, 1]
     min_epsilon = np.clip(
-        violation_ratio - (1 / const) * sigma_hat * normal.ppf(confidence_level), 0, 1
+        violation_ratio - (1 / const) * sigma_hat * normal.ppf(1 - confidence_level),
+        0,
+        1,
     )
 
     return min_epsilon
@@ -128,7 +138,7 @@ def aso(
 
 def multi_aso(
     scores: ScoreCollection,
-    confidence_level: float = 0.05,
+    confidence_level: float = 0.99,
     use_bonferroni: bool = True,
     use_symmetry: bool = True,
     num_samples: int = 1000,
@@ -193,6 +203,14 @@ def multi_aso(
             DeprecationWarning,
         )
 
+    # TODO: Remove in future version
+    if confidence_level < 0.95:
+        warn(
+            "'confidence_level' was refactored in version 1.2.4 to be more intuitive and usually should be in the .95 -"
+            f".99 range, but {confidence_level} was found.",
+            DeprecationWarning,
+        )
+
     num_models = _get_num_models(scores)
     num_comparisons = num_models * (num_models - 1) / 2
     eps_min = np.eye(num_models)  # Initialize score matrix
@@ -252,13 +270,13 @@ def multi_aso(
             # Compute eps_min and make sure it stays in [0, 1]
             min_epsilon_ab = np.clip(
                 violation_ratio_ab
-                - (1 / const) * sigma_hat * normal.ppf(confidence_level),
+                - (1 / const) * sigma_hat * normal.ppf(1 - confidence_level),
                 0,
                 1,
             )
             min_epsilon_ba = np.clip(
                 violation_ratio_ba
-                - (1 / const) * sigma_hat * normal.ppf(confidence_level),
+                - (1 / const) * sigma_hat * normal.ppf(1 - confidence_level),
                 0,
                 1,
             )
