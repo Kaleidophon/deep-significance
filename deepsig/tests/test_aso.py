@@ -11,7 +11,7 @@ import torch
 import tensorflow as tf
 
 # import jax.numpy as jnp
-from scipy.stats import wasserstein_distance, pearsonr
+from scipy.stats import wasserstein_distance, pearsonr, norm, laplace, rayleigh
 
 # PKG
 from deepsig.aso import (
@@ -50,7 +50,7 @@ class ASOTechnicalTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             aso([1, 2, 3], [3, 4, 5], num_jobs=0, show_progress=False)
 
-    def test_compute_violation_ratio(self):
+    def test_compute_violation_ratio_correlation(self):
         """
         Test whether violation ratio is being computed correctly.
         """
@@ -75,8 +75,62 @@ class ASOTechnicalTests(unittest.TestCase):
         rho, _ = pearsonr(violation_ratios, inv_sqw_dists)
         self.assertGreaterEqual(rho, 0.85)
 
-    # TODO: Test computation of violation ratio with exact CDFs from scipy
-    # TODO: Test symmetry of violation ratio
+    def test_compute_violation_ratio_exact(self):
+        """
+        Test the value of the violation ratio given some exact CDFs.
+        """
+        test_dists = [
+            (
+                np.random.normal,
+                norm.ppf,
+                {"loc": 0.275, "scale": 1.5},
+                {"loc": 0.25, "scale": 1},
+            ),
+            (
+                np.random.laplace,
+                laplace.ppf,
+                {"loc": 0.275, "scale": 1.5},
+                {"loc": 0.25, "scale": 1},
+            ),
+            (np.random.rayleigh, rayleigh.ppf, {"scale": 1.05}, {"scale": 1}),
+        ]
+
+        for sample_func, ppf, params_a, params_b in test_dists:
+            quantile_func_a = lambda x: ppf(x, **params_a)
+            quantile_func_b = lambda x: ppf(x, **params_b)
+            violation_ratio_ab_exact = compute_violation_ratio(
+                quantile_func_a=quantile_func_a, quantile_func_b=quantile_func_b
+            )
+            violation_ratio_ba_exact = compute_violation_ratio(
+                quantile_func_a=quantile_func_b, quantile_func_b=quantile_func_a
+            )
+
+            samples_a = sample_func(size=self.num_samples, **params_a)
+            samples_b = sample_func(size=self.num_samples, **params_b)
+            violation_ratio_ab_sampled = compute_violation_ratio(
+                scores_a=samples_a, scores_b=samples_b
+            )
+            violation_ratio_ba_sampled = compute_violation_ratio(
+                scores_a=samples_b, scores_b=samples_a
+            )
+
+            # Check symmetries
+            self.assertAlmostEqual(
+                violation_ratio_ab_exact, 1 - violation_ratio_ba_exact, delta=0.03
+            )
+            self.assertAlmostEqual(
+                violation_ratio_ab_sampled, 1 - violation_ratio_ba_sampled, delta=0.03
+            )
+
+            # Check closeness to exact value
+            self.assertAlmostEqual(
+                violation_ratio_ab_exact, violation_ratio_ab_sampled, delta=0.03
+            )
+            self.assertAlmostEqual(
+                violation_ratio_ba_exact, violation_ratio_ba_sampled, delta=0.03
+            )
+
+    # TODO: Test supplying different constellations of input args to the functions
 
     def test_get_quantile_function(self):
         """
@@ -159,13 +213,6 @@ class MultiASOTests(unittest.TestCase):
         ]
         self.scores_dict = {
             "model{}".format(i): scores for i, scores in enumerate(self.scores)
-        }
-        # Test case based on https://github.com/Kaleidophon/deep-significance/issues/7
-        self.mikes_scores_dict = {
-            "x": np.array([59.13, 58.03, 59.18, 58.78, 58.5]),
-            "y": np.array([58.13, 59.19, 59.94, 60.08, 59.85]),
-            "z": np.array([58.77, 58.86, 59.58, 59.59, 59.64]),
-            "w": np.array([58.16, 58.49, 59.87, 58.94, 58.96]),
         }
         self.scores_numpy = np.array(self.scores)
         self.scores_torch = torch.from_numpy(self.scores_numpy)

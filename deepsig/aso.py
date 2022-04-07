@@ -104,7 +104,9 @@ def aso(
             DeprecationWarning,
         )
 
-    violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
+    violation_ratio = compute_violation_ratio(
+        scores_a=scores_a, scores_b=scores_b, dt=dt
+    )
     # Based on the actual number of samples
     quantile_func_a = get_quantile_function(scores_a)
     quantile_func_b = get_quantile_function(scores_b)
@@ -241,9 +243,7 @@ def multi_aso(
             )
 
             violation_ratio_ab = compute_violation_ratio(
-                scores_a,
-                scores_b,
-                dt,
+                dt=dt,
                 quantile_func_a=quantile_func_a,
                 quantile_func_b=quantile_func_b,
             )
@@ -264,7 +264,10 @@ def multi_aso(
             )
             samples_ab = np.array(samples_ab)
 
-            # This quantity is the same for both, so we only have to compute it once
+            # This quantity is the same for both, so we only have to compute it once, see
+            # (samples_ab - violation_ratio_ab)
+            # = (1 - samples_ba - 1 + violation_ratio_ba)
+            # = (samples_ba - violation_ratio_ba)
             sigma_hat = np.std(const * (samples_ab - violation_ratio_ab))
 
             # Compute eps_min and make sure it stays in [0, 1]
@@ -293,20 +296,20 @@ def multi_aso(
 
 
 def compute_violation_ratio(
-    scores_a: np.array,
-    scores_b: np.array,
-    dt: float,
+    scores_a: Optional[np.array] = None,
+    scores_b: Optional[np.array] = None,
     quantile_func_a: Optional[Callable] = None,
     quantile_func_b: Optional[Callable] = None,
+    dt: float = 0.001,
 ) -> float:
     """
     Compute the violation ration e_W2 (equation 4 + 5).
 
     Parameters
     ----------
-    scores_a: List[float]
+    scores_a:  Optional[np.array]
         Scores of algorithm A.
-    scores_b: List[float]
+    scores_b:  Optional[np.array]
         Scores of algorithm B.
     dt: float
         Differential for t during integral calculation.
@@ -320,8 +323,13 @@ def compute_violation_ratio(
     float
         Return violation ratio.
     """
-    squared_wasserstein_dist = 0
-    int_violation_set = 0  # Integral over violation set A_X
+    assert (
+        scores_a is not None or quantile_func_a is not None
+    ), "Either scores or quantile function are required for the first sample, neither found."
+
+    assert (
+        scores_b is not None or quantile_func_b is not None
+    ), "Either scores or quantile function are required for the second sample, neither found."
 
     if quantile_func_a is None:
         quantile_func_a = get_quantile_function(scores_a)
@@ -329,14 +337,19 @@ def compute_violation_ratio(
     if quantile_func_b is None:
         quantile_func_b = get_quantile_function(scores_b)
 
-    for p in np.arange(0, 1, dt):
-        diff = quantile_func_b(p) - quantile_func_a(p)
-        squared_wasserstein_dist += (diff ** 2) * dt
-        int_violation_set += (max(diff, 0) ** 2) * dt
+    t = np.arange(dt, 1, dt)  # Points we integrate over
+    f = quantile_func_a(t)  # F-1(t)
+    g = quantile_func_b(t)  # G-1(t)
+    diff = g - f
+    squared_wasserstein_dist = np.sum(diff ** 2 * dt)
+
+    # Now only consider points where stochastic order is being violated and set the rest to 0
+    diff[f >= g] = 0
+    int_violation_set = np.sum(diff[1:] ** 2 * dt)  # Ignore t = 0 since t in (0, 1)
 
     if squared_wasserstein_dist == 0:
         warn("Division by zero encountered in violation ratio.")
-        violation_ratio = 0
+        violation_ratio = 0.5
 
     else:
         violation_ratio = int_violation_set / squared_wasserstein_dist
@@ -453,9 +466,9 @@ def get_bootstrapped_violation_ratios(
         sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, len(scores_a)))
         sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, len(scores_b)))
         sample = compute_violation_ratio(
-            sampled_scores_a,
-            sampled_scores_b,
-            dt,
+            scores_a=sampled_scores_a,
+            scores_b=sampled_scores_b,
+            dt=dt,
         )
 
         return sample
