@@ -88,6 +88,11 @@ def aso(
         num_jobs
     )
 
+    violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
+    # Based on the actual number of samples
+    quantile_func_a = get_quantile_function(scores_a)
+    quantile_func_b = get_quantile_function(scores_b)
+
     def _progress_iter(high: int, progress_bar: tqdm):
         """
         This function is used when a shared progress bar is passed from multi_aso() - every time the iterator yields an
@@ -126,11 +131,6 @@ def aso(
         else [seed + offset for offset in range(1, num_bootstrap_iterations + 1)]
     )
 
-    # Compute violation ratio based on original samples
-    violation_ratio = compute_violation_ratio(scores_a, scores_b, dt)
-    quantile_func_a = get_quantile_function(scores_a)
-    quantile_func_b = get_quantile_function(scores_b)
-
     def _bootstrap_iter(seed: Optional[int] = None):
         """
         One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
@@ -159,50 +159,12 @@ def aso(
     parallel = Parallel(n_jobs=num_jobs)
     samples = parallel(delayed(_bootstrap_iter)(seed) for seed, _ in zip(seeds, iters))
 
-    # Compute bootstrapped violation ratio
-    bootstrap_violation_ratio = np.clip(2 * violation_ratio - np.mean(samples), 0, 1)
-    const = np.sqrt((len(scores_a) + len(scores_b)) / (len(scores_a) * len(scores_b)))
-    lambda_ = len(scores_a) / (len(scores_a) + len(scores_b))
-
-    # Compute sample variance
-    t = np.arange(violation_ratio, 1 + dt, dt)  # Set T(F_n, G_m, e_W2(F_n, G_m))
-
-    # We need to narrow down this set to all t's for which F_n(x) = t - e_W2(F_n, G_m) and G_m = t for some x -
-    # but since we do not have access to the exact CDFs and we can't check all x this is hard. Thus, run all t's and
-    # t's - e_W2(F_n, G_m) through the *inverse* CDFs and identify t's between which
-    # F_n^-1( t - e_W2(F_n, G_m)) = G_m^-1(t). If none such points were identified, fall back onto the original set of
-    # t values.
-    xs = quantile_func_a(t - violation_ratio)
-    ys = quantile_func_b(t)
-    crossing_points = [
-        # Since cdf scores are sorted, we only have to check this direction of the inequality
-        ys[i - 1] <= xs[i] <= ys[i] or xs[i - 1] <= ys[i] <= xs[i]
-        for i in np.arange(1, t.shape[0])
-    ]
-
-    # Linearly interpolate the two t values around a crossing point
-    crossing_ts = np.stack(
-        (t[[False] + crossing_points], t[crossing_points + [False]]), axis=0
-    )
-    crossing_ts = np.mean(crossing_ts, axis=0)
-
-    # If some were found, use this smaller set T instead
-    if len(crossing_ts) > 0:
-        t = crossing_ts
-
-    sigmas = lambda_ * t * (1 - t) + (1 - lambda_) * (t - violation_ratio) * (
-        1 - t + violation_ratio
-    )
-    sigma_hat = max(0, min(sigmas))
-
-    if sigma_hat != 0:  # Avoid nan
-        sigma_hat = np.sqrt(sigma_hat)
+    const = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
+    sigma_hat = np.std(const * (samples - violation_ratio))
 
     # Compute eps_min and make sure it stays in [0, 1]
     min_epsilon = np.clip(
-        bootstrap_violation_ratio - const * sigma_hat * normal.ppf(confidence_level),
-        0,
-        1,
+        violation_ratio - (1 / const) * sigma_hat * normal.ppf(confidence_level), 0, 1
     )
 
     return min_epsilon
@@ -349,13 +311,15 @@ def compute_violation_ratio(
     quantile_func_a = get_quantile_function(scores_a)
     quantile_func_b = get_quantile_function(scores_b)
 
-    squared_wasserstein_dist = 0
-    int_violation_set = 0  # Integral over violation set A_X
+    t = np.arange(dt, 1, dt)  # Points we integrate over
+    f = quantile_func_a(t)  # F-1(t)
+    g = quantile_func_b(t)  # G-1(t)
+    diff = g - f
+    squared_wasserstein_dist = np.sum(diff ** 2 * dt)
 
-    for p in np.arange(dt, 1, dt):
-        diff = quantile_func_b(p) - quantile_func_a(p)
-        squared_wasserstein_dist += (diff ** 2) * dt
-        int_violation_set += (max(diff, 0) ** 2) * dt
+    # Now only consider points where stochastic order is being violated and set the rest to 0
+    diff[f >= g] = 0
+    int_violation_set = np.sum(diff[1:] ** 2 * dt)  # Ignore t = 0 since t in (0, 1)
 
     if squared_wasserstein_dist == 0:
         warn("Division by zero encountered in violation ratio.")

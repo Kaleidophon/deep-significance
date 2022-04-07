@@ -139,7 +139,10 @@ def test_type1_error(
     if plot or plot_from_pickle:
         y = {
             test_name: [
-                (np.array(simulation_results[test_name][sample_size]) <= threshold)
+                (
+                    np.array(simulation_results[test_name][sample_size])
+                    <= (threshold if test_name != "ASO" else 0.5)
+                )
                 .astype(float)
                 .mean()
                 for sample_size in sample_sizes
@@ -258,7 +261,10 @@ def test_type2_error_sample_size(
         y = {
             test_name: [
                 1
-                - (np.array(simulation_results[test_name][sample_size]) <= threshold)
+                - (
+                    np.array(simulation_results[test_name][sample_size])
+                    <= (threshold if test_name != "ASO" else 0.5)
+                )
                 .astype(float)
                 .mean()
                 for sample_size in sample_sizes
@@ -387,7 +393,7 @@ def test_type2_error_mean_difference(
                 1
                 - (
                     np.array(simulation_results[test_name][mean_difference])
-                    <= threshold
+                    <= (threshold if test_name != "ASO" else 0.5)
                 )
                 .astype(float)
                 .mean()
