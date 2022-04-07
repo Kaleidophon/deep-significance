@@ -5,5 +5,5 @@ from deepsig.correction import bonferroni_correction
 from deepsig.permutation import permutation_test
 from deepsig.sample_size import aso_uncertainty_reduction, bootstrap_power_analysis
 
-__version__ = "1.2.3"
+__version__ = "1.2.4"
 __author__ = "Dennis Ulmer"

@@ -42,12 +42,6 @@ class ASOTechnicalTests(unittest.TestCase):
             aso([3, 4], [])
 
         with self.assertRaises(AssertionError):
-            aso([1, 2, 3], [3, 4, 5], num_samples=-1, show_progress=False)
-
-        with self.assertRaises(AssertionError):
-            aso([1, 2, 3], [3, 4, 5], num_samples=0, show_progress=False)
-
-        with self.assertRaises(AssertionError):
             aso([1, 2, 3], [3, 4, 5], num_bootstrap_iterations=-1, show_progress=False)
 
         with self.assertRaises(AssertionError):

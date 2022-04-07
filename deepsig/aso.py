@@ -16,13 +16,8 @@ from scipy.stats import norm as normal
 from tqdm import tqdm
 
 # PKG
-from deepsig.conversion import (
-    ArrayLike,
-    ScoreCollection,
-    score_pair_conversion,
-    ALLOWED_TYPES,
-    CONVERSIONS,
-)
+from deepsig.conversion import ArrayLike, ScoreCollection, score_pair_conversion
+from deepsig.utils import _progress_iter, _get_num_models
 
 # MISC
 set_loky_pickler("dill")  # Avoid weird joblib error with multi_aso
@@ -106,71 +101,19 @@ def aso(
     quantile_func_a = get_quantile_function(scores_a)
     quantile_func_b = get_quantile_function(scores_b)
 
-    def _progress_iter(high: int, progress_bar: tqdm):
-        """
-        This function is used when a shared progress bar is passed from multi_aso() - every time the iterator yields an
-        element, the progress bar is updated by one. It essentially behaves like a simplified range() function.
-
-        Parameters
-        ----------
-        high: int
-            Number of elements in iterator.
-        progress_bar: tqdm
-            Shared progress bar.
-        """
-        current = 0
-
-        while current < high:
-            yield current
-            current += 1
-            progress_bar.update(1)
-
-    # Add progress bar if applicable
-    if show_progress and _progress_bar is None:
-        iters = tqdm(range(num_bootstrap_iterations), desc="Bootstrap iterations")
-
-    # Shared progress bar when called from multi_aso()
-    elif _progress_bar is not None:
-        iters = _progress_iter(num_bootstrap_iterations, _progress_bar)
-
-    else:
-        iters = range(num_bootstrap_iterations)
-
-    # Set seeds for different jobs if applicable
-    # "Sub-seeds" for jobs are just seed argument + job index
-    seeds = (
-        [None] * num_bootstrap_iterations
-        if seed is None
-        else [seed + offset for offset in range(1, num_bootstrap_iterations + 1)]
+    samples = get_bootstrapped_violation_ratios(
+        scores_a,
+        scores_b,
+        quantile_func_a,
+        quantile_func_b,
+        num_bootstrap_iterations,
+        dt,
+        num_jobs,
+        show_progress,
+        seed,
+        _progress_bar,
     )
-
-    def _bootstrap_iter(seed: Optional[int] = None):
-        """
-        One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
-        """
-        # When running multiple jobs, these modules have to be re-imported for some reason to avoid an error
-        # Use dir() to check whether module is available in local scope:
-        # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
-        if "numpy" not in dir() or "deepsig" not in dir():
-            import numpy as np
-            from deepsig.aso import compute_violation_ratio
-
-        if seed is not None:
-            np.random.seed(seed)
-
-        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, len(scores_a)))
-        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, len(scores_b)))
-        sample = compute_violation_ratio(
-            sampled_scores_a,
-            sampled_scores_b,
-            dt,
-        )
-
-        return sample
-
-    # Initialize worker pool and start iterations
-    parallel = Parallel(n_jobs=num_jobs)
-    samples = parallel(delayed(_bootstrap_iter)(seed) for seed, _ in zip(seeds, iters))
+    samples = np.array(samples)
 
     const = np.sqrt(len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b)))
     sigma_hat = np.std(const * (samples - violation_ratio))
@@ -243,6 +186,13 @@ def multi_aso(
             DeprecationWarning,
         )
 
+    # TODO: Remove in future version
+    if not use_symmetry:
+        warn(
+            "'use_symmetry' argument is being ignored in the current version and will be deprecated in version 1.3!",
+            DeprecationWarning,
+        )
+
     num_models = _get_num_models(scores)
     num_comparisons = num_models * (num_models - 1) / 2
     eps_min = np.eye(num_models)  # Initialize score matrix
@@ -266,38 +216,56 @@ def multi_aso(
     for i, key_i in enumerate(indices):
         for j, key_j in enumerate(indices[(i + 1) :], start=i + 1):
             scores_a, scores_b = scores[key_i], scores[key_j]
-
-            eps_min[i, j] = aso(
-                scores_a,
-                scores_b,
-                confidence_level=confidence_level,
-                num_samples=1000,  # TODO: Avoid double warning, remove in future version
-                num_bootstrap_iterations=num_bootstrap_iterations,
-                dt=dt,
-                num_jobs=num_jobs,
-                show_progress=False,
-                seed=seed,
-                _progress_bar=progress_bar,
+            quantile_func_a = get_quantile_function(scores_a)
+            quantile_func_b = get_quantile_function(scores_b)
+            const = np.sqrt(
+                len(scores_a) * len(scores_b) / (len(scores_a) + len(scores_b))
             )
 
-            # Use ASO(A, B, alpha) = 1 - ASO(B, A, alpha)
-            if use_symmetry:
-                eps_min[j, i] = 1 - eps_min[i, j]
+            violation_ratio_ab = compute_violation_ratio(
+                scores_a,
+                scores_b,
+                dt,
+                quantile_func_a=quantile_func_a,
+                quantile_func_b=quantile_func_b,
+            )
+            violation_ratio_ba = (
+                1 - violation_ratio_ab
+            )  # Exploit symmetry of violation ratio here
+            samples_ab = get_bootstrapped_violation_ratios(
+                scores_a,
+                scores_b,
+                quantile_func_a,
+                quantile_func_b,
+                num_bootstrap_iterations,
+                dt,
+                num_jobs,
+                show_progress,
+                seed,
+                progress_bar,
+            )
+            samples_ab = np.array(samples_ab)
 
-            # Compute ASO(B, A, alpha) separately
-            else:
-                eps_min[i, j] = aso(
-                    scores_b,
-                    scores_a,
-                    confidence_level=confidence_level,
-                    num_samples=1000,  # TODO: Avoid double warning, remove in future version
-                    num_bootstrap_iterations=num_bootstrap_iterations,
-                    dt=dt,
-                    num_jobs=num_jobs,
-                    show_progress=False,
-                    seed=seed,
-                    _progress_bar=progress_bar,
-                )
+            # This quantity is the same for both, so we only have to compute it once
+            sigma_hat = np.std(const * (samples_ab - violation_ratio_ab))
+
+            # Compute eps_min and make sure it stays in [0, 1]
+            min_epsilon_ab = np.clip(
+                violation_ratio_ab
+                - (1 / const) * sigma_hat * normal.ppf(confidence_level),
+                0,
+                1,
+            )
+            min_epsilon_ba = np.clip(
+                violation_ratio_ba
+                - (1 / const) * sigma_hat * normal.ppf(confidence_level),
+                0,
+                1,
+            )
+
+            # Set values
+            eps_min[i, j] = min_epsilon_ab
+            eps_min[j, i] = min_epsilon_ba
 
     if type(scores) == dict and return_df:
         eps_min = pd.DataFrame(data=eps_min, index=list(scores.keys()))
@@ -306,7 +274,13 @@ def multi_aso(
     return eps_min
 
 
-def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -> float:
+def compute_violation_ratio(
+    scores_a: np.array,
+    scores_b: np.array,
+    dt: float,
+    quantile_func_a: Optional[Callable] = None,
+    quantile_func_b: Optional[Callable] = None,
+) -> float:
     """
     Compute the violation ration e_W2 (equation 4 + 5).
 
@@ -318,6 +292,10 @@ def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -
         Scores of algorithm B.
     dt: float
         Differential for t during integral calculation.
+    quantile_func_a: Optional[Callable]
+        Quantile function based on the first set of scores.
+    quantile_func_b: Optional[Callable]
+        Quantile function based on the second set of scores.
 
     Returns
     -------
@@ -326,8 +304,12 @@ def compute_violation_ratio(scores_a: np.array, scores_b: np.array, dt: float) -
     """
     squared_wasserstein_dist = 0
     int_violation_set = 0  # Integral over violation set A_X
-    quantile_func_a = get_quantile_function(scores_a)
-    quantile_func_b = get_quantile_function(scores_b)
+
+    if quantile_func_a is None:
+        quantile_func_a = get_quantile_function(scores_a)
+
+    if quantile_func_b is None:
+        quantile_func_b = get_quantile_function(scores_b)
 
     for p in np.arange(0, 1, dt):
         diff = quantile_func_b(p) - quantile_func_a(p)
@@ -374,49 +356,94 @@ def get_quantile_function(scores: np.array) -> Callable:
     return np.vectorize(_quantile_function)
 
 
-def _get_num_models(scores: ScoreCollection) -> int:
+def get_bootstrapped_violation_ratios(
+    scores_a: ArrayLike,
+    scores_b: ArrayLike,
+    quantile_func_a: Callable,
+    quantile_func_b: Callable,
+    num_bootstrap_iterations: int,
+    dt: float,
+    num_jobs: int,
+    show_progress: bool,
+    seed: Optional[int],
+    _progress_bar: Optional[tqdm],
+) -> List[float]:
     """
-    Retrieve the number of models from a ScoreCollection for multi_aso().
+    Retrieve violation ratios computed based on a number of bootstrap samples.
 
     Parameters
     ----------
-    scores: ScoreCollection
-        Collection of model scores. Should be either dictionary of model name to model scores, nested Python list,
-        2D numpy or Jax array, or 2D Tensorflow or PyTorch tensor.
+    scores_a: List[float]
+        Scores of algorithm A.
+    scores_b: List[float]
+        Scores of algorithm B.
+    quantile_func_a: Callable
+        Quantile function based on the first set of scores.
+    quantile_func_b: Callable
+        Quantile function based on the second set of scores.
+    num_bootstrap_iterations: int
+        Number of bootstrap iterations when estimating sigma.
+    dt: float
+        Differential for t during integral calculation.
+    num_jobs: int
+        Number of threads that bootstrap iterations are divided among.
+    show_progress: bool
+        Show progress bar. Default is True.
+    seed: Optional[int]
+        Set seed for reproducibility purposes. Default is None (meaning no seed is used).
+    _progress_bar: Optional[tqdm]
+        Hands over a progress bar object when called by multi_aso(). Only for internal use.
 
     Returns
     -------
-    int
-        Number of models.
+    List[float]
+        Bootstrapped violation ratios.
     """
-    # Python dictionary
-    if isinstance(scores, dict):
-        if len(scores) < 2:
-            raise ValueError(
-                "'scores' argument should contain at least two sets of scores, but only {} found.".format(
-                    len(scores)
-                )
-            )
+    # Add progress bar if applicable
+    if show_progress and _progress_bar is None:
+        iters = tqdm(range(num_bootstrap_iterations), desc="Bootstrap iterations")
 
-        return len(scores)
+    # Shared progress bar when called from multi_aso()
+    elif _progress_bar is not None:
+        iters = _progress_iter(num_bootstrap_iterations, _progress_bar)
 
-    # (Nested) python list
-    elif isinstance(scores, list):
-        if not isinstance(scores[0], list):
-            raise TypeError(
-                "'scores' argument must be nested list of scores when Python lists are used, but elements of type {} "
-                "found".format(type(scores[0]).__name__)
-            )
+    else:
+        iters = range(num_bootstrap_iterations)
 
-        return len(scores)
-
-    # Numpy / Jax arrays, Tensorflow / PyTorch tensor
-    elif type(scores) in ALLOWED_TYPES:
-        scores = CONVERSIONS[type(scores)](scores)  # Convert to numpy array
-
-        return scores.shape[0]
-
-    raise TypeError(
-        "Invalid type for 'scores', should be nested Python list, dict, Jax / Numpy array or Tensorflow / PyTorch "
-        "tensor, '{}' found.".format(type(scores).__name__)
+    # Set seeds for different jobs if applicable
+    # "Sub-seeds" for jobs are just seed argument + job index
+    seeds = (
+        [None] * num_bootstrap_iterations
+        if seed is None
+        else [seed + offset for offset in range(1, num_bootstrap_iterations + 1)]
     )
+
+    def _bootstrap_iter(seed: Optional[int] = None):
+        """
+        One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
+        """
+        # When running multiple jobs, these modules have to be re-imported for some reason to avoid an error
+        # Use dir() to check whether module is available in local scope:
+        # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
+        if "numpy" not in dir() or "deepsig" not in dir():
+            import numpy as np
+            from deepsig.aso import compute_violation_ratio
+
+        if seed is not None:
+            np.random.seed(seed)
+
+        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, len(scores_a)))
+        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, len(scores_b)))
+        sample = compute_violation_ratio(
+            sampled_scores_a,
+            sampled_scores_b,
+            dt,
+        )
+
+        return sample
+
+    # Initialize worker pool and start iterations
+    parallel = Parallel(n_jobs=num_jobs)
+    samples = parallel(delayed(_bootstrap_iter)(seed) for seed, _ in zip(seeds, iters))
+
+    return samples
