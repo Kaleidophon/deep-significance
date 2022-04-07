@@ -75,6 +75,9 @@ class ASOTechnicalTests(unittest.TestCase):
         rho, _ = pearsonr(violation_ratios, inv_sqw_dists)
         self.assertGreaterEqual(rho, 0.85)
 
+    # TODO: Test computation of violation ratio with exact CDFs from scipy
+    # TODO: Test symmetry of violation ratio
+
     def test_get_quantile_function(self):
         """
         Test whether quantile function is working correctly. Values for normal distribution taken from
@@ -144,7 +147,6 @@ class MultiASOTests(unittest.TestCase):
 
     def setUp(self) -> None:
         self.aso_kwargs = {
-            "num_samples": 100,
             "num_bootstrap_iterations": 100,
             "num_jobs": 4,
         }
@@ -194,59 +196,6 @@ class MultiASOTests(unittest.TestCase):
             self.scores_numpy, seed=seed, use_bonferroni=False, **self.aso_kwargs
         )
         self.assertTrue(np.all(corrected_scores >= uncorrected_scores))
-
-    def test_symmetry(self):
-        """
-        Test flag that toggles the use of the symmetry property.
-        """
-        seed = 4321
-        asymmetric_scores = multi_aso(
-            self.scores_numpy, seed=seed, use_symmetry=False, **self.aso_kwargs
-        )
-        symmetric_scores = multi_aso(self.scores_numpy, seed=seed, **self.aso_kwargs)
-
-        self.assertTrue(
-            np.all(
-                np.tril(symmetric_scores, -1) == np.tril((1 - symmetric_scores).T, -1)
-            )
-        )
-        self.assertTrue(
-            np.any(
-                np.tril(asymmetric_scores, -1) == np.tril((1 - asymmetric_scores).T, -1)
-            )
-        )
-        self.assertTrue(
-            np.all(np.diag(symmetric_scores) == 1)
-        )  # Check all diagonals to be one
-        self.assertTrue(
-            np.all(np.diag(asymmetric_scores) == 1)
-        )  # Check all diagonals to be one
-
-        # Cover Mike's test case: https://github.com/Kaleidophon/deep-significance/issues/7
-        mikes_asymmetric_scores = multi_aso(
-            self.mikes_scores_dict, seed=seed, use_symmetry=False, **self.aso_kwargs
-        )
-        mikes_symmetric_scores = multi_aso(
-            self.mikes_scores_dict, seed=seed, **self.aso_kwargs
-        )
-        self.assertTrue(
-            np.all(
-                np.tril(mikes_symmetric_scores, -1)
-                == np.tril((1 - mikes_symmetric_scores).T, -1)
-            )
-        )
-        self.assertTrue(
-            np.any(
-                np.tril(mikes_asymmetric_scores, -1)
-                == np.tril((1 - mikes_asymmetric_scores).T, -1)
-            )
-        )
-        self.assertTrue(
-            np.all(np.diag(mikes_symmetric_scores) == 1)
-        )  # Check all diagonals to be one
-        self.assertTrue(
-            np.all(np.diag(mikes_asymmetric_scores) == 1)
-        )  # Check all diagonals to be one
 
     def test_result_df(self):
         """
@@ -335,64 +284,5 @@ class ASOSanityChecks(unittest.TestCase):
             list(sorted(min_epsilons)), min_epsilons
         )  # Make sure min_epsilon decreases
 
-    def test_dependency_on_samples(self):
-        """
-        Make sure that the minimum epsilon threshold decreases as we increase the number of samples.
-        """
-        min_epsilons = []
-        seed = 7890
-
-        for num_samples in [80, 1000, 8000]:
-            samples_normal2 = np.random.normal(
-                loc=0, scale=1.1, size=num_samples
-            )  # Scores for algorithm B
-            samples_normal1 = samples_normal2 + 1e-3
-
-            min_eps = aso(
-                samples_normal1,
-                samples_normal2,
-                num_bootstrap_iterations=100,
-                show_progress=False,
-                num_jobs=4,
-                seed=seed,
-            )
-            min_epsilons.append(min_eps)
-
-        self.assertEqual(
-            list(sorted(min_epsilons, reverse=True)), min_epsilons
-        )  # Make sure min_epsilon decreases
-
-    def test_symmetry(self):
-        """
-        Test whether ASO(A, B, alpha) = 1 - ASO(B, A, alpha) holds.
-        """
-        parameters = [
-            ((0, 0.5), (0, 1)),
-            ((-0.5, 0.1), (-0.6, 0.2)),
-            ((0.5, 0.21), (0.7, 0.1)),
-            ((0.1, 0.3), (0.2, 0.1)),
-        ]
-
-        for (loc1, scale1), (loc2, scale2) in parameters:
-            samples_normal1 = np.random.normal(
-                loc=loc1, scale=scale1, size=2000
-            )  # New scores for algorithm A
-            samples_normal2 = np.random.normal(
-                loc=loc2, scale=scale2, size=2000
-            )  # Scores for algorithm B
-
-            eps_min1 = aso(
-                samples_normal1,
-                samples_normal2,
-                show_progress=True,  # Show progress so travis CI build doesn't time out
-                num_jobs=4,
-                num_bootstrap_iterations=1000,
-            )
-            eps_min2 = aso(
-                samples_normal2,
-                samples_normal1,
-                show_progress=True,  # Show progress so travis CI build doesn't time out
-                num_jobs=4,
-                num_bootstrap_iterations=1000,
-            )
-            self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=0.2)
+    # TODO: Add Type I error test setup
+    # TODO: Add Type II error test setup
