@@ -352,6 +352,3 @@ class ASOSanityChecks(unittest.TestCase):
         self.assertEqual(
             list(sorted(min_epsilons)), min_epsilons
         )  # Make sure min_epsilon decreases
-
-    # TODO: Add Type I error test setup
-    # TODO: Add Type II error test setup
