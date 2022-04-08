@@ -8,7 +8,7 @@ from typing import List, Callable, Union, Optional
 from warnings import warn
 
 # EXT
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, wrap_non_picklable_objects
 from joblib.externals.loky import set_loky_pickler
 import numpy as np
 import pandas as pd
@@ -131,6 +131,7 @@ def aso(
         else [seed + offset for offset in range(1, num_bootstrap_iterations + 1)]
     )
 
+    @wrap_non_picklable_objects
     def _bootstrap_iter(seed: Optional[int] = None):
         """
         One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
