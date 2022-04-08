@@ -101,7 +101,7 @@ def aso(
         warn(
             "'confidence_level' was refactored in version 1.2.4 to be more intuitive and usually should be in the .95 -"
             f".99 range, but {confidence_level} was found.",
-            DeprecationWarning,
+            UserWarning,
         )
 
     violation_ratio = compute_violation_ratio(
@@ -210,7 +210,7 @@ def multi_aso(
         warn(
             "'confidence_level' was refactored in version 1.2.4 to be more intuitive and usually should be in the .95 -"
             f".99 range, but {confidence_level} was found.",
-            DeprecationWarning,
+            UserWarning,
         )
 
     num_models = _get_num_models(scores)
