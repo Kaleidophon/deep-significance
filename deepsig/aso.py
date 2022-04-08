@@ -27,7 +27,7 @@ set_loky_pickler("dill")  # Avoid weird joblib error with multi_aso
 def aso(
     scores_a: ArrayLike,
     scores_b: ArrayLike,
-    confidence_level: float = 0.99,
+    confidence_level: float = 0.95,
     num_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
     dt: float = 0.005,
@@ -55,7 +55,7 @@ def aso(
     scores_b: List[float]
         Scores of algorithm B.
     confidence_level: float
-        Desired confidence level of test. Set to 0.05 by default.
+        Desired confidence level of test. Set to 0.95 by default.
     num_samples: int
         Number of samples from the score distributions during every bootstrap iteration when estimating sigma.
     num_bootstrap_iterations: int
@@ -140,7 +140,7 @@ def aso(
 
 def multi_aso(
     scores: ScoreCollection,
-    confidence_level: float = 0.99,
+    confidence_level: float = 0.95,
     use_bonferroni: bool = True,
     use_symmetry: bool = True,
     num_samples: int = 1000,
@@ -162,7 +162,7 @@ def multi_aso(
         Collection of model scores. Should be either dictionary of model name to model scores, nested Python list,
         2D numpy or Jax array, or 2D Tensorflow or PyTorch tensor.
     confidence_level: float
-        Desired confidence level of test. Set to 0.05 by default.
+        Desired confidence level of test. Set to 0.95 by default.
     use_bonferroni: bool
         Indicate whether Bonferroni correction should be applied to confidence level in order to adjust for the number
         of comparisons. Default is True.
@@ -218,7 +218,8 @@ def multi_aso(
     eps_min = np.eye(num_models)  # Initialize score matrix
 
     if use_bonferroni:
-        confidence_level /= num_comparisons
+        # Increase the confidence level based in oder to mitigate the multiple comparisons problem
+        confidence_level += (1 - confidence_level) / num_comparisons
 
     # Iterate over simple indices or dictionary keys depending on type of scores argument
     indices = list(range(num_models)) if type(scores) != dict else list(scores.keys())

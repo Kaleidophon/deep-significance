@@ -3,6 +3,7 @@ Tests for deepsig.aso.py.
 """
 
 # STD
+from itertools import product
 import unittest
 
 # EXT
@@ -49,6 +50,29 @@ class ASOTechnicalTests(unittest.TestCase):
 
         with self.assertRaises(AssertionError):
             aso([1, 2, 3], [3, 4, 5], num_jobs=0, show_progress=False)
+
+    def test_argument_combos(self):
+        """
+        Try different combinations of inputs arguments for compute_violation_ratio().
+        """
+        scores_a = np.random.normal(size=5)
+        scores_b = np.random.normal(size=5)
+        quantile_func_a = norm.ppf
+        quantile_func_b = norm.ppf
+
+        # All of these should work
+        for kwarg1, kwarg2 in product(
+            [{"scores_a": scores_a}, {"quantile_func_a": quantile_func_a}],
+            [{"scores_b": scores_b}, {"quantile_func_b": quantile_func_b}],
+        ):
+            compute_violation_ratio(**{**kwarg1, **kwarg2})
+
+        # These should create errors
+        with self.assertRaises(AssertionError):
+            compute_violation_ratio(scores_a=scores_a, quantile_func_a=quantile_func_a)
+
+        with self.assertRaises(AssertionError):
+            compute_violation_ratio(scores_b=scores_b, quantile_func_b=quantile_func_b)
 
     def test_compute_violation_ratio_correlation(self):
         """
@@ -116,21 +140,19 @@ class ASOTechnicalTests(unittest.TestCase):
 
             # Check symmetries
             self.assertAlmostEqual(
-                violation_ratio_ab_exact, 1 - violation_ratio_ba_exact, delta=0.03
+                violation_ratio_ab_exact, 1 - violation_ratio_ba_exact, delta=0.05
             )
             self.assertAlmostEqual(
-                violation_ratio_ab_sampled, 1 - violation_ratio_ba_sampled, delta=0.03
+                violation_ratio_ab_sampled, 1 - violation_ratio_ba_sampled, delta=0.05
             )
 
             # Check closeness to exact value
             self.assertAlmostEqual(
-                violation_ratio_ab_exact, violation_ratio_ab_sampled, delta=0.03
+                violation_ratio_ab_exact, violation_ratio_ab_sampled, delta=0.05
             )
             self.assertAlmostEqual(
-                violation_ratio_ba_exact, violation_ratio_ba_sampled, delta=0.03
+                violation_ratio_ba_exact, violation_ratio_ba_sampled, delta=0.05
             )
-
-    # TODO: Test supplying different constellations of input args to the functions
 
     def test_get_quantile_function(self):
         """
