@@ -3,6 +3,7 @@ Tests for deepsig.aso.py.
 """
 
 # STD
+from itertools import product
 import unittest
 
 # EXT
@@ -11,7 +12,7 @@ import torch
 import tensorflow as tf
 
 # import jax.numpy as jnp
-from scipy.stats import wasserstein_distance, pearsonr
+from scipy.stats import wasserstein_distance, pearsonr, norm, laplace, rayleigh
 
 # PKG
 from deepsig.aso import (
@@ -42,12 +43,6 @@ class ASOTechnicalTests(unittest.TestCase):
             aso([3, 4], [])
 
         with self.assertRaises(AssertionError):
-            aso([1, 2, 3], [3, 4, 5], num_samples=-1, show_progress=False)
-
-        with self.assertRaises(AssertionError):
-            aso([1, 2, 3], [3, 4, 5], num_samples=0, show_progress=False)
-
-        with self.assertRaises(AssertionError):
             aso([1, 2, 3], [3, 4, 5], num_bootstrap_iterations=-1, show_progress=False)
 
         with self.assertRaises(AssertionError):
@@ -56,7 +51,30 @@ class ASOTechnicalTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             aso([1, 2, 3], [3, 4, 5], num_jobs=0, show_progress=False)
 
-    def test_compute_violation_ratio(self):
+    def test_argument_combos(self):
+        """
+        Try different combinations of inputs arguments for compute_violation_ratio().
+        """
+        scores_a = np.random.normal(size=5)
+        scores_b = np.random.normal(size=5)
+        quantile_func_a = norm.ppf
+        quantile_func_b = norm.ppf
+
+        # All of these should work
+        for kwarg1, kwarg2 in product(
+            [{"scores_a": scores_a}, {"quantile_func_a": quantile_func_a}],
+            [{"scores_b": scores_b}, {"quantile_func_b": quantile_func_b}],
+        ):
+            compute_violation_ratio(**{**kwarg1, **kwarg2})
+
+        # These should create errors
+        with self.assertRaises(AssertionError):
+            compute_violation_ratio(scores_a=scores_a, quantile_func_a=quantile_func_a)
+
+        with self.assertRaises(AssertionError):
+            compute_violation_ratio(scores_b=scores_b, quantile_func_b=quantile_func_b)
+
+    def test_compute_violation_ratio_correlation(self):
         """
         Test whether violation ratio is being computed correctly.
         """
@@ -80,6 +98,61 @@ class ASOTechnicalTests(unittest.TestCase):
         # whether it is positively correlated with the inverse squared 1-Wasserstein distance computed via scipy
         rho, _ = pearsonr(violation_ratios, inv_sqw_dists)
         self.assertGreaterEqual(rho, 0.85)
+
+    def test_compute_violation_ratio_exact(self):
+        """
+        Test the value of the violation ratio given some exact CDFs.
+        """
+        test_dists = [
+            (
+                np.random.normal,
+                norm.ppf,
+                {"loc": 0.275, "scale": 1.5},
+                {"loc": 0.25, "scale": 1},
+            ),
+            (
+                np.random.laplace,
+                laplace.ppf,
+                {"loc": 0.275, "scale": 1.5},
+                {"loc": 0.25, "scale": 1},
+            ),
+            (np.random.rayleigh, rayleigh.ppf, {"scale": 1.05}, {"scale": 1}),
+        ]
+
+        for sample_func, ppf, params_a, params_b in test_dists:
+            quantile_func_a = lambda x: ppf(x, **params_a)
+            quantile_func_b = lambda x: ppf(x, **params_b)
+            violation_ratio_ab_exact = compute_violation_ratio(
+                quantile_func_a=quantile_func_a, quantile_func_b=quantile_func_b
+            )
+            violation_ratio_ba_exact = compute_violation_ratio(
+                quantile_func_a=quantile_func_b, quantile_func_b=quantile_func_a
+            )
+
+            samples_a = sample_func(size=self.num_samples, **params_a)
+            samples_b = sample_func(size=self.num_samples, **params_b)
+            violation_ratio_ab_sampled = compute_violation_ratio(
+                scores_a=samples_a, scores_b=samples_b
+            )
+            violation_ratio_ba_sampled = compute_violation_ratio(
+                scores_a=samples_b, scores_b=samples_a
+            )
+
+            # Check symmetries
+            self.assertAlmostEqual(
+                violation_ratio_ab_exact, 1 - violation_ratio_ba_exact, delta=0.05
+            )
+            self.assertAlmostEqual(
+                violation_ratio_ab_sampled, 1 - violation_ratio_ba_sampled, delta=0.05
+            )
+
+            # Check closeness to exact value
+            self.assertAlmostEqual(
+                violation_ratio_ab_exact, violation_ratio_ab_sampled, delta=0.05
+            )
+            self.assertAlmostEqual(
+                violation_ratio_ba_exact, violation_ratio_ba_sampled, delta=0.05
+            )
 
     def test_get_quantile_function(self):
         """
@@ -150,9 +223,9 @@ class MultiASOTests(unittest.TestCase):
 
     def setUp(self) -> None:
         self.aso_kwargs = {
-            "num_samples": 100,
             "num_bootstrap_iterations": 100,
-            "num_jobs": 2,
+            "num_jobs": 4,
+            "show_progress": False,
         }
         self.num_models = 3
         self.num_seeds = 100
@@ -163,13 +236,6 @@ class MultiASOTests(unittest.TestCase):
         ]
         self.scores_dict = {
             "model{}".format(i): scores for i, scores in enumerate(self.scores)
-        }
-        # Test case based on https://github.com/Kaleidophon/deep-significance/issues/7
-        self.mikes_scores_dict = {
-            "x": np.array([59.13, 58.03, 59.18, 58.78, 58.5]),
-            "y": np.array([58.13, 59.19, 59.94, 60.08, 59.85]),
-            "z": np.array([58.77, 58.86, 59.58, 59.59, 59.64]),
-            "w": np.array([58.16, 58.49, 59.87, 58.94, 58.96]),
         }
         self.scores_numpy = np.array(self.scores)
         self.scores_torch = torch.from_numpy(self.scores_numpy)
@@ -201,59 +267,6 @@ class MultiASOTests(unittest.TestCase):
         )
         self.assertTrue(np.all(corrected_scores >= uncorrected_scores))
 
-    def test_symmetry(self):
-        """
-        Test flag that toggles the use of the symmetry property.
-        """
-        seed = 4321
-        asymmetric_scores = multi_aso(
-            self.scores_numpy, seed=seed, use_symmetry=False, **self.aso_kwargs
-        )
-        symmetric_scores = multi_aso(self.scores_numpy, seed=seed, **self.aso_kwargs)
-
-        self.assertTrue(
-            np.all(
-                np.tril(symmetric_scores, -1) == np.tril((1 - symmetric_scores).T, -1)
-            )
-        )
-        self.assertTrue(
-            np.any(
-                np.tril(asymmetric_scores, -1) == np.tril((1 - asymmetric_scores).T, -1)
-            )
-        )
-        self.assertTrue(
-            np.all(np.diag(symmetric_scores) == 1)
-        )  # Check all diagonals to be one
-        self.assertTrue(
-            np.all(np.diag(asymmetric_scores) == 1)
-        )  # Check all diagonals to be one
-
-        # Cover Mike's test case: https://github.com/Kaleidophon/deep-significance/issues/7
-        mikes_asymmetric_scores = multi_aso(
-            self.mikes_scores_dict, seed=seed, use_symmetry=False, **self.aso_kwargs
-        )
-        mikes_symmetric_scores = multi_aso(
-            self.mikes_scores_dict, seed=seed, **self.aso_kwargs
-        )
-        self.assertTrue(
-            np.all(
-                np.tril(mikes_symmetric_scores, -1)
-                == np.tril((1 - mikes_symmetric_scores).T, -1)
-            )
-        )
-        self.assertTrue(
-            np.any(
-                np.tril(mikes_asymmetric_scores, -1)
-                == np.tril((1 - mikes_asymmetric_scores).T, -1)
-            )
-        )
-        self.assertTrue(
-            np.all(np.diag(mikes_symmetric_scores) == 1)
-        )  # Check all diagonals to be one
-        self.assertTrue(
-            np.all(np.diag(mikes_asymmetric_scores) == 1)
-        )  # Check all diagonals to be one
-
     def test_result_df(self):
         """
         Test the creation of a results DataFrame.
@@ -276,7 +289,7 @@ class ASOSanityChecks(unittest.TestCase):
 
     def setUp(self) -> None:
         self.num_samples = 1000
-        self.num_bootstrap_iters = 500
+        self.num_bootstrap_iters = 1000
 
     def test_extreme_cases(self):
         """
@@ -295,7 +308,7 @@ class ASOSanityChecks(unittest.TestCase):
             samples_normal1 + 1e-8,
             num_bootstrap_iterations=self.num_bootstrap_iters,
             show_progress=False,
-            num_jobs=2,
+            num_jobs=4,
         )
         self.assertAlmostEqual(eps_min, 1, delta=0.001)
 
@@ -308,13 +321,13 @@ class ASOSanityChecks(unittest.TestCase):
             samples_normal2,
             num_bootstrap_iterations=self.num_bootstrap_iters,
             show_progress=False,
-            num_jobs=2,
+            num_jobs=4,
         )
         self.assertAlmostEqual(eps_min2, 0, delta=0.01)
 
-    def test_dependency_on_alpha(self):
+    def test_dependency_on_confidence_level(self):
         """
-        Make sure that the minimum epsilon threshold increases as we increase the confidence level.
+        Make sure that the minimum epsilon threshold decreases as we increase the confidence level.
         """
         samples_normal1 = np.random.normal(
             loc=0.1, size=self.num_samples
@@ -325,14 +338,14 @@ class ASOSanityChecks(unittest.TestCase):
 
         min_epsilons = []
         seed = 6666
-        for alpha in np.arange(0.8, 0.1, -0.1):
+        for confidence_level in np.arange(0.1, 0.8, 0.1):
             min_eps = aso(
                 samples_normal1,
                 samples_normal2,
-                confidence_level=alpha,
+                confidence_level=confidence_level,
                 num_bootstrap_iterations=100,
                 show_progress=False,
-                num_jobs=2,
+                num_jobs=4,
                 seed=seed,
             )
             min_epsilons.append(min_eps)
@@ -340,65 +353,3 @@ class ASOSanityChecks(unittest.TestCase):
         self.assertEqual(
             list(sorted(min_epsilons)), min_epsilons
         )  # Make sure min_epsilon decreases
-
-    def test_dependency_on_samples(self):
-        """
-        Make sure that the minimum epsilon threshold decreases as we increase the number of samples.
-        """
-        min_epsilons = []
-        seed = 7890
-
-        for num_samples in [80, 1000, 8000]:
-            samples_normal2 = np.random.normal(
-                loc=0, scale=1.1, size=num_samples
-            )  # Scores for algorithm B
-            samples_normal1 = samples_normal2 + 1e-3
-
-            min_eps = aso(
-                samples_normal1,
-                samples_normal2,
-                num_bootstrap_iterations=100,
-                show_progress=False,
-                num_jobs=2,
-                seed=seed,
-            )
-            min_epsilons.append(min_eps)
-
-        self.assertEqual(
-            list(sorted(min_epsilons, reverse=True)), min_epsilons
-        )  # Make sure min_epsilon decreases
-
-    def test_symmetry(self):
-        """
-        Test whether ASO(A, B, alpha) = 1 - ASO(B, A, alpha) holds.
-        """
-        parameters = [
-            ((0, 0.5), (0, 1)),
-            ((-0.5, 0.1), (-0.6, 0.2)),
-            ((0.5, 0.21), (0.7, 0.1)),
-            ((0.1, 0.3), (0.2, 0.1)),
-        ]
-
-        for (loc1, scale1), (loc2, scale2) in parameters:
-            samples_normal1 = np.random.normal(
-                loc=loc1, scale=scale1, size=2000
-            )  # New scores for algorithm A
-            samples_normal2 = np.random.normal(
-                loc=loc2, scale=scale2, size=2000
-            )  # Scores for algorithm B
-
-            eps_min1 = aso(
-                samples_normal1,
-                samples_normal2,
-                show_progress=True,  # Show progress so travis CI build doesn't time out
-                num_jobs=2,
-                num_bootstrap_iterations=1000,
-            )
-            eps_min2 = aso(
-                samples_normal2,
-                samples_normal1,
-                show_progress=True,  # Show progress so travis CI build doesn't time out
-                num_jobs=2,
-                num_bootstrap_iterations=1000,
-            )
-            self.assertAlmostEqual(eps_min1, 1 - eps_min2, delta=0.2)

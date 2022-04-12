@@ -47,8 +47,8 @@ Reinforcement Learning (Henderson et al., 2018) and Computer Vision (Borji, 2017
 
 To help mitigate this problem, this package supplies fully-tested re-implementations of useful functions for significance
 testing:
-* Statistical Significance tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron & Tibshirani, 1994) and 
-  permutation-randomization (Noreen, 1989).
+* Statistical Significance tests such as Almost Stochastic Order (del Barrio et al, 2017; Dror et al., 2019), 
+  bootstrap (Efron & Tibshirani, 1994) and permutation-randomization (Noreen, 1989).
 * Bonferroni correction methods for multiplicity in datasets (Bonferroni, 1936). 
 * Bootstrap power analysis (Yuan & Hayashi, 2003) and other functions to determine the right sample size.
 
@@ -74,52 +74,55 @@ Another option is to clone the repository and install the package locally:
 
 ---
 **tl;dr**: Use `aso()` to compare scores for two models. If the returned `eps_min < 0.5`, A is better than B. The lower
-`eps_min`, the more confident the result. 
+`eps_min`, the more confident the result (we recommend to check `eps_min < 0.2` and record `eps_min` alongside 
+experimental results). 
 
 :warning: Testing models with only one set of hyperparameters and only one test set will be able to guarantee superiority
 in all settings. See [General Recommendations & other notes](#general-recommendations).
 
 ---
 
-In the following, I will lay out three scenarios that describe common use cases for ML practitioners and how to apply 
+In the following, we will lay out three scenarios that describe common use cases for ML practitioners and how to apply 
 the methods implemented in this package accordingly. For an introduction into statistical hypothesis testing, please
 refer to resources such as [this blog post](https://machinelearningmastery.com/statistical-hypothesis-tests/) for a general
 overview or [Dror et al. (2018)](https://www.aclweb.org/anthology/P18-1128.pdf) for a NLP-specific point of view. 
 
-In general, in statistical significance testing, we usually compare two algorithms $A$ and $B$ on a dataset $X$ using 
-some evaluation metric $\mathcal{M}$ (we assume a higher = better). The difference between the two algorithms on the 
-data is then defined as 
+We assume that we have two sets of scores we would like to compare, $\mathbb{S}_\mathbb{A}$ and $\mathbb{S}_\mathbb{B}$,
+for instance obtained by running two models $\mathbb{A}$ and $\mathbb{B}$ multiple times with a different random seed. 
+We can then define a one-sided test statistic  $\delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})$ based on the gathered observations. 
+An example of such test statistics is for instance the difference in observation means. We then formulate the following null-hypothesis:
 
 $$
-\delta(X) = \mathcal{M}(A, X) - \mathcal{M}(B, X)
+H_0: \delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B}) \le 0
 $$
 
-where $\delta(X)$ is our test statistic. We then test the following **null hypothesis**:
+That means that we actually assume the opposite of our desired case, namely that $\mathbb{A}$ is not better than $\mathbb{B}$, 
+but equally as good or worse, as indicated by the value of the test statistic. 
+Usually, the goal becomes to reject this null hypothesis using the SST. 
+*p*-value testing is a frequentist method in the realm of SST. 
+It introduces the notion of data that *could have been observed* if we were to repeat our experiment again using 
+the same conditions, which we will write with superscript $\text{rep}$ in order to distinguish them from our actually 
+observed scores (Gelman et al., 2021). 
+We then define the *p*-value as the probability that, under the null hypothesis, the test statistic using replicated 
+observation is larger than or equal to the *observed* test statistic:
 
 $$
-H_0: \delta(X) \le 0
+p(\delta(\mathbb{S}_\mathbb{A}^\text{rep}, \mathbb{S}_\mathbb{B}^\text{rep}) \ge \delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})|H_0)
 $$
 
-Thus, we assume our algorithm A to be equally as good or worse than algorithm B and reject the null hypothesis if A 
-is better than B (what we actually would like to see). Most statistical significance tests operate using 
-*p-values*, which define the probability that under the null-hypothesis, the $\delta(X)$ expected by the test is larger than or
-equal to the observed difference $\delta_{\text{obs}}$ (that is, for a one-sided test, i.e. we assume A to be better than B):
-
-$$
-P(\delta(X) \ge \delta_\text{obs}| H_0)
-$$
-
-We can interpret this equation as follows: Assuming that A is *not* better than B, the test assumes a corresponding distribution
-of differences that $\delta(X)$ is drawn from. How does our actually observed difference $\delta_\text{obs}$ fit in there?
-This is what the p-value is expressing: If this probability is high, $\delta_\text{obs}$ is in line with what we expected under 
-the null hypothesis, so we conclude A not to better than B. If the 
-probability is low, that means that $\delta_\text{obs}$ is quite unlikely under the null hypothesis and that the reverse 
-case is more likely - i.e. that it is 
-likely *larger* than $\delta(X)$ - and we conclude that A is indeed better than B. Note that **the p-value does not 
-express whether the null hypothesis is true**.
-
-To decide when we trust A to be better than B, we set a threshold that will determine when the p-value is small enough 
-for us to reject the null hypothesis, this is called the significance level $\alpha$ and it is often set to be 0.05.
+We can interpret this expression as follows: Assuming that $\mathbb{A}$ is not better than $\mathbb{B}$, the test 
+assumes a corresponding distribution of statistics that $\delta$ is drawn from. So how does the observed test statistic 
+$\delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})$ fit in here? This is what the $p$-value expresses: When the 
+probability is high, $\delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})$ is in line with what we expected under the 
+null hypothesis, so we can *not* reject the null hypothesis, or in other words, we \emph{cannot} conclude 
+$\mathbb{A}$ to be better than $\mathbb{B}$. If the probability is low, that means that the observed 
+$\delta(\mathbb{S}, \mathbb{S}_\mathbb{B})$ is quite unlikely under the null hypothesis and that the reverse case is 
+more likely - i.e. that it is likely larger than - and we conclude that $\mathbb{A}$ is indeed better than 
+$\mathbb{B}$. Note that **the $p$-value does not express whether the null hypothesis is true**. To make our decision 
+about whether or not to reject the null hypothesis, we typically determine a threshold - the significance level 
+$\alpha$, often set to 0.05 - that the *p*-value has to fall below. However, it has been argued that a better practice 
+involves reporting the *p*-value alongside the results without a pidgeonholing of results into significant and non-significant
+(Wasserstein et al., 2019).
 
 
 ### Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks
@@ -127,8 +130,8 @@ for us to reject the null hypothesis, this is called the significance level $\al
 Deep neural networks are highly non-linear models, having their performance highly dependent on hyperparameters, random 
 seeds and other (stochastic) factors. Therefore, comparing the means of two models across several runs might not be 
 enough to decide if a model A is better than B. In fact, **even aggregating more statistics like standard deviation, minimum
-or maximum might not be enough** to make a decision. For this reason, Dror et al. (2019) introduced *Almost Stochastic 
-Order* (ASO), a test to compare two score distributions. 
+or maximum might not be enough** to make a decision. For this reason, del Barrio et al. (2017) and Dror et al. (2019) 
+introduced *Almost Stochastic Order* (ASO), a test to compare two score distributions. 
 
 It builds on the concept of *stochastic order*: We can compare two distributions and declare one as *stochastically dominant*
 by comparing their cumulative distribution functions: 
@@ -138,21 +141,22 @@ by comparing their cumulative distribution functions:
 Here, the CDF of A is given in red and in green for B. If the CDF of A is lower than B for every $x$, we know the 
 algorithm A to score higher. However, in practice these cases are rarely so clear-cut (imagine e.g. two normal 
 distributions with the same mean but different variances).
-For this reason, Dror et al. (2019) consider the notion of *almost stochastic dominance* by quantifying the extent to 
-which stochastic order is being violated (red area):
+For this reason, del Barrio et al. (2017) and Dror et al. (2019) consider the notion of *almost stochastic dominance* 
+by quantifying the extent to which stochastic order is being violated (red area):
 
 ![](img/aso.png)
 
-ASO returns a value $\epsilon_\text{min}$, which expresses the amount of violation of stochastic order. If 
-$\epsilon_\text{min} < 0.5$, A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as 
+ASO returns a value $\epsilon_\text{min}$, which expresses (an upper bound to) the amount of violation of stochastic order. If 
+$\epsilon_\text{min} < \tau$ (where \tau is 0.5 or less), A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as 
 superior. We can also interpret $\epsilon_\text{min}$ as a *confidence score*. The lower it is, the more sure we can be 
 that A is better than B. Note: **ASO does not compute p-values.** Instead, the null hypothesis formulated as 
 
 $$
-H_0: \epsilon_\text{min} \ge 0.5
+H_0: \epsilon_\text{min} \ge \tau
 $$
 
-If we want to be more confident about the result of ASO, we can also set the rejection threshold to be lower than 0.5.
+If we want to be more confident about the result of ASO, we can also set the rejection threshold to be lower than 0.5 
+(see the discussion in [this section](#general-recommendations)).
 Furthermore, the significance level $\alpha$ is determined as an input argument when running ASO and actively influence 
 the resulting $\epsilon_\text{min}$.
 
@@ -325,7 +329,7 @@ score. Below lists some example snippets reporting the results of scenarios 1 an
 
     We compared all pairs of models based on five random seeds each using ASO with a confidence level of 
     $\alpha = 0.05$ (before adjusting for all pair-wise comparisons using the Bonferroni correction). Almost stochastic 
-    dominance ($\epsilon_\text{min} < 0.5)$ is indicated in table X.
+    dominance ($\epsilon_\text{min} < \tau$ with $\tau = 0.2$) is indicated in table X.
 
 ### :control_knobs: Sample size
 
@@ -448,10 +452,14 @@ as many scores as possible should be collected, especially if the variance betwe
   Because this is usually infeasible in practice, Bouthilier et al. (2020) recommend to **vary all other sources of variation**
   between runs to obtain the most trustworthy estimate of the "true" performance, such as data shuffling, weight initialization etc.
 
-* `num_samples` and `num_bootstrap_iterations` can be reduced to increase the speed of `aso()`. However, this is not 
+* `num_bootstrap_iterations` can be reduced to increase the speed of `aso()`. However, this is not 
 recommended as the result of the test will also become less accurate. Technically, $\epsilon_\text{min}$ is a upper bound
   that becomes tighter with the number of samples and bootstrap iterations (del Barrio et al., 2017). Thus, increasing 
   the number of jobs with `num_jobs` instead is always preferred.
+  
+* While we could declare a model stochastically dominant with $\epsilon_\text{min} < 0.5$, we found this to have a comparatively high
+Type I error (false positives). Tests in our paper have shown that a more useful threshold that trades of Type I and 
+  Type II error between different scenarios might be $\tau = 0.2$.
   
 * Bootstrap and permutation-randomization are all non-parametric tests, i.e. they don't make any assumptions about 
 the distribution of our test metric. Nevertheless, they differ in their *statistical power*, which is defined as the probability
@@ -536,6 +544,9 @@ Dror, Rotem, Shlomov, Segev, and Reichart, Roi. "Deep dominance-how to properly 
 
 Efron, Bradley, and Robert J. Tibshirani. "An introduction to the bootstrap." CRC press, 1994.
 
+Andrew Gelman, John B Carlin, Hal S Stern, David B Dunson, Aki Vehtari, Donald B Rubin, John
+Carlin, Hal Stern, Donald Rubin, and David Dunson. Bayesian data analysis third edition, 2021.
+
 Henderson, Peter, et al. "Deep reinforcement learning that matters." Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 32. No. 1. 2018.
 
 Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein. "Visualizing the Loss Landscape of Neural Nets." NeurIPS 2018: 6391-6401
@@ -543,5 +554,8 @@ Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein. "Visualizing th
 Narang, Sharan, et al. "Do Transformer Modifications Transfer Across Implementations and Applications?." arXiv preprint arXiv:2102.11972 (2021).
 
 Noreen, Eric W. "Computer intensive methods for hypothesis testing: An introduction." Wiley, New York (1989).
+
+Ronald L Wasserstein, Allen L Schirm, and Nicole A Lazar. Moving to a world beyond “p< 0.05”,
+2019
 
 Yuan, Ke‐Hai, and Kentaro Hayashi. "Bootstrap approach to inference and power analysis based on three test statistics for covariance structure models." British Journal of Mathematical and Statistical Psychology 56.1 (2003): 93-110.
