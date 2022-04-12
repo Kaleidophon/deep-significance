@@ -171,12 +171,15 @@ We can now simply apply the ASO test:
 import numpy as np
 from deepsig import aso
 
+seed = 1234
+np.random.seed(seed)
+
 # Simulate scores
 N = 5  # Number of random seeds
 my_model_scores = np.random.normal(loc=0.9, scale=0.8, size=N)
 baseline_scores = np.random.normal(loc=0, scale=1, size=N)
 
-min_eps = aso(my_model_scores, baseline_scores)  # min_eps = 0.0, so A is better
+min_eps = aso(my_model_scores, baseline_scores, seed=seed)  # min_eps = 0.225, so A is better
 ```
 
 Note that ASO **does not make any assumptions about the distributions of the scores**. 
@@ -197,6 +200,9 @@ which corresponds to the Bonferroni correction (Bonferroni et al., 1936):
 import numpy as np
 from deepsig import aso 
 
+seed = 1234
+np.random.seed(seed)
+
 # Simulate scores for three datasets
 M = 3  # Number of datasets
 N = 5  # Number of random seeds
@@ -204,8 +210,8 @@ my_model_scores_per_dataset = [np.random.normal(loc=0.3, scale=0.8, size=N) for 
 baseline_scores_per_dataset  = [np.random.normal(loc=0, scale=1, size=N) for _ in range(M)]
 
 # epsilon_min values with Bonferroni correction 
-eps_min = [aso(a, b, confidence_level=0.05 / M) for a, b in zip(my_model_scores_per_dataset, baseline_scores_per_dataset)]
-# eps_min = [0.1565800030782686, 1, 0.0]
+eps_min = [aso(a, b, confidence_level=0.95, num_comparisons=M, seed=seed) for a, b in zip(my_model_scores_per_dataset, baseline_scores_per_dataset)]
+# eps_min = [0.006370113450148568, 0.6534772728574852, 0.0]
 ```
 
 ### Scenario 3 - Comparing sample-level scores
@@ -224,6 +230,9 @@ from itertools import product
 import numpy as np
 from deepsig import aso 
 
+seed = 1234
+np.random.seed(seed)
+
 # Simulate scores for three datasets
 M = 40   # Number of data points
 N = 3  # Number of random seeds
@@ -232,7 +241,9 @@ baseline_scored_samples_per_run = [np.random.normal(loc=0, scale=1, size=M) for 
 pairs = list(product(my_model_scored_samples_per_run, baseline_scored_samples_per_run))
 
 # epsilon_min values with Bonferroni correction 
-eps_min = [aso(a, b, confidence_level=0.05 / len(pairs)) for a, b in pairs]
+eps_min = [aso(a, b, confidence_level=0.95, num_comparisons=len(pairs), seed=seed) for a, b in pairs]
+# eps_min = [0.3831678636198528, 0.07194780234194881, 0.9152792807128325, 0.5273463008857844, 0.14946944524461184, 1.0, 
+# 0.6099543280369378, 0.22387448804041898, 1.0]
 ```
 
 ### Scenario 4 - Comparing more than two models 
@@ -263,6 +274,9 @@ Let's look at an example:
 ```python 
 import numpy as np 
 from deepsig import multi_aso 
+
+seed = 1234
+np.random.seed(seed)
  
 N = 5  # Number of random seeds
 M = 3  # Number of different models / algorithms
@@ -271,20 +285,19 @@ M = 3  # Number of different models / algorithms
 # Here, we will sample from N(0.1, 0.8), N(0.15, 0.8), N(0.2, 0.8)
 my_models_scores = np.array([np.random.normal(loc=loc, scale=0.8, size=N) for loc in np.arange(0.1, 0.1 + 0.05 * M, step=0.05)])
 
-eps_min = multi_aso(my_models_scores, confidence_level=0.05)
+eps_min = multi_aso(my_models_scores, confidence_level=0.95, seed=seed)
     
 # eps_min =
-# array([[1., 1., 1.],
-#        [0., 1., 1.],
-#        [0., 0., 1.]])
+# array([[1.       , 0.92621655, 1.        ],
+#       [1.        , 1.        , 1.        ],
+#       [0.82081635, 0.73048716, 1.        ]])
 ```
 
 In the example, `eps_min` is now a matrix, containing the $\epsilon_\text{min}$ score between all pairs of models (for 
 the same model, it set to 1 by default). The matrix is always to be read as ASO(row, column).
 
 The function applies the bonferroni correction for multiple comparisons by 
-default, but this can be turned off by using `use_bonferroni=False`. In order to save compute, the above symmetry
-property is used as well, but this can also be disabled by `use_symmetry=False`.
+default, but this can be turned off by using `use_bonferroni=False`.
 
 Lastly, when the `scores` argument is a dictionary and the function is called with `return_df=True`, the resulting matrix is 
 given as a `pandas.DataFrame` for increased readability:
@@ -292,6 +305,9 @@ given as a `pandas.DataFrame` for increased readability:
 ```python 
 import numpy as np 
 from deepsig import multi_aso 
+
+seed = 1234
+np.random.seed(seed)
  
 N = 5  # Number of random seeds
 M = 3  # Number of different models / algorithms
@@ -308,14 +324,14 @@ my_models_scores = {
 #   ...
 # }
 
-eps_min = multi_aso(my_models_scores, confidence_level=0.05, return_df=True)
+eps_min = multi_aso(my_models_scores, confidence_level=0.95, return_df=True, seed=seed)
     
 # This is now a DataFrame!
 # eps_min =
-#           model 1   model 2  model 3
-# model 1       1.0       1.0      1.0
-# model 2       0.0       1.0      1.0
-# model 3       1.0       0.0      1.0
+#          model 1   model 2  model 3
+# model 1  1.000000  0.926217      1.0
+# model 2  1.000000  1.000000      1.0
+# model 3  0.820816  0.730487      1.0
 
 ```
 
@@ -398,11 +414,11 @@ from deepsig import aso
 import numpy as np
 from timeit import timeit
 
-a = np.random.normal(size=5)
-b = np.random.normal(size=5)
+a = np.random.normal(size=1000)
+b = np.random.normal(size=1000)
 
-print(timeit(lambda: aso(a, b, num_jobs=1, show_progress=False), number=5))  # 146.6909574989986
-print(timeit(lambda: aso(a, b, num_jobs=4, show_progress=False), number=5))  # 50.416724971000804
+print(timeit(lambda: aso(a, b, num_jobs=1, show_progress=False), number=5))  # 393.6318126
+print(timeit(lambda: aso(a, b, num_jobs=4, show_progress=False), number=5))  # 139.73514621799995n
 ```
 
 #### :electric_plug: Compatibility with PyTorch, Tensorflow, Jax & Numpy

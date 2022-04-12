@@ -28,6 +28,7 @@ def aso(
     scores_a: ArrayLike,
     scores_b: ArrayLike,
     confidence_level: float = 0.95,
+    num_comparisons: int = 1,
     num_samples: int = 1000,
     num_bootstrap_iterations: int = 1000,
     dt: float = 0.005,
@@ -56,6 +57,8 @@ def aso(
         Scores of algorithm B.
     confidence_level: float
         Desired confidence level of test. Set to 0.95 by default.
+    num_comparisons: int
+        Number of comparisons that the test is being used for. Is used to perform a Bonferroni correction.
     num_samples: int
         Number of samples from the score distributions during every bootstrap iteration when estimating sigma.
     num_bootstrap_iterations: int
@@ -88,6 +91,9 @@ def aso(
     assert num_jobs > 0, "Number of jobs has to be at least 1, {} found.".format(
         num_jobs
     )
+    assert (
+        num_comparisons > 0
+    ), "Number of comparisons has to be at least 1, {} found.".format(num_comparisons)
 
     # TODO: Remove in future version
     if num_samples != 1000:
@@ -100,9 +106,13 @@ def aso(
     if confidence_level < 0.95:
         warn(
             "'confidence_level' was refactored in version 1.2.4 to be more intuitive and usually should be in the .95 -"
-            f".99 range, but {confidence_level} was found.",
+            f".99 range, but {confidence_level} was found. If you tried to adjust the confidence level for multiple "
+            f"comparisons, try the new num_comparisons argument instead.",
             UserWarning,
         )
+
+    if num_comparisons > 1:
+        confidence_level += (1 - confidence_level) / num_comparisons
 
     violation_ratio = compute_violation_ratio(
         scores_a=scores_a, scores_b=scores_b, dt=dt
