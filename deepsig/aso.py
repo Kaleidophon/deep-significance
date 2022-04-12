@@ -8,7 +8,7 @@ from typing import List, Callable, Union, Optional
 from warnings import warn
 
 # EXT
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, wrap_non_picklable_objects
 from joblib.externals.loky import set_loky_pickler
 import numpy as np
 import pandas as pd
@@ -16,7 +16,11 @@ from scipy.stats import norm as normal
 from tqdm import tqdm
 
 # PKG
-from deepsig.conversion import ArrayLike, ScoreCollection, score_pair_conversion
+from deepsig.conversion import (
+    ArrayLike,
+    ScoreCollection,
+    score_pair_conversion,
+)
 from deepsig.utils import _progress_iter, _get_num_models
 
 # MISC
@@ -82,9 +86,6 @@ def aso(
     assert (
         len(scores_a) > 0 and len(scores_b) > 0
     ), "Both lists of scores must be non-empty."
-    assert num_samples > 0, "num_samples must be positive, {} found.".format(
-        num_samples
-    )
     assert (
         num_bootstrap_iterations > 0
     ), "num_samples must be positive, {} found.".format(num_bootstrap_iterations)
@@ -385,7 +386,7 @@ def get_quantile_function(scores: np.array) -> Callable:
     # When running multiple jobs via joblib, numpy has to be re-imported for some reason to avoid an error
     # Use dir() to check whether module is available in local scope:
     # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
-    if "numpy" not in dir():
+    if "np" not in dir():
         import numpy as np
 
     def _quantile_function(p: float) -> float:
@@ -393,7 +394,7 @@ def get_quantile_function(scores: np.array) -> Callable:
         num = len(scores)
         index = int(np.ceil(num * p))
 
-        return cdf[min(num - 1, max(0, index - 1))]
+        return cdf[np.clip(index - 1, 0, num - 1)]
 
     return np.vectorize(_quantile_function)
 
@@ -460,6 +461,7 @@ def get_bootstrapped_violation_ratios(
         else [seed + offset for offset in range(1, num_bootstrap_iterations + 1)]
     )
 
+    @wrap_non_picklable_objects
     def _bootstrap_iter(seed: Optional[int] = None):
         """
         One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.

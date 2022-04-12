@@ -225,6 +225,7 @@ class MultiASOTests(unittest.TestCase):
         self.aso_kwargs = {
             "num_bootstrap_iterations": 100,
             "num_jobs": 4,
+            "show_progress": False,
         }
         self.num_models = 3
         self.num_seeds = 100
