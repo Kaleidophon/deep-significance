@@ -54,7 +54,8 @@ testing:
 
 All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch / 
 Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation 
-[here](https://deep-significance.readthedocs.io/en/latest/) or the scenarios in the section [Examples](#examples).
+[here](https://deep-significance.readthedocs.io/en/latest/) , the scenarios in the section [Examples](#examples) or 
+the [demo Jupyter notebook](https://github.com/Kaleidophon/deep-significance/tree/main/paper/deep-significance%20demo.ipynb).
 
 ## :inbox_tray: Installation
 
