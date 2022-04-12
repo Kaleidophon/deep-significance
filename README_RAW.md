@@ -88,8 +88,8 @@ refer to resources such as [this blog post](https://machinelearningmastery.com/s
 overview or [Dror et al. (2018)](https://www.aclweb.org/anthology/P18-1128.pdf) for a NLP-specific point of view. 
 
 We assume that we have two sets of scores we would like to compare, $\mathbb{S}_\mathbb{A}$ and $\mathbb{S}_\mathbb{B}$,
-for instance obtained by running a model multiple times with a different random seed. We can then define a one-sided test statistic 
-$\delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})$ based on the gathered observations. 
+for instance obtained by running two models $\mathbb{A}$ and $\mathbb{B}$ multiple times with a different random seed. 
+We can then define a one-sided test statistic  $\delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})$ based on the gathered observations. 
 An example of such test statistics is for instance the difference in observation means. We then formulate the following null-hypothesis:
 
 $$
@@ -117,10 +117,10 @@ probability is high, $\delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})$ is i
 null hypothesis, so we can *not* reject the null hypothesis, or in other words, we \emph{cannot} conclude 
 $\mathbb{A}$ to be better than $\mathbb{B}$. If the probability is low, that means that the observed 
 $\delta(\mathbb{S}, \mathbb{S}_\mathbb{B})$ is quite unlikely under the null hypothesis and that the reverse case is 
-more likely -- i.e. that it is likely larger than -- and we conclude that $\mathbb{A}$ is indeed better than 
+more likely - i.e. that it is likely larger than - and we conclude that $\mathbb{A}$ is indeed better than 
 $\mathbb{B}$. Note that **the $p$-value does not express whether the null hypothesis is true**. To make our decision 
-about whether or not to reject the null hypothesis, we typically determine a threshold -- the significance level 
-$\alpha$, often set to 0.05 -- that the *p*-value has to fall below. However, it has been argued that a better practice 
+about whether or not to reject the null hypothesis, we typically determine a threshold - the significance level 
+$\alpha$, often set to 0.05 - that the *p*-value has to fall below. However, it has been argued that a better practice 
 involves reporting the *p*-value alongside the results without a pidgeonholing of results into significant and non-significant
 (Wasserstein et al., 2019).
 

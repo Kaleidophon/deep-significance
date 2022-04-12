@@ -88,8 +88,8 @@ refer to resources such as [this blog post](https://machinelearningmastery.com/s
 overview or [Dror et al. (2018)](https://www.aclweb.org/anthology/P18-1128.pdf) for a NLP-specific point of view. 
 
 We assume that we have two sets of scores we would like to compare, <img src="svgs/b7e817ab52abd984b082abaa1da6a8e4.svg?invert_in_darkmode" align=middle width=17.44287434999999pt height=22.648391699999998pt/> and <img src="svgs/d06f8d92c07734af06da289c13d2beed.svg?invert_in_darkmode" align=middle width=16.80361814999999pt height=22.648391699999998pt/>,
-for instance obtained by running a model multiple times with a different random seed. We can then define a one-sided test statistic 
-<img src="svgs/ae00ae93dc535f589522f8780b5aa275.svg?invert_in_darkmode" align=middle width=63.909690899999994pt height=24.65753399999998pt/> based on the gathered observations. 
+for instance obtained by running two models <img src="svgs/d41a53916d4850841d856bc8f5aa809a.svg?invert_in_darkmode" align=middle width=11.87217899999999pt height=22.648391699999998pt/> and <img src="svgs/f0e8ebc4201c3608138c518417f42ac4.svg?invert_in_darkmode" align=middle width=10.95894029999999pt height=22.648391699999998pt/> multiple times with a different random seed. 
+We can then define a one-sided test statistic  <img src="svgs/ae00ae93dc535f589522f8780b5aa275.svg?invert_in_darkmode" align=middle width=63.909690899999994pt height=24.65753399999998pt/> based on the gathered observations. 
 An example of such test statistics is for instance the difference in observation means. We then formulate the following null-hypothesis:
 
 <p align="center"><img src="svgs/00160c684b3af8ccefcdf19c69712e34.svg?invert_in_darkmode" align=middle width=128.7838134pt height=16.438356pt/></p>
@@ -113,10 +113,10 @@ probability is high, <img src="svgs/ae00ae93dc535f589522f8780b5aa275.svg?invert_
 null hypothesis, so we can *not* reject the null hypothesis, or in other words, we \emph{cannot} conclude 
 <img src="svgs/d41a53916d4850841d856bc8f5aa809a.svg?invert_in_darkmode" align=middle width=11.87217899999999pt height=22.648391699999998pt/> to be better than <img src="svgs/f0e8ebc4201c3608138c518417f42ac4.svg?invert_in_darkmode" align=middle width=10.95894029999999pt height=22.648391699999998pt/>. If the probability is low, that means that the observed 
 <img src="svgs/67ebeedcf8c4d1141331d07b2cef2b03.svg?invert_in_darkmode" align=middle width=54.77736824999999pt height=24.65753399999998pt/> is quite unlikely under the null hypothesis and that the reverse case is 
-more likely -- i.e. that it is likely larger than -- and we conclude that <img src="svgs/d41a53916d4850841d856bc8f5aa809a.svg?invert_in_darkmode" align=middle width=11.87217899999999pt height=22.648391699999998pt/> is indeed better than 
+more likely - i.e. that it is likely larger than - and we conclude that <img src="svgs/d41a53916d4850841d856bc8f5aa809a.svg?invert_in_darkmode" align=middle width=11.87217899999999pt height=22.648391699999998pt/> is indeed better than 
 <img src="svgs/f0e8ebc4201c3608138c518417f42ac4.svg?invert_in_darkmode" align=middle width=10.95894029999999pt height=22.648391699999998pt/>. Note that **the <img src="svgs/2ec6e630f199f589a2402fdf3e0289d5.svg?invert_in_darkmode" align=middle width=8.270567249999992pt height=14.15524440000002pt/>-value does not express whether the null hypothesis is true**. To make our decision 
-about whether or not to reject the null hypothesis, we typically determine a threshold -- the significance level 
-<img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/>, often set to 0.05 -- that the *p*-value has to fall below. However, it has been argued that a better practice 
+about whether or not to reject the null hypothesis, we typically determine a threshold - the significance level 
+<img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/>, often set to 0.05 - that the *p*-value has to fall below. However, it has been argued that a better practice 
 involves reporting the *p*-value alongside the results without a pidgeonholing of results into significant and non-significant
 (Wasserstein et al., 2019).
 
