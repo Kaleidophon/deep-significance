@@ -4,6 +4,7 @@ Compare ASO against other significance tests and measure Type I and Type II erro
 
 # STD
 import argparse
+from itertools import product
 import os
 import pickle
 from typing import Dict, Callable, List, Tuple, Optional, Any
@@ -13,6 +14,7 @@ import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import ttest_ind, wilcoxon, mannwhitneyu
+import pandas as pd
 from tqdm import tqdm
 
 # PACKAGE
@@ -50,6 +52,9 @@ NUM_SIMULATIONS = {
     "Wilcoxon": 1000,
     "Mann-Whitney U": 1000,
 }
+P_VALUE_TRESHOLD = 0.05
+ASO_THRESHOLD = 0.2
+ALL_THRESHOLDS = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5]
 
 
 def test_type1_error(
@@ -58,7 +63,10 @@ def test_type1_error(
     num_simulations: Dict[str, int],
     dist_func: Callable = np.random.normal,
     dist_params: Dict[str, Any] = {"loc": 0, "scale": 1.5},
-    threshold: float = 0.05,
+    p_value_threshold: float = 0.05,
+    aso_threshold: float = 0.2,
+    all_thresholds: List[float] = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5],
+    y_lim: Optional[Tuple[float, float]] = None,
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
     save_dir: Optional[str] = None,
     plot: bool = True,
@@ -79,8 +87,12 @@ def test_type1_error(
         Distribution function that is used for sampling.
     dist_params: Dict[str, Any]
         Parameters of the distribution function.
-    threshold: float
+    p_value_threshold: float
         Threshold that test results has to fall below in order for significance to be claimed.
+    aso_threshold: float
+        Threshold that ASO test results has to fall below in order for significance to be claimed.
+    all_thresholds: List[float]
+        List of all threshold that Type I error will be computed and printed as a table for.
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]]
         Colors and markers corresponding to each test for plotting.
     save_dir: Optional[str]
@@ -141,7 +153,7 @@ def test_type1_error(
             test_name: [
                 (
                     np.array(simulation_results[test_name][sample_size])
-                    <= (threshold if test_name != "ASO" else 0.5)
+                    <= (p_value_threshold if test_name != "ASO" else aso_threshold)
                 )
                 .astype(float)
                 .mean()
@@ -156,6 +168,7 @@ def test_type1_error(
             y_label="Type I Error Rate",
             save_dir=save_dir,
             file_name="type1_rates",
+            y_lim=y_lim,
             colors_and_markers=colors_and_markers,
         )
 
@@ -170,6 +183,29 @@ def test_type1_error(
             colors_and_markers=colors_and_markers,
         )
 
+    # Creating a table
+    df = pd.DataFrame(
+        columns=tests.keys(),
+        index=pd.MultiIndex.from_tuples(
+            product(sample_sizes, all_thresholds, repeat=1),
+            names=["sample_size", "threshold"],
+        ),
+    )
+
+    for sample_size in sample_sizes:
+        for threshold in all_thresholds:
+            for test_name in tests:
+                df.at[(sample_size, threshold), test_name] = (
+                    (
+                        np.array(simulation_results[test_name][sample_size])
+                        <= (threshold if test_name != "ASO" else threshold)
+                    )
+                    .astype(float)
+                    .mean()
+                )
+
+    print(df.to_latex())
+
 
 def test_type2_error_sample_size(
     tests: Dict[str, Callable],
@@ -178,7 +214,10 @@ def test_type2_error_sample_size(
     dist_func: Callable = np.random.normal,
     dist1_params: Dict[str, Any] = {"loc": 0.5, "scale": 1.5},
     dist2_params: Dict[str, Any] = {"loc": 0, "scale": 1.5},
-    threshold: float = 0.05,
+    p_value_threshold: float = 0.05,
+    aso_threshold: float = 0.2,
+    all_thresholds: List[float] = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5],
+    y_lim: Optional[Tuple[float, float]] = None,
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
     save_dir: Optional[str] = None,
     plot: bool = True,
@@ -201,8 +240,12 @@ def test_type2_error_sample_size(
         Parameters of the first distribution function.
     dist2_params: Dict[str, Any]
         Parameters of the second distribution function.
-    threshold: float
+    p_value_threshold: float
         Threshold that test results has to fall below in order for significance to be claimed.
+    aso_threshold: float
+        Threshold that ASO test results has to fall below in order for significance to be claimed.
+    all_thresholds: List[float]
+        List of all threshold that Type I error will be computed and printed as a table for.
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]]
         Colors and markers corresponding to each test for plotting.
     save_dir: Optional[str]
@@ -256,14 +299,13 @@ def test_type2_error_sample_size(
             )
             return
 
-    # Plot Type I error rates as line plot
+    # Plot Type II error rates as line plot
     if plot or plot_from_pickle:
         y = {
             test_name: [
-                1
-                - (
+                (
                     np.array(simulation_results[test_name][sample_size])
-                    <= (threshold if test_name != "ASO" else 0.5)
+                    >= (p_value_threshold if test_name != "ASO" else aso_threshold)
                 )
                 .astype(float)
                 .mean()
@@ -277,6 +319,7 @@ def test_type2_error_sample_size(
             x_label="Sample Size",
             y_label="Type II Error Rate",
             save_dir=save_dir,
+            y_lim=y_lim,
             file_name="type2_rates",
             colors_and_markers=colors_and_markers,
         )
@@ -292,6 +335,26 @@ def test_type2_error_sample_size(
             colors_and_markers=colors_and_markers,
         )
 
+    # Creating a table
+    df = pd.DataFrame(
+        columns=tests.keys(),
+        index=pd.MultiIndex.from_tuples(
+            product(sample_sizes, all_thresholds, repeat=1),
+            names=["sample_size", "threshold"],
+        ),
+    )
+
+    for sample_size in sample_sizes:
+        for threshold in all_thresholds:
+            for test_name in tests:
+                df.at[(sample_size, threshold), test_name] = (
+                    (np.array(simulation_results[test_name][sample_size]) >= threshold)
+                    .astype(float)
+                    .mean()
+                )
+
+    print(df.to_latex())
+
 
 def test_type2_error_mean_difference(
     tests: Dict[str, Callable],
@@ -301,7 +364,10 @@ def test_type2_error_mean_difference(
     dist_func: Callable = np.random.normal,
     dist_params: Dict[str, Any] = {"loc": 0, "scale": 1.5},
     sample_size: int = 5,
-    threshold: float = 0.05,
+    p_value_threshold: float = 0.05,
+    aso_threshold: float = 0.2,
+    all_thresholds: List[float] = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5],
+    y_lim: Optional[Tuple[float, float]] = None,
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
     save_dir: Optional[str] = None,
     plot: bool = True,
@@ -327,8 +393,12 @@ def test_type2_error_mean_difference(
         Parameters of the distribution function.
     sample_size: int
         Number of samples for simulations.
-    threshold: float
+    p_value_threshold: float
         Threshold that test results has to fall below in order for significance to be claimed.
+    aso_threshold: float
+        Threshold that ASO test results has to fall below in order for significance to be claimed.
+    all_thresholds: List[float]
+        List of all threshold that Type I error will be computed and printed as a table for.
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]]
         Colors and markers corresponding to each test for plotting.
     save_dir: Optional[str]
@@ -390,10 +460,9 @@ def test_type2_error_mean_difference(
     if plot or plot_from_pickle:
         y = {
             test_name: [
-                1
-                - (
+                (
                     np.array(simulation_results[test_name][mean_difference])
-                    <= (threshold if test_name != "ASO" else 0.5)
+                    >= (p_value_threshold if test_name != "ASO" else aso_threshold)
                 )
                 .astype(float)
                 .mean()
@@ -407,6 +476,7 @@ def test_type2_error_mean_difference(
             x_label="Mean difference",
             y_label="Type II Error Rate",
             save_dir=save_dir,
+            y_lim=y_lim,
             file_name="type2_mean_rates",
             colors_and_markers=colors_and_markers,
         )
@@ -422,6 +492,26 @@ def test_type2_error_mean_difference(
             colors_and_markers=colors_and_markers,
         )
 
+    # Creating a table
+    df = pd.DataFrame(
+        columns=tests.keys(),
+        index=pd.MultiIndex.from_tuples(
+            product(mean_differences, all_thresholds, repeat=1),
+            names=["diff", "threshold"],
+        ),
+    )
+
+    for diff in mean_differences:
+        for threshold in all_thresholds:
+            for test_name in tests:
+                df.at[(diff, threshold), test_name] = (
+                    (np.array(simulation_results[test_name][diff]) >= threshold)
+                    .astype(float)
+                    .mean()
+                )
+
+    print(df.to_latex())
+
 
 def plot_lines(
     y: Dict[str, List[float]],
@@ -430,6 +520,7 @@ def plot_lines(
     y_label: str,
     save_dir: str,
     file_name: str,
+    y_lim: Optional[Tuple[float, float]] = None,
     colors_and_markers: Optional[Dict[str, Tuple[str, str]]] = None,
 ):
     """
@@ -476,7 +567,10 @@ def plot_lines(
         )
 
     ax = plt.gca()
-    # ax.set_ylim(0, 1)
+
+    if y_lim is not None:
+        ax.set_ylim(*y_lim)
+
     ax.yaxis.grid()
     plt.xticks(groups, [str(group) for group in groups])
     plt.xlabel(x_label)
@@ -617,16 +711,22 @@ if __name__ == "__main__":
             f"{SAVE_DIR}/rayleigh",
         ],
     ):
+        print(f"{'#' * 10} {dist_func.__name__} {'#' * 10}")
 
         if not os.path.exists(save_dir):
             os.mkdir(save_dir)
 
+        print("Type I error")
         test_type1_error(
             tests=CONSIDERED_TESTS,
             dist_func=dist_func,
             dist_params=dist2_params,
             sample_sizes=SAMPLE_SIZES,
+            p_value_threshold=P_VALUE_TRESHOLD,
+            aso_threshold=ASO_THRESHOLD,
+            all_thresholds=ALL_THRESHOLDS,
             colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
+            y_lim=(0, 0.12),
             save_dir=save_dir,
             num_simulations=NUM_SIMULATIONS,
             plot=args.plot,
@@ -634,12 +734,16 @@ if __name__ == "__main__":
         )
 
         if dist_func in (np.random.normal, normal_mixture):
+            print("Type II error sample size")
             test_type2_error_sample_size(
                 tests=CONSIDERED_TESTS,
                 dist_func=dist_func,
                 dist1_params=dist1_params,
                 dist2_params=dist2_params,
                 sample_sizes=SAMPLE_SIZES,
+                p_value_threshold=P_VALUE_TRESHOLD,
+                aso_threshold=ASO_THRESHOLD,
+                all_thresholds=ALL_THRESHOLDS,
                 colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
                 save_dir=save_dir,
                 num_simulations=NUM_SIMULATIONS,
@@ -647,12 +751,16 @@ if __name__ == "__main__":
                 plot_from_pickle=args.plot_from_pickle,
             )
 
+            print("Type II error mean differences")
             test_type2_error_mean_difference(
                 tests=CONSIDERED_TESTS,
                 dist_func=dist_func,
                 dist_params=dist2_params,
                 target_param=target_param,
                 mean_differences=MEAN_DIFFS,
+                p_value_threshold=P_VALUE_TRESHOLD,
+                aso_threshold=ASO_THRESHOLD,
+                all_thresholds=ALL_THRESHOLDS,
                 colors_and_markers=CONSIDERED_TEST_COLORS_MARKERS,
                 save_dir=save_dir,
                 num_simulations=NUM_SIMULATIONS,

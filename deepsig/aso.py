@@ -357,7 +357,7 @@ def get_quantile_function(scores: np.array) -> Callable:
         num = len(scores)
         index = int(np.ceil(num * p))
 
-        return cdf[min(num - 1, max(0, index - 1))]
+        return cdf[np.clip(index - 1, 0, num - 1)]
 
     return np.vectorize(_quantile_function)
 
