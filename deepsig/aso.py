@@ -64,7 +64,8 @@ def aso(
     num_comparisons: int
         Number of comparisons that the test is being used for. Is used to perform a Bonferroni correction.
     num_samples: int
-        Number of samples from the score distributions during every bootstrap iteration when estimating sigma.
+        DEPRECATED: Number of samples from the score distributions during every bootstrap iteration when estimating
+        sigma. Currently ignored, and will be deprecated in next major release.
     num_bootstrap_iterations: int
         Number of bootstrap iterations when estimating sigma.
     dt: float
@@ -178,11 +179,12 @@ def multi_aso(
         Indicate whether Bonferroni correction should be applied to confidence level in order to adjust for the number
         of comparisons. Default is True.
     use_symmetry: bool
-        Use the fact that ASO(A, B, alpha) = 1 - ASO(B, A, alpha)
+        DEPRECATED: Use the fact that ASO(A, B, alpha) = 1 - ASO(B, A, alpha)
         `del Barrio et al. (2018) <https://arxiv.org/pdf/1705.01788.pdf>`_ to save half of the computations. Default is
-        True.
+        True. Currently ignored, and will be deprecated in next major release.
     num_samples: int
-        Number of samples from the score distributions during every bootstrap iteration when estimating sigma.
+        DEPRECATED: Number of samples from the score distributions during every bootstrap iteration when estimating
+        sigma. Currently ignored, and will be deprecated in next major release.
     num_bootstrap_iterations: int
         Number of bootstrap iterations when estimating sigma.
     dt: float

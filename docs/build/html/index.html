@@ -667,7 +667,8 @@ violated. The more scores and the higher num_samples / num_bootstrap_iterations,
 </dd>
 <dt><strong>num_comparisons: int</strong></dt><dd><p>Number of comparisons that the test is being used for. Is used to perform a Bonferroni correction.</p>
 </dd>
-<dt><strong>num_samples: int</strong></dt><dd><p>Number of samples from the score distributions during every bootstrap iteration when estimating sigma.</p>
+<dt><strong>num_samples: int</strong></dt><dd><p>DEPRECATED: Number of samples from the score distributions during every bootstrap iteration when estimating
+sigma. Currently ignored, and will be deprecated in next major release.</p>
 </dd>
 <dt><strong>num_bootstrap_iterations: int</strong></dt><dd><p>Number of bootstrap iterations when estimating sigma.</p>
 </dd>
@@ -795,11 +796,12 @@ Bonferroni correction to confidence level by default, but can be disabled by use
 <dt><strong>use_bonferroni: bool</strong></dt><dd><p>Indicate whether Bonferroni correction should be applied to confidence level in order to adjust for the number
 of comparisons. Default is True.</p>
 </dd>
-<dt><strong>use_symmetry: bool</strong></dt><dd><p>Use the fact that ASO(A, B, alpha) = 1 - ASO(B, A, alpha)
+<dt><strong>use_symmetry: bool</strong></dt><dd><p>DEPRECATED: Use the fact that ASO(A, B, alpha) = 1 - ASO(B, A, alpha)
 <a class="reference external" href="https://arxiv.org/pdf/1705.01788.pdf">del Barrio et al. (2018)</a> to save half of the computations. Default is
-True.</p>
+True. Currently ignored, and will be deprecated in next major release.</p>
 </dd>
-<dt><strong>num_samples: int</strong></dt><dd><p>Number of samples from the score distributions during every bootstrap iteration when estimating sigma.</p>
+<dt><strong>num_samples: int</strong></dt><dd><p>DEPRECATED: Number of samples from the score distributions during every bootstrap iteration when estimating
+sigma. Currently ignored, and will be deprecated in next major release.</p>
 </dd>
 <dt><strong>num_bootstrap_iterations: int</strong></dt><dd><p>Number of bootstrap iterations when estimating sigma.</p>
 </dd>
