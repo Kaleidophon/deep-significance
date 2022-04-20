@@ -251,21 +251,7 @@ eps_min = [aso(a, b, confidence_level=0.95, num_comparisons=len(pairs), seed=see
 
 Similarly, when comparing multiple models (now again on a per-seed basis), we can use a similar approach like in the 
 previous example. For instance, for three models, we can create a $3 \times 3$ matrix and fill the entries 
-with the corresponding $\epsilon_\text{min}$ values. The diagonal will naturally always be 1, but we can also restrict 
-ourselves to only filling out one half of the matrix by making use of the following symmetry property of ASO:
-
-$$
-\text{ASO}(A, B, \alpha) = 1 - \text{ASO}(B, A, \alpha)
-$$
-
----
-**Note**: While an appealing shortcut, it has been observed during testing this property, due to the random element
-of bootstrap iterations, might not always hold exactly - the difference between the two quantities has been seen to 
-amount to up to $0.2$* when the scores distributions of A and B are very similar.
-
-*This is just an empirically observed value, not a tight bound.
-
----
+with the corresponding $\epsilon_\text{min}$ values.
 
 The package implements the function `multi_aso()` exactly for this purpose. It has the same arguments as `aso()`, with 
 a few differences. First of all, the function takes a single `scores` argument, which can be a list of lists (of scores),

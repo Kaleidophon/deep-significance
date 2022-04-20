@@ -245,19 +245,7 @@ eps_min = [aso(a, b, confidence_level=0.95, num_comparisons=len(pairs), seed=see
 
 Similarly, when comparing multiple models (now again on a per-seed basis), we can use a similar approach like in the 
 previous example. For instance, for three models, we can create a <img src="9f2b6b0a7f3d99fd3f396a1515926eb3.svg?invert_in_darkmode" align=middle width=36.52961069999999pt height=21.18721440000001pt/> matrix and fill the entries 
-with the corresponding <img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> values. The diagonal will naturally always be 1, but we can also restrict 
-ourselves to only filling out one half of the matrix by making use of the following symmetry property of ASO:
-
-<p align="center"><img src="19a0661139e4b089cac41a8a27b738e7.svg?invert_in_darkmode" align=middle width=245.9131653pt height=16.438356pt/></p>
-
----
-**Note**: While an appealing shortcut, it has been observed during testing this property, due to the random element
-of bootstrap iterations, might not always hold exactly - the difference between the two quantities has been seen to 
-amount to up to <img src="358d4d0949e47523757b4bc797ab597e.svg?invert_in_darkmode" align=middle width=21.00464354999999pt height=21.18721440000001pt/>* when the scores distributions of A and B are very similar.
-
-*This is just an empirically observed value, not a tight bound.
-
----
+with the corresponding <img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> values.
 
 The package implements the function `multi_aso()` exactly for this purpose. It has the same arguments as `aso()`, with 
 a few differences. First of all, the function takes a single `scores` argument, which can be a list of lists (of scores),

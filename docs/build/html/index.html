@@ -108,11 +108,11 @@
 <li><a class="reference internal" href="#newspaper-how-to-report-results">📰 How to report results</a></li>
 <li><a class="reference internal" href="#control-knobs-sample-size">🎛️ Sample size</a></li>
 <li><a class="reference internal" href="#sparkles-other-features">✨ Other features</a></li>
-<li><a class="reference internal" href="#id12">General recommendations &amp; other notes</a></li>
-<li><a class="reference internal" href="#id13">🎓 Cite</a></li>
-<li><a class="reference internal" href="#id16">🏅 Acknowledgements</a></li>
-<li><a class="reference internal" href="#id19">🧑‍🤝‍🧑 Papers using deep-significance</a></li>
-<li><a class="reference internal" href="#id20">📚 Bibliography</a></li>
+<li><a class="reference internal" href="#id10">General recommendations &amp; other notes</a></li>
+<li><a class="reference internal" href="#id11">🎓 Cite</a></li>
+<li><a class="reference internal" href="#id14">🏅 Acknowledgements</a></li>
+<li><a class="reference internal" href="#id17">🧑‍🤝‍🧑 Papers using deep-significance</a></li>
+<li><a class="reference internal" href="#id18">📚 Bibliography</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-deepsig">Documentation</a></li>
@@ -360,14 +360,7 @@ correction accordingly:</p>
 <h2>Scenario 4 - Comparing more than two models<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
 <p>Similarly, when comparing multiple models (now again on a per-seed basis), we can use a similar approach like in the
 previous example. For instance, for three models, we can create a <span class="raw-html-m2r"><img src="9f2b6b0a7f3d99fd3f396a1515926eb3.svg?invert_in_darkmode" align=middle width=36.52961069999999pt height=21.18721440000001pt/></span> matrix and fill the entries
-with the corresponding <span class="raw-html-m2r"><img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/></span> values. The diagonal will naturally always be 1, but we can also restrict
-ourselves to only filling out one half of the matrix by making use of the following symmetry property of ASO:</p>
-<p align="center"><img src="19a0661139e4b089cac41a8a27b738e7.svg?invert_in_darkmode" align=middle width=245.9131653pt height=16.438356pt/></p><hr class="docutils" />
-<p><strong>Note</strong>: While an appealing shortcut, it has been observed during testing this property, due to the random element
-of bootstrap iterations, might not always hold exactly - the difference between the two quantities has been seen to
-amount to up to <span class="raw-html-m2r"><img src="358d4d0949e47523757b4bc797ab597e.svg?invert_in_darkmode" align=middle width=21.00464354999999pt height=21.18721440000001pt/></span>* when the scores distributions of A and B are very similar.</p>
-<p><a href="#id10"><span class="problematic" id="id11">*</span></a>This is just an empirically observed value, not a tight bound.</p>
-<hr class="docutils" />
+with the corresponding <span class="raw-html-m2r"><img src="70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/></span> values.</p>
 <p>The package implements the function <code class="docutils literal notranslate"><span class="pre">multi_aso()</span></code> exactly for this purpose. It has the same arguments as <code class="docutils literal notranslate"><span class="pre">aso()</span></code>, with
 a few differences. First of all, the function takes a single <code class="docutils literal notranslate"><span class="pre">scores</span></code> argument, which can be a list of lists (of scores),
 or a nested NumPy array or Tensorflow / PyTorch / Jax tensor or dictionary (more about that later).
@@ -534,8 +527,8 @@ p-values can also be found using <code class="docutils literal notranslate"><spa
 </pre></div>
 </div>
 </section>
-<section id="id12">
-<h2>General recommendations &amp; other notes<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<section id="id10">
+<h2>General recommendations &amp; other notes<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Naturally, the CDFs built from <code class="docutils literal notranslate"><span class="pre">scores_a</span></code> and <code class="docutils literal notranslate"><span class="pre">scores_b</span></code> can only be approximations of the true distributions. Therefore,
 as many scores as possible should be collected, especially if the variance between runs is high. If only one run is available,
@@ -560,8 +553,8 @@ because these test are in turn less applicable in a Deep Learning setting due to
 <a class="reference external" href="#interrobang-why">Why?</a>, ASO is still a better choice.</p></li>
 </ul>
 </section>
-<section id="id13">
-<h2>🎓 Cite<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<section id="id11">
+<h2>🎓 Cite<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
 <p>Using this package in general, please cite the following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">ulmer2022deep</span><span class="p">,</span>
   <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">deep</span><span class="o">-</span><span class="n">significance</span><span class="o">-</span><span class="n">Easy</span> <span class="ow">and</span> <span class="n">Meaningful</span> <span class="n">Statistical</span> <span class="n">Significance</span> <span class="n">Testing</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">Age</span> <span class="n">of</span> <span class="n">Neural</span> <span class="n">Networks</span><span class="p">},</span>
@@ -571,7 +564,7 @@ because these test are in turn less applicable in a Deep Learning setting due to
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>If you use the ASO test via <code class="docutils literal notranslate"><span class="pre">aso()</span></code> or <a href="#id14"><span class="problematic" id="id15">`</span></a>multi_aso, please cite the original works:</p>
+<p>If you use the ASO test via <code class="docutils literal notranslate"><span class="pre">aso()</span></code> or <a href="#id12"><span class="problematic" id="id13">`</span></a>multi_aso, please cite the original works:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inproceedings</span><span class="p">{</span><span class="n">dror2019deep</span><span class="p">,</span>
   <span class="n">author</span>    <span class="o">=</span> <span class="p">{</span><span class="n">Rotem</span> <span class="n">Dror</span> <span class="ow">and</span>
                <span class="n">Segev</span> <span class="n">Shlomov</span> <span class="ow">and</span>
@@ -607,8 +600,8 @@ because these test are in turn less applicable in a Deep Learning setting due to
 </pre></div>
 </div>
 </section>
-<section id="id16">
-<h2>🏅 Acknowledgements<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
+<section id="id14">
+<h2>🏅 Acknowledgements<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
 <p>This package was created out of discussions of the <a class="reference external" href="https://nlpnorth.github.io/">NLPnorth group</a> at the IT University
 Copenhagen, whose members I want to thank for their feedback. The code in this repository is in multiple places based on
 several of <a class="reference external" href="https://rtmdrr.github.io/">Rotem Dror’s</a> repositories, namely
@@ -618,8 +611,8 @@ answer questions and provide feedback to the implementation and documentation of
 <p>The commit message template used in this project can be found <a class="reference external" href="https://github.com/Kaleidophon/commit-template-for-humans">here</a>.
 The inline latex equations were rendered using <a class="reference external" href="https://github.com/leegao/readme2tex">readme2latex</a>.</p>
 </section>
-<section id="id19">
-<h2>🧑‍🤝‍🧑 Papers using deep-significance<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h2>
+<section id="id17">
+<h2>🧑‍🤝‍🧑 Papers using deep-significance<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h2>
 <p>In this last section of the readme, I would like to refer to works already using <code class="docutils literal notranslate"><span class="pre">deep-significance</span></code>. Open an issue or
 pull request if you would like to see your work added here!</p>
 <ul class="simple">
@@ -627,8 +620,8 @@ pull request if you would like to see your work added here!</p>
 <li><p><a class="reference external" href="https://arxiv.org/pdf/2109.04282.pdf">“Cartography Active Learning” (Zhang &amp; Plank, 2021)</a></p></li>
 </ul>
 </section>
-<section id="id20">
-<h2>📚 Bibliography<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h2>
+<section id="id18">
+<h2>📚 Bibliography<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h2>
 <p>Del Barrio, Eustasio, Juan A. Cuesta-Albertos, and Carlos Matrán. “An optimal transportation approach for assessing almost stochastic order.” The Mathematics of the Uncertain. Springer, Cham, 2018. 33-44.</p>
 <p>Bonferroni, Carlo. “Teoria statistica delle classi e calcolo delle probabilita.” Pubblicazioni del R Istituto Superiore di Scienze Economiche e Commericiali di Firenze 8 (1936): 3-62.</p>
 <p>Borji, Ali. “Negative results in computer vision: A perspective.” Image and Vision Computing 69 (2018): 1-8.</p>
