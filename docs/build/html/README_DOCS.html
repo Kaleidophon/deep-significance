@@ -566,7 +566,7 @@ recommended as the result of the test will also become less accurate. Technicall
 that becomes tighter with the number of samples and bootstrap iterations (del Barrio et al., 2017). Thus, increasing
 the number of jobs with <code class="docutils literal notranslate"><span class="pre">num_jobs</span></code> instead is always preferred.</p></li>
 <li><p>While we could declare a model stochastically dominant with <img src="dabed7f05cf133d9eb92631d564a96a8.svg?invert_in_darkmode" align=middle width=72.19750559999999pt height=21.18721440000001pt/>, we found this to have a comparatively high
-Type I error (false positives). Tests in our paper have shown that a more useful threshold that trades of Type I and
+Type I error (false positives). Tests <a class="reference external" href="https://arxiv.org/pdf/2204.06815.pdf">in our paper</a> have shown that a more useful threshold that trades of Type I and
 Type II error between different scenarios might be <img src="9ac49cb370a5b09fca29068ea18eab63.svg?invert_in_darkmode" align=middle width=51.969107849999986pt height=21.18721440000001pt/>.</p></li>
 <li><p>Bootstrap and permutation-randomization are all non-parametric tests, i.e. they don’t make any assumptions about
 the distribution of our test metric. Nevertheless, they differ in their <em>statistical power</em>, which is defined as the probability
@@ -580,7 +580,16 @@ because these test are in turn less applicable in a Deep Learning setting due to
 </section>
 <section id="mortar-board-cite">
 <h3>|:mortar_board:| Cite<a class="headerlink" href="#mortar-board-cite" title="Permalink to this headline">¶</a></h3>
-<p>If you use the ASO test via <code class="docutils literal notranslate"><span class="pre">aso()</span></code>, please cite the original work:</p>
+<p>Using this package in general, please cite the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">ulmer2022deep</span><span class="p">,</span>
+  <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">deep</span><span class="o">-</span><span class="n">significance</span><span class="o">-</span><span class="n">Easy</span> <span class="ow">and</span> <span class="n">Meaningful</span> <span class="n">Statistical</span> <span class="n">Significance</span> <span class="n">Testing</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">Age</span> <span class="n">of</span> <span class="n">Neural</span> <span class="n">Networks</span><span class="p">},</span>
+  <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Ulmer</span><span class="p">,</span> <span class="n">Dennis</span> <span class="ow">and</span> <span class="n">Hardmeier</span><span class="p">,</span> <span class="n">Christian</span> <span class="ow">and</span> <span class="n">Frellsen</span><span class="p">,</span> <span class="n">Jes</span><span class="p">},</span>
+  <span class="n">journal</span><span class="o">=</span><span class="p">{</span><span class="n">arXiv</span> <span class="n">preprint</span> <span class="n">arXiv</span><span class="p">:</span><span class="mf">2204.06815</span><span class="p">},</span>
+  <span class="n">year</span><span class="o">=</span><span class="p">{</span><span class="mi">2022</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If you use the ASO test via <code class="docutils literal notranslate"><span class="pre">aso()</span></code> or `multi_aso, please cite the original works:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inproceedings</span><span class="p">{</span><span class="n">dror2019deep</span><span class="p">,</span>
   <span class="n">author</span>    <span class="o">=</span> <span class="p">{</span><span class="n">Rotem</span> <span class="n">Dror</span> <span class="ow">and</span>
                <span class="n">Segev</span> <span class="n">Shlomov</span> <span class="ow">and</span>
@@ -599,21 +608,20 @@ because these test are in turn less applicable in a Deep Learning setting due to
   <span class="n">doi</span>       <span class="o">=</span> <span class="p">{</span><span class="mf">10.18653</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">p19</span><span class="o">-</span><span class="mi">1266</span><span class="p">},</span>
   <span class="n">timestamp</span> <span class="o">=</span> <span class="p">{</span><span class="n">Tue</span><span class="p">,</span> <span class="mi">28</span> <span class="n">Jan</span> <span class="mi">2020</span> <span class="mi">10</span><span class="p">:</span><span class="mi">27</span><span class="p">:</span><span class="mi">52</span> <span class="o">+</span><span class="mi">0100</span><span class="p">},</span>
 <span class="p">}</span>
+
+<span class="nd">@incollection</span><span class="p">{</span><span class="n">del2018optimal</span><span class="p">,</span>
+  <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">An</span> <span class="n">optimal</span> <span class="n">transportation</span> <span class="n">approach</span> <span class="k">for</span> <span class="n">assessing</span> <span class="n">almost</span> <span class="n">stochastic</span> <span class="n">order</span><span class="p">},</span>
+  <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Del</span> <span class="n">Barrio</span><span class="p">,</span> <span class="n">Eustasio</span> <span class="ow">and</span> <span class="n">Cuesta</span><span class="o">-</span><span class="n">Albertos</span><span class="p">,</span> <span class="n">Juan</span> <span class="n">A</span> <span class="ow">and</span> <span class="n">Matr</span><span class="p">{</span>\<span class="s1">&#39;a}n, Carlos},</span>
+  <span class="n">booktitle</span><span class="o">=</span><span class="p">{</span><span class="n">The</span> <span class="n">Mathematics</span> <span class="n">of</span> <span class="n">the</span> <span class="n">Uncertain</span><span class="p">},</span>
+  <span class="n">pages</span><span class="o">=</span><span class="p">{</span><span class="mi">33</span><span class="o">--</span><span class="mi">44</span><span class="p">},</span>
+  <span class="n">year</span><span class="o">=</span><span class="p">{</span><span class="mi">2018</span><span class="p">},</span>
+  <span class="n">publisher</span><span class="o">=</span><span class="p">{</span><span class="n">Springer</span><span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
-<p>Using this package in general, please cite the following:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@software</span><span class="p">{</span><span class="n">dennis_ulmer_2021_4638709</span><span class="p">,</span>
-  <span class="n">author</span>       <span class="o">=</span> <span class="p">{</span><span class="n">Dennis</span> <span class="n">Ulmer</span><span class="p">},</span>
-  <span class="n">title</span>        <span class="o">=</span> <span class="p">{{</span><span class="n">deep</span><span class="o">-</span><span class="n">significance</span><span class="p">:</span> <span class="n">Easy</span> <span class="ow">and</span> <span class="n">Better</span> <span class="n">Significance</span> 
-                   <span class="n">Testing</span> <span class="k">for</span> <span class="n">Deep</span> <span class="n">Neural</span> <span class="n">Networks</span><span class="p">}},</span>
-  <span class="n">month</span>        <span class="o">=</span> <span class="n">mar</span><span class="p">,</span>
-  <span class="n">year</span>         <span class="o">=</span> <span class="mi">2021</span><span class="p">,</span>
-  <span class="n">note</span>         <span class="o">=</span> <span class="p">{</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">Kaleidophon</span><span class="o">/</span><span class="n">deep</span><span class="o">-</span><span class="n">significance</span><span class="p">},</span>
-  <span class="n">publisher</span>    <span class="o">=</span> <span class="p">{</span><span class="n">Zenodo</span><span class="p">},</span>
-  <span class="n">version</span>      <span class="o">=</span> <span class="p">{</span><span class="n">v1</span><span class="mf">.0.0</span><span class="n">a</span><span class="p">},</span>
-  <span class="n">doi</span>          <span class="o">=</span> <span class="p">{</span><span class="mf">10.5281</span><span class="o">/</span><span class="n">zenodo</span><span class="mf">.4638709</span><span class="p">},</span>
-  <span class="n">url</span>          <span class="o">=</span> <span class="p">{</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">doi</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="mf">10.5281</span><span class="o">/</span><span class="n">zenodo</span><span class="mf">.4638709</span><span class="p">}</span>
-<span class="p">}</span>
+<p>For instance, you can write</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="n">order</span> <span class="n">to</span> <span class="n">compare</span> <span class="n">models</span><span class="p">,</span> <span class="n">we</span> <span class="n">use</span> <span class="n">the</span> <span class="n">Almost</span> <span class="n">Stochastic</span> <span class="n">Order</span> <span class="n">test</span> \<span class="n">citep</span><span class="p">{</span><span class="n">del2018optimal</span><span class="p">,</span> <span class="n">dror2019deep</span><span class="p">}</span> <span class="k">as</span> 
+<span class="n">implemented</span> <span class="n">by</span> \<span class="n">citet</span><span class="p">{</span><span class="n">ulmer2022deep</span><span class="p">}</span><span class="o">.</span>
 </pre></div>
 </div>
 </section>

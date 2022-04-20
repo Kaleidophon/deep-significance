@@ -475,7 +475,7 @@ recommended as the result of the test will also become less accurate. Technicall
   the number of jobs with `num_jobs` instead is always preferred.
   
 * While we could declare a model stochastically dominant with $\epsilon_\text{min} < 0.5$, we found this to have a comparatively high
-Type I error (false positives). Tests in our paper have shown that a more useful threshold that trades of Type I and 
+Type I error (false positives). Tests [in our paper](https://arxiv.org/pdf/2204.06815.pdf) have shown that a more useful threshold that trades of Type I and 
   Type II error between different scenarios might be $\tau = 0.2$.
   
 * Bootstrap and permutation-randomization are all non-parametric tests, i.e. they don't make any assumptions about 
@@ -489,7 +489,17 @@ the distribution of our test metric. Nevertheless, they differ in their *statist
 
 ### :mortar_board: Cite
 
-If you use the ASO test via `aso()`, please cite the original work:
+Using this package in general, please cite the following:
+
+    @article{ulmer2022deep,
+      title={deep-significance-Easy and Meaningful Statistical Significance Testing in the Age of Neural Networks},
+      author={Ulmer, Dennis and Hardmeier, Christian and Frellsen, Jes},
+      journal={arXiv preprint arXiv:2204.06815},
+      year={2022}
+    }
+
+
+If you use the ASO test via `aso()` or `multi_aso, please cite the original works:
 
     @inproceedings{dror2019deep,
       author    = {Rotem Dror and
@@ -510,20 +520,19 @@ If you use the ASO test via `aso()`, please cite the original work:
       timestamp = {Tue, 28 Jan 2020 10:27:52 +0100},
     }
 
-Using this package in general, please cite the following:
-
-    @software{dennis_ulmer_2021_4638709,
-      author       = {Dennis Ulmer},
-      title        = {{deep-significance: Easy and Better Significance 
-                       Testing for Deep Neural Networks}},
-      month        = mar,
-      year         = 2021,
-      note         = {https://github.com/Kaleidophon/deep-significance},
-      publisher    = {Zenodo},
-      version      = {v1.0.0a},
-      doi          = {10.5281/zenodo.4638709},
-      url          = {https://doi.org/10.5281/zenodo.4638709}
+    @incollection{del2018optimal,
+      title={An optimal transportation approach for assessing almost stochastic order},
+      author={Del Barrio, Eustasio and Cuesta-Albertos, Juan A and Matr{\'a}n, Carlos},
+      booktitle={The Mathematics of the Uncertain},
+      pages={33--44},
+      year={2018},
+      publisher={Springer}
     }
+
+For instance, you can write
+
+    In order to compare models, we use the Almost Stochastic Order test \citep{del2018optimal, dror2019deep} as 
+    implemented by \citet{ulmer2022deep}.
 
 ### :medal_sports: Acknowledgements
 
