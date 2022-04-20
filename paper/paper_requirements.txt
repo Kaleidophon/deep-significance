@@ -1,0 +1,6 @@
+matplotlib==3.4.3
+notebook==6.4.5
+gym==0.22.0
+torch==1.8.0
+numpy==1.19.5
+pygame==2.1.2

@@ -8,7 +8,7 @@ from typing import Callable, Optional
 
 # EXT
 import numpy as np
-from scipy.stats import ttest_ind
+from scipy.stats import ttest_rel
 from tqdm import tqdm
 
 # PROJECT
@@ -115,8 +115,8 @@ def bootstrap_power_analysis(
 
     # Set default significance test to Welch's t-test
     if significance_test is None:
-        significance_test = lambda scores_a, scores_b: ttest_ind(
-            scores_a, scores_b, equal_var=False, alternative="greater"
+        significance_test = lambda scores_a, scores_b: ttest_rel(
+            scores_a, scores_b, alternative="greater"
         ).pvalue
 
     iters = (

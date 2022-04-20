@@ -47,14 +47,15 @@ Reinforcement Learning (Henderson et al., 2018) and Computer Vision (Borji, 2017
 
 To help mitigate this problem, this package supplies fully-tested re-implementations of useful functions for significance
 testing:
-* Statistical Significance tests such as Almost Stochastic Order (Dror et al., 2019), bootstrap (Efron & Tibshirani, 1994) and 
-  permutation-randomization (Noreen, 1989).
+* Statistical Significance tests such as Almost Stochastic Order (del Barrio et al, 2017; Dror et al., 2019), 
+  bootstrap (Efron & Tibshirani, 1994) and permutation-randomization (Noreen, 1989).
 * Bonferroni correction methods for multiplicity in datasets (Bonferroni, 1936). 
 * Bootstrap power analysis (Yuan & Hayashi, 2003) and other functions to determine the right sample size.
 
 All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch / 
 Tensorflow tensors as well as NumPy and Jax arrays.  For examples about the usage, consult the documentation 
-[here](https://deep-significance.readthedocs.io/en/latest/) or the scenarios in the section [Examples](#examples).
+[here](https://deep-significance.readthedocs.io/en/latest/) , the scenarios in the section [Examples](#examples) or 
+the [demo Jupyter notebook](https://github.com/Kaleidophon/deep-significance/tree/main/paper/deep-significance%20demo.ipynb).
 
 ## :inbox_tray: Installation
 
@@ -74,52 +75,55 @@ Another option is to clone the repository and install the package locally:
 
 ---
 **tl;dr**: Use `aso()` to compare scores for two models. If the returned `eps_min < 0.5`, A is better than B. The lower
-`eps_min`, the more confident the result. 
+`eps_min`, the more confident the result (we recommend to check `eps_min < 0.2` and record `eps_min` alongside 
+experimental results). 
 
 :warning: Testing models with only one set of hyperparameters and only one test set will be able to guarantee superiority
 in all settings. See [General Recommendations & other notes](#general-recommendations).
 
 ---
 
-In the following, I will lay out three scenarios that describe common use cases for ML practitioners and how to apply 
+In the following, we will lay out three scenarios that describe common use cases for ML practitioners and how to apply 
 the methods implemented in this package accordingly. For an introduction into statistical hypothesis testing, please
 refer to resources such as [this blog post](https://machinelearningmastery.com/statistical-hypothesis-tests/) for a general
 overview or [Dror et al. (2018)](https://www.aclweb.org/anthology/P18-1128.pdf) for a NLP-specific point of view. 
 
-In general, in statistical significance testing, we usually compare two algorithms $A$ and $B$ on a dataset $X$ using 
-some evaluation metric $\mathcal{M}$ (we assume a higher = better). The difference between the two algorithms on the 
-data is then defined as 
+We assume that we have two sets of scores we would like to compare, $\mathbb{S}_\mathbb{A}$ and $\mathbb{S}_\mathbb{B}$,
+for instance obtained by running two models $\mathbb{A}$ and $\mathbb{B}$ multiple times with a different random seed. 
+We can then define a one-sided test statistic  $\delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})$ based on the gathered observations. 
+An example of such test statistics is for instance the difference in observation means. We then formulate the following null-hypothesis:
 
 $$
-\delta(X) = \mathcal{M}(A, X) - \mathcal{M}(B, X)
+H_0: \delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B}) \le 0
 $$
 
-where $\delta(X)$ is our test statistic. We then test the following **null hypothesis**:
+That means that we actually assume the opposite of our desired case, namely that $\mathbb{A}$ is not better than $\mathbb{B}$, 
+but equally as good or worse, as indicated by the value of the test statistic. 
+Usually, the goal becomes to reject this null hypothesis using the SST. 
+*p*-value testing is a frequentist method in the realm of SST. 
+It introduces the notion of data that *could have been observed* if we were to repeat our experiment again using 
+the same conditions, which we will write with superscript $\text{rep}$ in order to distinguish them from our actually 
+observed scores (Gelman et al., 2021). 
+We then define the *p*-value as the probability that, under the null hypothesis, the test statistic using replicated 
+observation is larger than or equal to the *observed* test statistic:
 
 $$
-H_0: \delta(X) \le 0
+p(\delta(\mathbb{S}_\mathbb{A}^\text{rep}, \mathbb{S}_\mathbb{B}^\text{rep}) \ge \delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})|H_0)
 $$
 
-Thus, we assume our algorithm A to be equally as good or worse than algorithm B and reject the null hypothesis if A 
-is better than B (what we actually would like to see). Most statistical significance tests operate using 
-*p-values*, which define the probability that under the null-hypothesis, the $\delta(X)$ expected by the test is larger than or
-equal to the observed difference $\delta_{\text{obs}}$ (that is, for a one-sided test, i.e. we assume A to be better than B):
-
-$$
-P(\delta(X) \ge \delta_\text{obs}| H_0)
-$$
-
-We can interpret this equation as follows: Assuming that A is *not* better than B, the test assumes a corresponding distribution
-of differences that $\delta(X)$ is drawn from. How does our actually observed difference $\delta_\text{obs}$ fit in there?
-This is what the p-value is expressing: If this probability is high, $\delta_\text{obs}$ is in line with what we expected under 
-the null hypothesis, so we conclude A not to better than B. If the 
-probability is low, that means that $\delta_\text{obs}$ is quite unlikely under the null hypothesis and that the reverse 
-case is more likely - i.e. that it is 
-likely *larger* than $\delta(X)$ - and we conclude that A is indeed better than B. Note that **the p-value does not 
-express whether the null hypothesis is true**.
-
-To decide when we trust A to be better than B, we set a threshold that will determine when the p-value is small enough 
-for us to reject the null hypothesis, this is called the significance level $\alpha$ and it is often set to be 0.05.
+We can interpret this expression as follows: Assuming that $\mathbb{A}$ is not better than $\mathbb{B}$, the test 
+assumes a corresponding distribution of statistics that $\delta$ is drawn from. So how does the observed test statistic 
+$\delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})$ fit in here? This is what the $p$-value expresses: When the 
+probability is high, $\delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})$ is in line with what we expected under the 
+null hypothesis, so we can *not* reject the null hypothesis, or in other words, we \emph{cannot} conclude 
+$\mathbb{A}$ to be better than $\mathbb{B}$. If the probability is low, that means that the observed 
+$\delta(\mathbb{S}, \mathbb{S}_\mathbb{B})$ is quite unlikely under the null hypothesis and that the reverse case is 
+more likely - i.e. that it is likely larger than - and we conclude that $\mathbb{A}$ is indeed better than 
+$\mathbb{B}$. Note that **the $p$-value does not express whether the null hypothesis is true**. To make our decision 
+about whether or not to reject the null hypothesis, we typically determine a threshold - the significance level 
+$\alpha$, often set to 0.05 - that the *p*-value has to fall below. However, it has been argued that a better practice 
+involves reporting the *p*-value alongside the results without a pidgeonholing of results into significant and non-significant
+(Wasserstein et al., 2019).
 
 
 ### Intermezzo: Almost Stochastic Order - a better significance test for Deep Neural Networks
@@ -127,8 +131,8 @@ for us to reject the null hypothesis, this is called the significance level $\al
 Deep neural networks are highly non-linear models, having their performance highly dependent on hyperparameters, random 
 seeds and other (stochastic) factors. Therefore, comparing the means of two models across several runs might not be 
 enough to decide if a model A is better than B. In fact, **even aggregating more statistics like standard deviation, minimum
-or maximum might not be enough** to make a decision. For this reason, Dror et al. (2019) introduced *Almost Stochastic 
-Order* (ASO), a test to compare two score distributions. 
+or maximum might not be enough** to make a decision. For this reason, del Barrio et al. (2017) and Dror et al. (2019) 
+introduced *Almost Stochastic Order* (ASO), a test to compare two score distributions. 
 
 It builds on the concept of *stochastic order*: We can compare two distributions and declare one as *stochastically dominant*
 by comparing their cumulative distribution functions: 
@@ -138,21 +142,22 @@ by comparing their cumulative distribution functions:
 Here, the CDF of A is given in red and in green for B. If the CDF of A is lower than B for every $x$, we know the 
 algorithm A to score higher. However, in practice these cases are rarely so clear-cut (imagine e.g. two normal 
 distributions with the same mean but different variances).
-For this reason, Dror et al. (2019) consider the notion of *almost stochastic dominance* by quantifying the extent to 
-which stochastic order is being violated (red area):
+For this reason, del Barrio et al. (2017) and Dror et al. (2019) consider the notion of *almost stochastic dominance* 
+by quantifying the extent to which stochastic order is being violated (red area):
 
 ![](img/aso.png)
 
-ASO returns a value $\epsilon_\text{min}$, which expresses the amount of violation of stochastic order. If 
-$\epsilon_\text{min} < 0.5$, A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as 
+ASO returns a value $\epsilon_\text{min}$, which expresses (an upper bound to) the amount of violation of stochastic order. If 
+$\epsilon_\text{min} < \tau$ (where \tau is 0.5 or less), A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as 
 superior. We can also interpret $\epsilon_\text{min}$ as a *confidence score*. The lower it is, the more sure we can be 
 that A is better than B. Note: **ASO does not compute p-values.** Instead, the null hypothesis formulated as 
 
 $$
-H_0: \epsilon_\text{min} \ge 0.5
+H_0: \epsilon_\text{min} \ge \tau
 $$
 
-If we want to be more confident about the result of ASO, we can also set the rejection threshold to be lower than 0.5.
+If we want to be more confident about the result of ASO, we can also set the rejection threshold to be lower than 0.5 
+(see the discussion in [this section](#general-recommendations)).
 Furthermore, the significance level $\alpha$ is determined as an input argument when running ASO and actively influence 
 the resulting $\epsilon_\text{min}$.
 
@@ -167,12 +172,15 @@ We can now simply apply the ASO test:
 import numpy as np
 from deepsig import aso
 
+seed = 1234
+np.random.seed(seed)
+
 # Simulate scores
 N = 5  # Number of random seeds
 my_model_scores = np.random.normal(loc=0.9, scale=0.8, size=N)
 baseline_scores = np.random.normal(loc=0, scale=1, size=N)
 
-min_eps = aso(my_model_scores, baseline_scores)  # min_eps = 0.0, so A is better
+min_eps = aso(my_model_scores, baseline_scores, seed=seed)  # min_eps = 0.225, so A is better
 ```
 
 Note that ASO **does not make any assumptions about the distributions of the scores**. 
@@ -193,6 +201,9 @@ which corresponds to the Bonferroni correction (Bonferroni et al., 1936):
 import numpy as np
 from deepsig import aso 
 
+seed = 1234
+np.random.seed(seed)
+
 # Simulate scores for three datasets
 M = 3  # Number of datasets
 N = 5  # Number of random seeds
@@ -200,8 +211,8 @@ my_model_scores_per_dataset = [np.random.normal(loc=0.3, scale=0.8, size=N) for 
 baseline_scores_per_dataset  = [np.random.normal(loc=0, scale=1, size=N) for _ in range(M)]
 
 # epsilon_min values with Bonferroni correction 
-eps_min = [aso(a, b, confidence_level=0.05 / M) for a, b in zip(my_model_scores_per_dataset, baseline_scores_per_dataset)]
-# eps_min = [0.1565800030782686, 1, 0.0]
+eps_min = [aso(a, b, confidence_level=0.95, num_comparisons=M, seed=seed) for a, b in zip(my_model_scores_per_dataset, baseline_scores_per_dataset)]
+# eps_min = [0.006370113450148568, 0.6534772728574852, 0.0]
 ```
 
 ### Scenario 3 - Comparing sample-level scores
@@ -220,6 +231,9 @@ from itertools import product
 import numpy as np
 from deepsig import aso 
 
+seed = 1234
+np.random.seed(seed)
+
 # Simulate scores for three datasets
 M = 40   # Number of data points
 N = 3  # Number of random seeds
@@ -228,7 +242,9 @@ baseline_scored_samples_per_run = [np.random.normal(loc=0, scale=1, size=M) for 
 pairs = list(product(my_model_scored_samples_per_run, baseline_scored_samples_per_run))
 
 # epsilon_min values with Bonferroni correction 
-eps_min = [aso(a, b, confidence_level=0.05 / len(pairs)) for a, b in pairs]
+eps_min = [aso(a, b, confidence_level=0.95, num_comparisons=len(pairs), seed=seed) for a, b in pairs]
+# eps_min = [0.3831678636198528, 0.07194780234194881, 0.9152792807128325, 0.5273463008857844, 0.14946944524461184, 1.0, 
+# 0.6099543280369378, 0.22387448804041898, 1.0]
 ```
 
 ### Scenario 4 - Comparing more than two models 
@@ -259,6 +275,9 @@ Let's look at an example:
 ```python 
 import numpy as np 
 from deepsig import multi_aso 
+
+seed = 1234
+np.random.seed(seed)
  
 N = 5  # Number of random seeds
 M = 3  # Number of different models / algorithms
@@ -267,20 +286,19 @@ M = 3  # Number of different models / algorithms
 # Here, we will sample from N(0.1, 0.8), N(0.15, 0.8), N(0.2, 0.8)
 my_models_scores = np.array([np.random.normal(loc=loc, scale=0.8, size=N) for loc in np.arange(0.1, 0.1 + 0.05 * M, step=0.05)])
 
-eps_min = multi_aso(my_models_scores, confidence_level=0.05)
+eps_min = multi_aso(my_models_scores, confidence_level=0.95, seed=seed)
     
 # eps_min =
-# array([[1., 1., 1.],
-#        [0., 1., 1.],
-#        [0., 0., 1.]])
+# array([[1.       , 0.92621655, 1.        ],
+#       [1.        , 1.        , 1.        ],
+#       [0.82081635, 0.73048716, 1.        ]])
 ```
 
 In the example, `eps_min` is now a matrix, containing the $\epsilon_\text{min}$ score between all pairs of models (for 
 the same model, it set to 1 by default). The matrix is always to be read as ASO(row, column).
 
 The function applies the bonferroni correction for multiple comparisons by 
-default, but this can be turned off by using `use_bonferroni=False`. In order to save compute, the above symmetry
-property is used as well, but this can also be disabled by `use_symmetry=False`.
+default, but this can be turned off by using `use_bonferroni=False`.
 
 Lastly, when the `scores` argument is a dictionary and the function is called with `return_df=True`, the resulting matrix is 
 given as a `pandas.DataFrame` for increased readability:
@@ -288,6 +306,9 @@ given as a `pandas.DataFrame` for increased readability:
 ```python 
 import numpy as np 
 from deepsig import multi_aso 
+
+seed = 1234
+np.random.seed(seed)
  
 N = 5  # Number of random seeds
 M = 3  # Number of different models / algorithms
@@ -304,14 +325,14 @@ my_models_scores = {
 #   ...
 # }
 
-eps_min = multi_aso(my_models_scores, confidence_level=0.05, return_df=True)
+eps_min = multi_aso(my_models_scores, confidence_level=0.95, return_df=True, seed=seed)
     
 # This is now a DataFrame!
 # eps_min =
-#           model 1   model 2  model 3
-# model 1       1.0       1.0      1.0
-# model 2       0.0       1.0      1.0
-# model 3       1.0       0.0      1.0
+#          model 1   model 2  model 3
+# model 1  1.000000  0.926217      1.0
+# model 2  1.000000  1.000000      1.0
+# model 3  0.820816  0.730487      1.0
 
 ```
 
@@ -325,7 +346,7 @@ score. Below lists some example snippets reporting the results of scenarios 1 an
 
     We compared all pairs of models based on five random seeds each using ASO with a confidence level of 
     $\alpha = 0.05$ (before adjusting for all pair-wise comparisons using the Bonferroni correction). Almost stochastic 
-    dominance ($\epsilon_\text{min} < 0.5)$ is indicated in table X.
+    dominance ($\epsilon_\text{min} < \tau$ with $\tau = 0.2$) is indicated in table X.
 
 ### :control_knobs: Sample size
 
@@ -394,11 +415,11 @@ from deepsig import aso
 import numpy as np
 from timeit import timeit
 
-a = np.random.normal(size=5)
-b = np.random.normal(size=5)
+a = np.random.normal(size=1000)
+b = np.random.normal(size=1000)
 
-print(timeit(lambda: aso(a, b, num_jobs=1, show_progress=False), number=5))  # 146.6909574989986
-print(timeit(lambda: aso(a, b, num_jobs=4, show_progress=False), number=5))  # 50.416724971000804
+print(timeit(lambda: aso(a, b, num_jobs=1, show_progress=False), number=5))  # 393.6318126
+print(timeit(lambda: aso(a, b, num_jobs=4, show_progress=False), number=5))  # 139.73514621799995n
 ```
 
 #### :electric_plug: Compatibility with PyTorch, Tensorflow, Jax & Numpy
@@ -448,10 +469,14 @@ as many scores as possible should be collected, especially if the variance betwe
   Because this is usually infeasible in practice, Bouthilier et al. (2020) recommend to **vary all other sources of variation**
   between runs to obtain the most trustworthy estimate of the "true" performance, such as data shuffling, weight initialization etc.
 
-* `num_samples` and `num_bootstrap_iterations` can be reduced to increase the speed of `aso()`. However, this is not 
+* `num_bootstrap_iterations` can be reduced to increase the speed of `aso()`. However, this is not 
 recommended as the result of the test will also become less accurate. Technically, $\epsilon_\text{min}$ is a upper bound
   that becomes tighter with the number of samples and bootstrap iterations (del Barrio et al., 2017). Thus, increasing 
   the number of jobs with `num_jobs` instead is always preferred.
+  
+* While we could declare a model stochastically dominant with $\epsilon_\text{min} < 0.5$, we found this to have a comparatively high
+Type I error (false positives). Tests [in our paper](https://arxiv.org/pdf/2204.06815.pdf) have shown that a more useful threshold that trades of Type I and 
+  Type II error between different scenarios might be $\tau = 0.2$.
   
 * Bootstrap and permutation-randomization are all non-parametric tests, i.e. they don't make any assumptions about 
 the distribution of our test metric. Nevertheless, they differ in their *statistical power*, which is defined as the probability
@@ -464,7 +489,17 @@ the distribution of our test metric. Nevertheless, they differ in their *statist
 
 ### :mortar_board: Cite
 
-If you use the ASO test via `aso()`, please cite the original work:
+Using this package in general, please cite the following:
+
+    @article{ulmer2022deep,
+      title={deep-significance-Easy and Meaningful Statistical Significance Testing in the Age of Neural Networks},
+      author={Ulmer, Dennis and Hardmeier, Christian and Frellsen, Jes},
+      journal={arXiv preprint arXiv:2204.06815},
+      year={2022}
+    }
+
+
+If you use the ASO test via `aso()` or `multi_aso, please cite the original works:
 
     @inproceedings{dror2019deep,
       author    = {Rotem Dror and
@@ -485,20 +520,19 @@ If you use the ASO test via `aso()`, please cite the original work:
       timestamp = {Tue, 28 Jan 2020 10:27:52 +0100},
     }
 
-Using this package in general, please cite the following:
-
-    @software{dennis_ulmer_2021_4638709,
-      author       = {Dennis Ulmer},
-      title        = {{deep-significance: Easy and Better Significance 
-                       Testing for Deep Neural Networks}},
-      month        = mar,
-      year         = 2021,
-      note         = {https://github.com/Kaleidophon/deep-significance},
-      publisher    = {Zenodo},
-      version      = {v1.0.0a},
-      doi          = {10.5281/zenodo.4638709},
-      url          = {https://doi.org/10.5281/zenodo.4638709}
+    @incollection{del2018optimal,
+      title={An optimal transportation approach for assessing almost stochastic order},
+      author={Del Barrio, Eustasio and Cuesta-Albertos, Juan A and Matr{\'a}n, Carlos},
+      booktitle={The Mathematics of the Uncertain},
+      pages={33--44},
+      year={2018},
+      publisher={Springer}
     }
+
+For instance, you can write
+
+    In order to compare models, we use the Almost Stochastic Order test \citep{del2018optimal, dror2019deep} as 
+    implemented by \citet{ulmer2022deep}.
 
 ### :medal_sports: Acknowledgements
 
@@ -536,6 +570,9 @@ Dror, Rotem, Shlomov, Segev, and Reichart, Roi. "Deep dominance-how to properly 
 
 Efron, Bradley, and Robert J. Tibshirani. "An introduction to the bootstrap." CRC press, 1994.
 
+Andrew Gelman, John B Carlin, Hal S Stern, David B Dunson, Aki Vehtari, Donald B Rubin, John
+Carlin, Hal Stern, Donald Rubin, and David Dunson. Bayesian data analysis third edition, 2021.
+
 Henderson, Peter, et al. "Deep reinforcement learning that matters." Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 32. No. 1. 2018.
 
 Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein. "Visualizing the Loss Landscape of Neural Nets." NeurIPS 2018: 6391-6401
@@ -543,5 +580,8 @@ Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein. "Visualizing th
 Narang, Sharan, et al. "Do Transformer Modifications Transfer Across Implementations and Applications?." arXiv preprint arXiv:2102.11972 (2021).
 
 Noreen, Eric W. "Computer intensive methods for hypothesis testing: An introduction." Wiley, New York (1989).
+
+Ronald L Wasserstein, Allen L Schirm, and Nicole A Lazar. Moving to a world beyond “p< 0.05”,
+2019
 
 Yuan, Ke‐Hai, and Kentaro Hayashi. "Bootstrap approach to inference and power analysis based on three test statistics for covariance structure models." British Journal of Mathematical and Statistical Psychology 56.1 (2003): 93-110.
