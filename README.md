@@ -533,6 +533,10 @@ pull request if you would like to see your work added here!
 
 * ["From Masked Language Modeling to Translation: Non-English Auxiliary Tasks Improve Zero-shot Spoken Language Understanding" (van der Groot et al., 2021)](https://robvanderg.github.io/doc/naacl2021.pdf)
 * ["Cartography Active Learning" (Zhang & Plank, 2021)](https://arxiv.org/pdf/2109.04282.pdf)
+* ["SkillSpan: Hard and Soft Skill Extraction from English Job Postings" (Zhang et al., 2022a)](https://arxiv.org/pdf/2204.12811.pdf)
+* ["What do you mean by Relation Extraction? A Survey on Datasets and Study on Scientific Relation Classification" (Bassignana & Plank, 2022)](https://arxiv.org/pdf/2204.13516.pdf)
+* ["KOMPETENCER: Fine-grained Skill Classification in Danish Job Postings
+via Distant Supervision and Transfer Learning" (Zhang et al., 2022b)](https://arxiv.org/pdf/2205.01381.pdf)
 
 ### :books: Bibliography
 
