@@ -404,8 +404,14 @@ from timeit import timeit
 a = np.random.normal(size=1000)
 b = np.random.normal(size=1000)
 
-print(timeit(lambda: aso(a, b, num_jobs=1, show_progress=False), number=5))  # 393.6318126
-print(timeit(lambda: aso(a, b, num_jobs=4, show_progress=False), number=5))  # 139.73514621799995n
+print(timeit(lambda: aso(a, b, num_jobs=1, show_progress=False), number=5))  # 616.2249192680001
+print(timeit(lambda: aso(a, b, num_jobs=4, show_progress=False), number=5))  # 208.05637107000007
+```
+
+If you want to select the maximum number of jobs possible on your device, you can set `num_jobs=-1`:
+
+```pythons
+print(timeit(lambda: aso(a, b, num_jobs=-1, show_progress=False), number=5))  # 187.26257274800003
 ```
 
 #### :electric_plug: Compatibility with PyTorch, Tensorflow, Jax & Numpy

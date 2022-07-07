@@ -12,6 +12,7 @@ from joblib import Parallel, delayed, wrap_non_picklable_objects
 from joblib.externals.loky import set_loky_pickler
 import numpy as np
 import pandas as pd
+import psutil
 from scipy.stats import norm as normal
 from tqdm import tqdm
 
@@ -90,12 +91,22 @@ def aso(
     assert (
         num_bootstrap_iterations > 0
     ), "num_samples must be positive, {} found.".format(num_bootstrap_iterations)
-    assert num_jobs > 0, "Number of jobs has to be at least 1, {} found.".format(
-        num_jobs
-    )
+    assert (
+        num_jobs > 0 or num_jobs == -1
+    ), "Number of jobs has to be at least 1 or -1, {} found.".format(num_jobs)
     assert (
         num_comparisons > 0
     ), "Number of comparisons has to be at least 1, {} found.".format(num_comparisons)
+
+    # Determine the maximum number of jobs possible
+    if num_jobs == -1:
+        num_jobs = psutil.cpu_count(logical=True)
+
+        if num_jobs is None:
+            warn(
+                "Number of available CPUs could not be determined, setting num_jobs=1."
+            )
+            num_jobs = 1
 
     # TODO: Remove in future version
     if num_samples != 1000:
@@ -204,6 +215,20 @@ def multi_aso(
     Union[np.array, pd.DataFrame]
         2D numpy array or pandas Dataframe (if scores is dictionary and return_df=True) with result of ASO.
     """
+    assert (
+        num_jobs > 0 or num_jobs == -1
+    ), "Number of jobs has to be at least 1 or -1, {} found.".format(num_jobs)
+
+    # Determine the maximum number of jobs possible
+    if num_jobs == -1:
+        num_jobs = psutil.cpu_count(logical=True)
+
+        if num_jobs is None:
+            warn(
+                "Number of available CPUs could not be determined, setting num_jobs=1."
+            )
+            num_jobs = 1
+
     # TODO: Remove in future version
     if num_samples != 1000:
         warn(
