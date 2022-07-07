@@ -11,4 +11,4 @@ dill>=0.3.4
 psutil>=5.9.0
 readme2tex>=0.0.1b2
 dill>=0.3.4
-mistune>=0.8.4
+mistune==0.8.4
