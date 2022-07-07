@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-with open("README_RAW.md", "r") as fh:
+with open("README_RAW.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 with open("requirements.txt") as f:
