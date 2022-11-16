@@ -549,6 +549,9 @@ pull request if you would like to see your work added here!
 * ["What do you mean by Relation Extraction? A Survey on Datasets and Study on Scientific Relation Classification" (Bassignana & Plank, 2022)](https://arxiv.org/pdf/2204.13516.pdf)
 * ["KOMPETENCER: Fine-grained Skill Classification in Danish Job Postings
 via Distant Supervision and Transfer Learning" (Zhang et al., 2022b)](https://arxiv.org/pdf/2205.01381.pdf)
+* ["Exploring Predictive Uncertainty and Calibration in NLP: A Study on the Impact of Method & Data Scarcity" (Ulmer et al., 2022)](https://arxiv.org/pdf/2210.15452.pdf)  
+* ["DBGSL: Dynamic Brain Graph Structure Learning" (Campbell et al., 2022)](https://arxiv.org/pdf/2209.13513.pdf)
+* ["An Empirical Study on Cross-X Transfer for Legal Judgment Prediction" (Niklaus et al., 2022)](https://arxiv.org/pdf/2209.12325.pdf)
 
 ### :books: Bibliography
 
