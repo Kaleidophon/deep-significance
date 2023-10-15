@@ -7,7 +7,7 @@ Implementation of paired bootstrap test
 from typing import Optional
 
 # EXT
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, wrap_non_picklable_objects
 import numpy as np
 
 # PKG
@@ -67,6 +67,7 @@ def bootstrap_test(
         else [seed + offset for offset in range(1, num_samples + 1)]
     )
 
+    @wrap_non_picklable_objects
     def _bootstrap_iter(delta: float, seed: Optional[int] = None):
         """
         One bootstrap iteration. Wrapped in a function so it can be handed to joblib.Parallel.
