@@ -477,12 +477,13 @@ the distribution of our test metric. Nevertheless, they differ in their *statist
 
 Using this package in general, please cite the following:
 
-    @article{ulmer2022deep,
-      title={deep-significance-Easy and Meaningful Statistical Significance Testing in the Age of Neural Networks},
+    @inproceedings{ulmer2022deep,
+      title={deep-significance: Easy and Meaningful Signifcance Testing in the Age of Neural Networks},
       author={Ulmer, Dennis and Hardmeier, Christian and Frellsen, Jes},
-      journal={arXiv preprint arXiv:2204.06815},
+      booktitle={ML Evaluation Standards Workshop at the Tenth International Conference on Learning Representations},
       year={2022}
     }
+
 
 
 If you use the ASO test via `aso()` or `multi_aso, please cite the original works:
