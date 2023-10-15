@@ -6,7 +6,7 @@ Implementation of paired sign test.
 from typing import Optional
 
 # EXT
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, wrap_non_picklable_objects
 import numpy as np
 
 # PKG
