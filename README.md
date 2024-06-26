@@ -485,7 +485,6 @@ Using this package in general, please cite the following:
     }
 
 
-
 If you use the ASO test via `aso()` or `multi_aso, please cite the original works:
 
     @inproceedings{dror2019deep,
@@ -547,6 +546,7 @@ via Distant Supervision and Transfer Learning" (Zhang et al., 2022b)](https://ar
 * ["Exploring Predictive Uncertainty and Calibration in NLP: A Study on the Impact of Method & Data Scarcity" (Ulmer et al., 2022)](https://arxiv.org/pdf/2210.15452.pdf)  
 * ["DBGSL: Dynamic Brain Graph Structure Learning" (Campbell et al., 2022)](https://arxiv.org/pdf/2209.13513.pdf)
 * ["An Empirical Study on Cross-X Transfer for Legal Judgment Prediction" (Niklaus et al., 2022)](https://arxiv.org/pdf/2209.12325.pdf)
+* ["A Noisy Elephant in the Room: Is Your Out-of-Distribution Detector Robust to Label Noise?" (Humblot-Renaux et al., 2024)](https://arxiv.org/pdf/2404.01775.pdf)
 
 ### :books: Bibliography
 
