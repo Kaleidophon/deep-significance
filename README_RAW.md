@@ -483,10 +483,10 @@ the distribution of our test metric. Nevertheless, they differ in their *statist
 
 Using this package in general, please cite the following:
 
-    @article{ulmer2022deep,
-      title={deep-significance-Easy and Meaningful Statistical Significance Testing in the Age of Neural Networks},
+    @inproceedings{ulmer2022deep,
+      title={deep-significance: Easy and Meaningful Signifcance Testing in the Age of Neural Networks},
       author={Ulmer, Dennis and Hardmeier, Christian and Frellsen, Jes},
-      journal={arXiv preprint arXiv:2204.06815},
+      booktitle={ML Evaluation Standards Workshop at the Tenth International Conference on Learning Representations},
       year={2022}
     }
 
@@ -552,6 +552,7 @@ via Distant Supervision and Transfer Learning" (Zhang et al., 2022b)](https://ar
 * ["Exploring Predictive Uncertainty and Calibration in NLP: A Study on the Impact of Method & Data Scarcity" (Ulmer et al., 2022)](https://arxiv.org/pdf/2210.15452.pdf)  
 * ["DBGSL: Dynamic Brain Graph Structure Learning" (Campbell et al., 2022)](https://arxiv.org/pdf/2209.13513.pdf)
 * ["An Empirical Study on Cross-X Transfer for Legal Judgment Prediction" (Niklaus et al., 2022)](https://arxiv.org/pdf/2209.12325.pdf)
+* ["A Noisy Elephant in the Room: Is Your Out-of-Distribution Detector Robust to Label Noise?" (Humblot-Renaux et al., 2024)](https://arxiv.org/pdf/2404.01775.pdf)
 
 ### :books: Bibliography
 
