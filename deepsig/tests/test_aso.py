@@ -51,6 +51,32 @@ class ASOTechnicalTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             aso([1, 2, 3], [3, 4, 5], num_jobs=0, show_progress=False)
 
+    def test_num_comparisons_correction(self):
+        """
+        Test that num_comparisons applies a Bonferroni correction, i.e. divides alpha = 1 - confidence_level by the
+        number of comparisons. K = 3 is used since the old (incorrect) formula coincides with the correct one for K = 2.
+        """
+        np.random.seed(4321)
+        scores_a = np.random.normal(loc=0.1, size=50)
+        scores_b = np.random.normal(size=50)
+        kwargs = {"num_bootstrap_iterations": 100, "show_progress": False, "seed": 123}
+        confidence_level, num_comparisons = 0.95, 3
+
+        corrected = aso(
+            scores_a,
+            scores_b,
+            confidence_level=confidence_level,
+            num_comparisons=num_comparisons,
+            **kwargs
+        )
+        expected = aso(
+            scores_a,
+            scores_b,
+            confidence_level=1 - (1 - confidence_level) / num_comparisons,
+            **kwargs
+        )
+        self.assertAlmostEqual(corrected, expected)
+
     def test_argument_combos(self):
         """
         Try different combinations of inputs arguments for compute_violation_ratio().
@@ -266,6 +292,29 @@ class MultiASOTests(unittest.TestCase):
             self.scores_numpy, seed=seed, use_bonferroni=False, **self.aso_kwargs
         )
         self.assertTrue(np.all(corrected_scores >= uncorrected_scores))
+
+    def test_bonferroni_correction_value(self):
+        """
+        Test that the Bonferroni correction divides alpha = 1 - confidence_level by the number of comparisons, i.e.
+        that the corrected result equals the uncorrected one at confidence level 1 - alpha / K.
+        """
+        seed = 123
+        confidence_level = 0.95
+        num_comparisons = self.num_models * (self.num_models - 1) / 2
+        corrected_scores = multi_aso(
+            self.scores_numpy,
+            confidence_level=confidence_level,
+            seed=seed,
+            **self.aso_kwargs
+        )
+        expected_scores = multi_aso(
+            self.scores_numpy,
+            confidence_level=1 - (1 - confidence_level) / num_comparisons,
+            use_bonferroni=False,
+            seed=seed,
+            **self.aso_kwargs
+        )
+        np.testing.assert_allclose(corrected_scores, expected_scores)
 
     def test_result_df(self):
         """
