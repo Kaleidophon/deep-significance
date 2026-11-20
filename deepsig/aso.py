@@ -125,7 +125,8 @@ def aso(
         )
 
     if num_comparisons > 1:
-        confidence_level += (1 - confidence_level) / num_comparisons
+        # Bonferroni correction: divide alpha = 1 - confidence_level by the number of comparisons
+        confidence_level = 1 - (1 - confidence_level) / num_comparisons
 
     violation_ratio = compute_violation_ratio(
         scores_a=scores_a, scores_b=scores_b, dt=dt
@@ -256,8 +257,8 @@ def multi_aso(
     eps_min = np.eye(num_models)  # Initialize score matrix
 
     if use_bonferroni:
-        # Increase the confidence level based in oder to mitigate the multiple comparisons problem
-        confidence_level += (1 - confidence_level) / num_comparisons
+        # Bonferroni correction: divide alpha = 1 - confidence_level by the number of comparisons
+        confidence_level = 1 - (1 - confidence_level) / num_comparisons
 
     # Iterate over simple indices or dictionary keys depending on type of scores argument
     indices = list(range(num_models)) if type(scores) != dict else list(scores.keys())
