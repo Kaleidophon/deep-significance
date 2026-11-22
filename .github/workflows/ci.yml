@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install package and dev dependencies
+        # --locked fails if uv.lock is out of date with pyproject.toml
+        run: uv sync --locked --python ${{ matrix.python-version }}
+
+      - name: Run tests
+        run: |
+          uv run coverage run --source deepsig/ --omit="*/test*" -m unittest discover deepsig/tests
+          uv run coverage report --skip-covered
+
+  build:
+    name: Build and install package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: Install wheel into a clean environment and import it
+        # Run from outside the repository so the local source folder can't shadow the installed package
+        run: |
+          uv venv /tmp/install-test --python 3.12
+          uv pip install --python /tmp/install-test/bin/python dist/*.whl
+          cd /tmp
+          /tmp/install-test/bin/python -c "import deepsig; print('Installed deepsig', deepsig.__version__)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Publish to PyPI
+    # Only on pushes to main whose commit message contains "[release]"
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      contains(github.event.head_commit.message, '[release]')
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/deepsig/
+    permissions:
+      id-token: write   # PyPI trusted publishing
+      contents: write   # creating the git tag and GitHub release
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Read version and make sure it wasn't released yet
+        id: version
+        run: |
+          VERSION=$(grep -Po '^__version__ = "\K[^"]+' deepsig/__init__.py)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            echo "::error::Tag v$VERSION already exists - did you forget to bump __version__ in deepsig/__init__.py?"
+            exit 1
+          fi
+
+      - name: Publish to PyPI
+        run: uv publish --trusted-publishing always
+
+      - name: Create tag and GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" dist/* \
+            --target "$GITHUB_SHA" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --generate-notes
