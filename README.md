@@ -71,6 +71,21 @@ Another option is to clone the repository and install the package locally:
 
 **Warning**: Installed like this, imports will fail when the clones repository is moved.
 
+### Development
+
+For development, the project uses [uv](https://docs.astral.sh/uv/). After cloning the repository, run
+
+    uv sync
+
+to create a virtual environment with the package and all development dependencies (for testing and building the 
+documentation). Tests and other commands can then be run inside this environment via `uv run`:
+
+    uv run python -m unittest discover deepsig/tests
+    uv run ./create_docs.sh
+
+Dependencies of the package are added with `uv add <package>`, development-only dependencies with 
+`uv add --dev <package>`. The version number is only maintained in `deepsig/__init__.py`.
+
 ## :bookmark: Examples
 
 ---
