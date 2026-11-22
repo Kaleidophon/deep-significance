@@ -78,11 +78,12 @@ def bootstrap_test(
         if "np" not in dir():
             import numpy as np
 
-        if seed is not None:
-            np.random.seed(seed)
+        # Use a local random state in order to not change the global numpy random state of the user
+        random_state = np.random.RandomState(seed)
 
-        resampled_scores_a = np.random.choice(scores_a, N)
-        resampled_scores_b = np.random.choice(scores_b, N)
+        indices = random_state.choice(np.arange(0, N), size=N)
+        resampled_scores_a = scores_a[indices]
+        resampled_scores_b = scores_b[indices]
 
         new_delta = np.mean(resampled_scores_a - resampled_scores_b)
 

@@ -6,7 +6,7 @@ Module comprising test-unrelated utility functions.
 from tqdm import tqdm
 
 # PKG
-from deepsig.conversion import ScoreCollection, ALLOWED_TYPES, CONVERSIONS
+from deepsig.conversion import ScoreCollection, get_conversion_func, is_allowed_type
 
 
 def _progress_iter(high: int, progress_bar: tqdm):
@@ -66,8 +66,8 @@ def _get_num_models(scores: ScoreCollection) -> int:
         return len(scores)
 
     # Numpy / Jax arrays, Tensorflow / PyTorch tensor
-    elif type(scores) in ALLOWED_TYPES:
-        scores = CONVERSIONS[type(scores)](scores)  # Convert to numpy array
+    elif is_allowed_type(scores):
+        scores = get_conversion_func(scores)(scores)  # Convert to numpy array
 
         return scores.shape[0]
 

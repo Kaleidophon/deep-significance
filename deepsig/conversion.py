@@ -4,77 +4,130 @@ numpy arrays for consistency.
 """
 
 # STD
-from collections import defaultdict
 from functools import wraps
-from typing import Callable, List, Union, Dict
+from typing import Callable, List, Union, Dict, Optional, TYPE_CHECKING
 
 # EXT
 import numpy as np
 
-# CONST & TYPES
-# This defaultdict is used to apply conversions to data types defined in other frameworks (torch.Tensor /
-# tf.Tensor). This is done by mapping the type of the sequence to a function converting it into an easier type.
-# Thus, in the normal case, a sequence based on a Python Iterable is just kept as is.
-# This trick borrowed from https://github.com/Kaleidophon/token2index/blob/master/t2i/decorators.py.
-ArrayLike = Union[List[float], np.array]
-ScoreCollection = Union[
-    Dict[str, List[float]], Dict[str, np.array], np.array, List[List[float]]
-]
-CONVERSIONS = defaultdict(lambda: lambda array_like: array_like)
-CONVERSIONS[list] = CONVERSIONS[tuple] = lambda array_like: np.array(array_like)
-CONVERSIONS[set] = lambda array_like: np.array(list(array_like))
-ALLOWED_TYPES = {list, set, tuple, np.array, np.ndarray}
-
-
-def extend_type(type_: type, new_type: type) -> type:
-    """ Extend a custom type which is a union of types with another type. """
-    type_.__args__ = (new_type, *type_.__args__)
-    return type_
-
-
-# Now add conversion methods / tensors based on what packages are installed
-# Ensure compatibility with Pytorch
-# This is in a try/except block in case the user hasn't installed torch
-try:
+# Tensor types are only imported for type checkers. At runtime, the frameworks are never imported by deepsig itself:
+# If a user passes e.g. a PyTorch tensor, PyTorch has already been imported anyway.
+if TYPE_CHECKING:
+    import jax
+    import tensorflow as tf
     import torch
 
-    for tensor_type in (torch.FloatTensor, torch.LongTensor, torch.Tensor):
-        ArrayLike = extend_type(ArrayLike, tensor_type)
-        CONVERSIONS[tensor_type] = lambda t: t.detach().numpy()
-        ALLOWED_TYPES.add(tensor_type)
 
-except:
-    pass
+def _convert_torch_tensor(tensor: "torch.Tensor") -> np.ndarray:
+    """
+    Convert a PyTorch tensor into a numpy array. Floating point types without a numpy equivalent (like bfloat16 or
+    float8 types) are converted to float64 first, which is lossless.
+    """
+    # Doesn't actually import anything, PyTorch has to be imported already for a tensor to exist
+    import torch
 
-# Ensure compatibility with Tensorflow
-# This is in a try/except block in case the user hasn't installed tensorflow
-try:
-    import tensorflow as tf
+    tensor = tensor.detach().cpu()
 
-    ArrayLike = extend_type(ArrayLike, tf.Tensor)
-    CONVERSIONS[tf.Tensor] = lambda t: tf.make_ndarray(t)
-    ALLOWED_TYPES.add(tf.Tensor)
+    if tensor.is_floating_point() and tensor.dtype not in (
+        torch.float16,
+        torch.float32,
+        torch.float64,
+    ):
+        tensor = tensor.double()
 
-    from tensorflow.python.framework.ops import EagerTensor
+    return tensor.numpy()
 
-    ArrayLike = extend_type(ArrayLike, EagerTensor)
-    CONVERSIONS[EagerTensor] = lambda t: t.numpy()
-    ALLOWED_TYPES.add(EagerTensor)
 
-except:
-    pass
+# CONST & TYPES
+# This dictionary is used to apply conversions to common Python types. This is done by mapping the type of the
+# sequence to a function converting it into a numpy array.
+# This trick borrowed from https://github.com/Kaleidophon/token2index/blob/master/t2i/decorators.py.
+CONVERSIONS = {
+    list: np.array,
+    tuple: np.array,
+    set: lambda array_like: np.array(list(array_like)),
+    np.ndarray: np.asarray,
+}
 
-# Ensure compatibility with Jax
-# This is in a try/except block in case the user hasn't installed jax
-try:
-    from jax.interpreters.xla import _DeviceArray
+# Conversions for tensors of other frameworks, based on the top-level package that their type is defined in. This way,
+# frameworks never have to be imported just to check whether an object is one of their tensors.
+FRAMEWORK_CONVERSIONS = {
+    "torch": _convert_torch_tensor,
+    "tensorflow": lambda t: t.numpy(),  # Eager tensors and variables
+    "jax": np.asarray,
+    "jaxlib": np.asarray,  # Concrete Jax array classes are defined in jaxlib
+}
 
-    ArrayLike = extend_type(ArrayLike, _DeviceArray)
-    CONVERSIONS[_DeviceArray] = lambda t: np.array(t)
-    ALLOWED_TYPES.add(_DeviceArray)
+ArrayLike = Union[
+    List[float], np.ndarray, "torch.Tensor", "tf.Tensor", "tf.Variable", "jax.Array"
+]
+ScoreCollection = Union[
+    Dict[str, List[float]], Dict[str, np.ndarray], np.ndarray, List[List[float]]
+]
 
-except:
-    pass
+
+def _get_known_conversion_func(array_like) -> Optional[Callable]:
+    """
+    Find the conversion function for a known type, i.e. a common Python type, a numpy array or a tensor of a supported
+    framework. Parent classes are considered as well, so that e.g. subclasses of torch.Tensor are supported.
+
+    Parameters
+    ----------
+    array_like: Any
+        Object containing scores or p-values.
+
+    Returns
+    -------
+    Optional[Callable]
+        Function converting the object into a numpy array, or None if the type is not known.
+    """
+    for type_ in type(array_like).__mro__:
+        if type_ in CONVERSIONS:
+            return CONVERSIONS[type_]
+
+        framework = type_.__module__.split(".")[0]
+
+        if framework in FRAMEWORK_CONVERSIONS:
+            return FRAMEWORK_CONVERSIONS[framework]
+
+    return None
+
+
+def get_conversion_func(array_like) -> Callable:
+    """
+    Select the function that converts an array-like object into a numpy array. For types that are not explicitly
+    supported (e.g. pandas Series), numpy's own conversion is used.
+
+    Parameters
+    ----------
+    array_like: Any
+        Object containing scores or p-values.
+
+    Returns
+    -------
+    Callable
+        Function converting the object into a numpy array.
+    """
+    conversion_func = _get_known_conversion_func(array_like)
+
+    return conversion_func if conversion_func is not None else np.asarray
+
+
+def is_allowed_type(array_like) -> bool:
+    """
+    Check whether the type of an object (or one of its parent classes) is explicitly supported.
+
+    Parameters
+    ----------
+    array_like: Any
+        Object containing scores or p-values.
+
+    Returns
+    -------
+    bool
+        Whether the type of the object is supported.
+    """
+    return _get_known_conversion_func(array_like) is not None
 
 
 def score_pair_conversion(func: Callable) -> Callable:
@@ -100,15 +153,15 @@ def score_pair_conversion(func: Callable) -> Callable:
     ):
 
         # Select appropriate conversion functions
-        conversion_func_a = CONVERSIONS[type(scores_a)]
-        conversion_func_b = CONVERSIONS[type(scores_b)]
+        conversion_func_a = get_conversion_func(scores_a)
+        conversion_func_b = get_conversion_func(scores_b)
 
         # Convert to numpy arrays
         scores_a = conversion_func_a(scores_a)
         scores_b = conversion_func_b(scores_b)
 
         # Check dimensionality
-        def _squeeze_or_exception(array: np.array, name: str) -> np.array:
+        def _squeeze_or_exception(array: np.ndarray, name: str) -> np.ndarray:
             dims = len(array.shape)
 
             if dims > 1:
@@ -150,7 +203,7 @@ def score_conversion(func: Callable) -> Callable:
     def with_score_conversion(scores: ArrayLike, *args, **kwargs):
 
         # Select appropriate conversion functions
-        conversion_func = CONVERSIONS[type(scores)]
+        conversion_func = get_conversion_func(scores)
 
         # Convert to numpy arrays
         scores = conversion_func(scores)
@@ -161,20 +214,20 @@ def score_conversion(func: Callable) -> Callable:
     return with_score_conversion
 
 
-def _squeeze_or_exception(array: np.array, name: str) -> np.array:
+def _squeeze_or_exception(array: np.ndarray, name: str) -> np.ndarray:
     """
     Squeeze a two-dimensional array if possible. If not, throw a TypeError.
 
     Parameters
     ----------
-    array: np.array
+    array: np.ndarray
         Numpy array to be squeezed.
     name: str
         Name of the array (for better error message).
 
     Returns
     -------
-    np.array
+    np.ndarray
         Squeezed, 1D Numpy array.
     """
     dims = len(array.shape)
