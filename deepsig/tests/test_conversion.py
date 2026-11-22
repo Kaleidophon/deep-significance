@@ -3,14 +3,17 @@ Test for deepsig.conversion.py.
 """
 
 # STD
+import subprocess
+import sys
 import unittest
 
 # EXT
 import numpy as np
+import pandas as pd
 
 # PKG
 from deepsig import aso, bootstrap_test, permutation_test, bonferroni_correction
-from deepsig.conversion import ArrayLike
+from deepsig.conversion import ArrayLike, get_conversion_func
 
 
 class ConversionTests(unittest.TestCase):
@@ -32,6 +35,93 @@ class ConversionTests(unittest.TestCase):
             num_bootstrap_iterations=1,
             show_progress=False,
         )
+
+    def _assert_converted(self, array_like, expected: list):
+        """
+        Make sure that an object is actually converted into a numpy array with the expected values.
+        """
+        converted = get_conversion_func(array_like)(array_like)
+        self.assertIsInstance(converted, np.ndarray)
+        self.assertTrue(np.allclose(converted, expected))
+
+    def test_conversion_types(self):
+        """
+        Test that tensors of the different frameworks are actually converted into numpy arrays, and not just passed on.
+        """
+        self._assert_converted(self.scores_a, self.scores_a)
+
+        try:
+            import torch
+
+            self._assert_converted(torch.FloatTensor(self.scores_a), self.scores_a)
+            self._assert_converted(
+                torch.nn.Parameter(torch.FloatTensor(self.scores_a)), self.scores_a
+            )
+
+            # Floating point types without numpy equivalent, compared to their (less precise) values as float64
+            for dtype in (torch.bfloat16, getattr(torch, "float8_e4m3fn", None)):
+                if dtype is not None:
+                    low_precision_scores = torch.FloatTensor(self.scores_a).to(dtype)
+                    self._assert_converted(
+                        low_precision_scores, low_precision_scores.double().tolist()
+                    )
+
+            # Integer tensors should keep their type
+            self.assertEqual(
+                get_conversion_func(torch.LongTensor([1, 2]))(
+                    torch.LongTensor([1, 2])
+                ).dtype,
+                np.int64,
+            )
+
+        except ImportError:
+            pass
+
+        try:
+            import tensorflow as tf
+
+            self._assert_converted(tf.convert_to_tensor(self.scores_a), self.scores_a)
+            self._assert_converted(tf.Variable(self.scores_a), self.scores_a)
+
+        except ImportError:
+            pass
+
+        try:
+            import jax.numpy as jnp
+
+            self._assert_converted(jnp.asarray(self.scores_a), self.scores_a)
+
+        except ImportError:
+            pass
+
+    def test_no_framework_imports(self):
+        """
+        Make sure that importing deepsig doesn't import PyTorch, Tensorflow or Jax, which would slow down the import
+        considerably. Runs in a new process, since the frameworks might have been imported by other tests already.
+        """
+        code = (
+            "import sys, deepsig; "
+            "print([m for m in ('torch', 'tensorflow', 'jax') if m in sys.modules])"
+        )
+        output = subprocess.run(
+            [sys.executable, "-c", code], capture_output=True, text=True, check=True
+        )
+        self.assertEqual(output.stdout.strip(), "[]")
+
+    def test_pandas_compatibility(self):
+        """
+        Test that types without explicit support like pandas Series are converted using numpy, so that e.g. a custom
+        index doesn't influence the result.
+        """
+        series_a = pd.Series(self.scores_a, index=range(10, 14))
+        series_b = pd.Series(self.scores_b, index=range(20, 24))
+        self._assert_converted(series_a, self.scores_a)
+
+        for test_func in [bootstrap_test, permutation_test]:
+            self.assertEqual(
+                test_func(series_a, series_b, seed=1),
+                test_func(np.array(self.scores_a), np.array(self.scores_b), seed=1),
+            )
 
     def test_python_compatability(self):
         """

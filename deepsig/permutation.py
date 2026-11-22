@@ -76,13 +76,13 @@ def permutation_test(
         if "np" not in dir():
             import numpy as np
 
-        if seed is not None:
-            np.random.seed(seed)
+        # Use a local random state in order to not change the global numpy random state of the user
+        random_state = np.random.RandomState(seed)
 
         swapped_a, swapped_b = zip(
             *[
                 (scores_a[i], scores_b[i])
-                if np.random.rand() > 0.5
+                if random_state.rand() > 0.5
                 else (scores_b[i], scores_a[i])
                 for i in range(N)
             ]

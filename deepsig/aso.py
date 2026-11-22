@@ -97,6 +97,9 @@ def aso(
     assert (
         num_comparisons > 0
     ), "Number of comparisons has to be at least 1, {} found.".format(num_comparisons)
+    assert (
+        0 <= confidence_level <= 1
+    ), "Confidence level should be in [0, 1], but {} found".format(confidence_level)
 
     # Determine the maximum number of jobs possible
     if num_jobs == -1:
@@ -107,22 +110,6 @@ def aso(
                 "Number of available CPUs could not be determined, setting num_jobs=1."
             )
             num_jobs = 1
-
-    # TODO: Remove in future version
-    if num_samples != 1000:
-        warn(
-            "'num_samples' argument is being ignored in the current version and will be deprecated in version 1.3!",
-            DeprecationWarning,
-        )
-
-    # TODO: Remove in future version
-    if confidence_level < 0.95:
-        warn(
-            "'confidence_level' was refactored in version 1.2.4 to be more intuitive and usually should be in the .95 -"
-            f".99 range, but {confidence_level} was found. If you tried to adjust the confidence level for multiple "
-            f"comparisons, try the new num_comparisons argument instead.",
-            UserWarning,
-        )
 
     if num_comparisons > 1:
         # Bonferroni correction: divide alpha = 1 - confidence_level by the number of comparisons
@@ -174,7 +161,7 @@ def multi_aso(
     return_df: bool = False,
     show_progress: bool = True,
     seed: Optional[int] = None,
-) -> Union[np.array, pd.DataFrame]:
+) -> Union[np.ndarray, pd.DataFrame]:
     """
     Provides easy function to compare the scores of multiple models at ones. Scores can be supplied in various forms
     (dictionary, nested list, 2D arrays or tensors). Returns a matrix (or pandas.DataFrame) with results. Applies
@@ -213,7 +200,7 @@ def multi_aso(
 
     Returns
     -------
-    Union[np.array, pd.DataFrame]
+    Union[np.ndarray, pd.DataFrame]
         2D numpy array or pandas Dataframe (if scores is dictionary and return_df=True) with result of ASO.
     """
     assert (
@@ -230,30 +217,8 @@ def multi_aso(
             )
             num_jobs = 1
 
-    # TODO: Remove in future version
-    if num_samples != 1000:
-        warn(
-            "'num_samples' argument is being ignored in the current version and will be deprecated in version 1.3!",
-            DeprecationWarning,
-        )
-
-    # TODO: Remove in future version
-    if not use_symmetry:
-        warn(
-            "'use_symmetry' argument is being ignored in the current version and will be deprecated in version 1.3!",
-            DeprecationWarning,
-        )
-
-    # TODO: Remove in future version
-    if confidence_level < 0.95:
-        warn(
-            "'confidence_level' was refactored in version 1.2.4 to be more intuitive and usually should be in the .95 -"
-            f".99 range, but {confidence_level} was found.",
-            UserWarning,
-        )
-
     num_models = _get_num_models(scores)
-    num_comparisons = num_models * (num_models - 1) / 2
+    num_comparisons = num_models * (num_models - 1)
     eps_min = np.eye(num_models)  # Initialize score matrix
 
     if use_bonferroni:
@@ -266,10 +231,9 @@ def multi_aso(
     # Add progressbar if applicable
     progress_bar = None
     if show_progress:
+        # use_symmetry is ignored, so every pair of models always requires exactly num_bootstrap_iterations iterations
         progress_bar = tqdm(
-            range(int(num_comparisons * num_bootstrap_iterations))
-            if use_symmetry
-            else range(int(num_comparisons * num_bootstrap_iterations * 2)),
+            range(int(num_comparisons * num_bootstrap_iterations)),
             desc="Model comparisons",
         )
 
@@ -336,8 +300,8 @@ def multi_aso(
 
 
 def compute_violation_ratio(
-    scores_a: Optional[np.array] = None,
-    scores_b: Optional[np.array] = None,
+    scores_a: Optional[np.ndarray] = None,
+    scores_b: Optional[np.ndarray] = None,
     quantile_func_a: Optional[Callable] = None,
     quantile_func_b: Optional[Callable] = None,
     dt: float = 0.001,
@@ -347,9 +311,9 @@ def compute_violation_ratio(
 
     Parameters
     ----------
-    scores_a:  Optional[np.array]
+    scores_a:  Optional[np.ndarray]
         Scores of algorithm A.
-    scores_b:  Optional[np.array]
+    scores_b:  Optional[np.ndarray]
         Scores of algorithm B.
     dt: float
         Differential for t during integral calculation.
@@ -397,7 +361,7 @@ def compute_violation_ratio(
     return violation_ratio
 
 
-def get_quantile_function(scores: np.array) -> Callable:
+def get_quantile_function(scores: np.ndarray) -> Callable:
     """
     Return the quantile function corresponding to an empirical distribution of scores.
 
@@ -411,20 +375,20 @@ def get_quantile_function(scores: np.array) -> Callable:
     Callable
         Return the quantile function belonging to an empirical score distribution.
     """
-    # When running multiple jobs via joblib, numpy has to be re-imported for some reason to avoid an error
-    # Use dir() to check whether module is available in local scope:
-    # https://stackoverflow.com/questions/30483246/how-to-check-if-a-module-has-been-imported
-    if "np" not in dir():
-        import numpy as np
+    # When running multiple jobs via joblib, numpy has to be available in the local scope of the returned function
+    import numpy as np
 
-    def _quantile_function(p: float) -> float:
-        cdf = np.sort(scores)
-        num = len(scores)
-        index = int(np.ceil(num * p))
+    # Sort only once instead of every time the quantile function is evaluated
+    cdf = np.sort(scores)
+    num = len(scores)
 
-        return cdf[np.clip(index - 1, 0, num - 1)]
+    def _quantile_function(p: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+        # Evaluate all points at once instead of vectorizing a function evaluating single points
+        indices = np.ceil(num * np.asarray(p)).astype(int)
 
-    return np.vectorize(_quantile_function)
+        return cdf[np.clip(indices - 1, 0, num - 1)]
+
+    return _quantile_function
 
 
 def get_bootstrapped_violation_ratios(
@@ -501,11 +465,11 @@ def get_bootstrapped_violation_ratios(
             import numpy as np
             from deepsig.aso import compute_violation_ratio
 
-        if seed is not None:
-            np.random.seed(seed)
+        # Use a local random state in order to not change the global numpy random state of the user
+        random_state = np.random.RandomState(seed)
 
-        sampled_scores_a = quantile_func_a(np.random.uniform(0, 1, len(scores_a)))
-        sampled_scores_b = quantile_func_b(np.random.uniform(0, 1, len(scores_b)))
+        sampled_scores_a = quantile_func_a(random_state.uniform(0, 1, len(scores_a)))
+        sampled_scores_b = quantile_func_b(random_state.uniform(0, 1, len(scores_b)))
         sample = compute_violation_ratio(
             scores_a=sampled_scores_a,
             scores_b=sampled_scores_b,

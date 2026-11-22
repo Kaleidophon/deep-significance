@@ -9,13 +9,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     
-    <title>deep-significance: Easy and Better Significance Testing for Deep Neural Networks &#8212; deep-significance 1.2.9 documentation</title>
+    <title>deep-significance: Easy and Better Significance Testing for Deep Neural Networks &#8212; deep-significance 1.3.0 documentation</title>
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=29da98fa" />
     <link rel="stylesheet" href="_static/bootstrap-4.3.1-dist/css/bootstrap.min.css" type="text/css" />
     <link rel="stylesheet" href="_static/sphinxbootstrap4.css" type="text/css" />
-    <script src="_static/documentation_options.js?v=e917149c"></script>
+    <script src="_static/documentation_options.js?v=1f29e9d3"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -33,7 +33,7 @@
            <a class="navbar-brand py-1" href="#">
                   deep-significance
           </a>
-          <span class="navbar-text navbar-version pb-0 pt-1"><b>1.2.9</b></span>
+          <span class="navbar-text navbar-version pb-0 pt-1"><b>1.3.0</b></span>
           <ul class="navbar-nav mr-auto">
           
               <li class="nav-item dropdown d-none d-sm-block" id="navbar-pages">
@@ -76,7 +76,7 @@
 
     <div class="related d-flex justify-content-between bg-light flex-wrap" role="navigation" aria-label="related navigation">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">deep-significance 1.2.9 documentation</a></li>
+            <li class="breadcrumb-item"><a href="#">deep-significance 1.3.0 documentation</a></li>
             <li class="breadcrumb-item active">deep-significance: Easy and Better Significance Testing for Deep Neural Networks</li>
         </ol>
        <div>
@@ -156,7 +156,9 @@
 <a class="reference external" href="https://www.gnu.org/licenses/gpl-3.0"><img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
 <a class="reference external" href="https://github.com/python/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a>
 <a class="reference external" href="https://zenodo.org/badge/latestdoi/341677886"><img alt="DOI" src="https://zenodo.org/badge/341677886.svg" /></a></p>
-<p><img alt="" src="_images/logo.png" /></p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Kaleidophon/deep-significance/main/img/logo.png" width="550" alt="deep-significance logo">
+</p>
 <p><strong>Contents</strong></p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#why">⁉️ Why</a></p></li>
@@ -198,7 +200,8 @@ testing:</p>
 <ul class="simple">
 <li><p>Statistical Significance tests such as Almost Stochastic Order (del Barrio et al, 2017; Dror et al., 2019),
 bootstrap (Efron &amp; Tibshirani, 1994) and permutation-randomization (Noreen, 1989).</p></li>
-<li><p>Bonferroni correction methods for multiplicity in datasets (Bonferroni, 1936).</p></li>
+<li><p>Correction methods for multiple comparisons, namely the Holm-Bonferroni (Holm, 1979) and Bonferroni (Bonferroni, 1936)
+corrections.</p></li>
 <li><p>Bootstrap power analysis (Yuan &amp; Hayashi, 2003) and other functions to determine the right sample size.</p></li>
 </ul>
 <p>All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch /
@@ -287,13 +290,17 @@ or maximum might not be enough</strong> to make a decision. For this reason, del
 introduced <em>Almost Stochastic Order</em> (ASO), a test to compare two score distributions.</p>
 <p>It builds on the concept of <em>stochastic order</em>: We can compare two distributions and declare one as <em>stochastically dominant</em>
 by comparing their cumulative distribution functions:</p>
-<p><img alt="" src="_images/so.png" /></p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Kaleidophon/deep-significance/main/img/so.png" width="450" alt="CDFs of two normal distributions, where the CDF of A (red) lies below the CDF of B (green) everywhere">
+</p>
 <p>Here, the CDF of A is given in red and in green for B. If the CDF of A is lower than B for every <span class="math notranslate nohighlight">\(x\)</span>, we know the
 algorithm A to score higher. However, in practice these cases are rarely so clear-cut (imagine e.g. two normal
 distributions with the same mean but different variances).
 For this reason, del Barrio et al. (2017) and Dror et al. (2019) consider the notion of <em>almost stochastic dominance</em>
 by quantifying the extent to which stochastic order is being violated (red area):</p>
-<p><img alt="" src="_images/aso.png" /></p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Kaleidophon/deep-significance/main/img/aso.png" width="450" alt="CDFs of two normal distributions that cross, with the area where stochastic order is violated shaded in red">
+</p>
 <p>ASO returns a value <span class="math notranslate nohighlight">\(\epsilon_\text{min}\)</span>, which expresses (an upper bound to) the amount of violation of stochastic order. If
 <span class="math notranslate nohighlight">\(\epsilon_\text{min} &lt; \tau\)</span> (where <span class="math notranslate nohighlight">\(\tau\)</span> is 0.5 or less), A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as
 superior. We can also interpret <span class="math notranslate nohighlight">\(\epsilon_\text{min}\)</span> as a <em>confidence score</em>. The lower it is, the more sure we can be
@@ -559,8 +566,10 @@ when multiple jobs are used!</p>
 <h4>🎲 Permutation and bootstrap test<a class="headerlink" href="#permutation-and-bootstrap-test" title="Link to this heading">¶</a></h4>
 <p>Should you be suspicious of ASO and want to revert to the good old faithful tests, this package also implements
 the paired-bootstrap as well as the permutation randomization test. Note that as discussed in the next section, these
-tests have less statistical power than ASO. Furthermore, a function for the Bonferroni-correction using
-p-values can also be found using <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">deepsig</span> <span class="pre">import</span> <span class="pre">bonferroni_correction</span></code>.</p>
+tests have less statistical power than ASO. Furthermore, p-values can be corrected for multiple comparisons using
+<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">deepsig</span> <span class="pre">import</span> <span class="pre">correct_p_values</span></code>, which uses the Holm-Bonferroni method by default (<code class="docutils literal notranslate"><span class="pre">method=&quot;holm&quot;</span></code>) and also
+supports the more conservative Bonferroni correction (<code class="docutils literal notranslate"><span class="pre">method=&quot;bonferroni&quot;</span></code>). Both methods are also available as
+<code class="docutils literal notranslate"><span class="pre">holm_correction</span></code> and <code class="docutils literal notranslate"><span class="pre">bonferroni_correction</span></code>.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">deepsig</span><span class="w"> </span><span class="kn">import</span> <span class="n">bootstrap_test</span><span class="p">,</span> <span class="n">permutation_test</span>
 
@@ -735,6 +744,7 @@ pull request if you would like to see your work added here!</p>
 <p>Andrew Gelman, John B Carlin, Hal S Stern, David B Dunson, Aki Vehtari, Donald B Rubin, John
 Carlin, Hal Stern, Donald Rubin, and David Dunson. Bayesian data analysis third edition, 2021.</p>
 <p>Henderson, Peter, et al. “Deep reinforcement learning that matters.” Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 32. No. 1. 2018.</p>
+<p>Holm, Sture. “A simple sequentially rejective multiple test procedure.” Scandinavian Journal of Statistics 6.2 (1979): 65-70.</p>
 <p>Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein. “Visualizing the Loss Landscape of Neural Nets.” NeurIPS 2018: 6391-6401</p>
 <p>Narang, Sharan, et al. “Do Transformer Modifications Transfer Across Implementations and Applications?.” arXiv preprint arXiv:2102.11972 (2021).</p>
 <p>Noreen, Eric W. “Computer intensive methods for hypothesis testing: An introduction.” Wiley, New York (1989).</p>
@@ -754,7 +764,7 @@ Carlin, Hal Stern, Donald Rubin, and David Dunson. Bayesian data analysis third 
 The code here heavily borrows from their <code class="docutils literal notranslate"><span class="pre">original</span> <span class="pre">code</span> <span class="pre">base</span> <span class="pre">&lt;https://github.com/rtmdrr/DeepComparison&gt;</span></code></em>.</p>
 <p>..
 !! processed by numpydoc !!</p>
-<p>.. py:function:: aso(scores_a: ~tensorflow.python.framework.ops.EagerTensor | ~tensorflow.python.framework.tensor.Tensor | ~torch.Tensor | ~torch.LongTensor | ~torch.FloatTensor | ~typing.List[float] | ~numpy.array, scores_b: ~tensorflow.python.framework.ops.EagerTensor | ~tensorflow.python.framework.tensor.Tensor | ~torch.Tensor | ~torch.LongTensor | ~torch.FloatTensor | ~typing.List[float] | ~numpy.array, confidence_level: float = 0.95, num_comparisons: int = 1, num_samples: int = 1000, num_bootstrap_iterations: int = 1000, dt: float = 0.005, num_jobs: int = 1, show_progress: bool = True, seed: int | None = None, _progress_bar: ~tqdm.std.tqdm | None = None) -&gt; float
+<p>.. py:function:: aso(scores_a: ~typing.List[float] | ~numpy.ndarray | torch.Tensor | tf.Tensor | tf.Variable | jax.Array, scores_b: ~typing.List[float] | ~numpy.ndarray | torch.Tensor | tf.Tensor | tf.Variable | jax.Array, confidence_level: float = 0.95, num_comparisons: int = 1, num_samples: int = 1000, num_bootstrap_iterations: int = 1000, dt: float = 0.005, num_jobs: int = 1, show_progress: bool = True, seed: int | None = None, _progress_bar: ~tqdm.std.tqdm | None = None) -&gt; float
 :module: deepsig.aso</p>
 <p>Performs the Almost Stochastic Order test by Dror et al. (2019). The function takes two list of scores as input
 (they do not have to be of the same length) and returns an upper bound to the violation ratio - the minimum epsilon
@@ -808,14 +818,14 @@ violated. The more scores and the higher num_samples / num_bootstrap_iterations,
 </div>
 <p>..
 !! processed by numpydoc !!</p>
-<p>.. py:function:: compute_violation_ratio(scores_a: ~numpy.array | None = None, scores_b: ~numpy.array | None = None, quantile_func_a: ~typing.Callable | None = None, quantile_func_b: ~typing.Callable | None = None, dt: float = 0.001) -&gt; float
+<p>.. py:function:: compute_violation_ratio(scores_a: ~numpy.ndarray | None = None, scores_b: ~numpy.ndarray | None = None, quantile_func_a: ~typing.Callable | None = None, quantile_func_b: ~typing.Callable | None = None, dt: float = 0.001) -&gt; float
 :module: deepsig.aso</p>
 <p>Compute the violation ration e_W2 (equation 4 + 5).</p>
 <p>:Parameters:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   **scores_a:  Optional[np.array]**
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   **scores_a:  Optional[np.ndarray]**
        Scores of algorithm A.
 
-   **scores_b:  Optional[np.array]**
+   **scores_b:  Optional[np.ndarray]**
        Scores of algorithm B.
 
    **dt: float**
@@ -835,7 +845,7 @@ violated. The more scores and the higher num_samples / num_bootstrap_iterations,
 </div>
 <p>..
 !! processed by numpydoc !!</p>
-<p>.. py:function:: get_bootstrapped_violation_ratios(scores_a: ~tensorflow.python.framework.ops.EagerTensor | ~tensorflow.python.framework.tensor.Tensor | ~torch.Tensor | ~torch.LongTensor | ~torch.FloatTensor | ~typing.List[float] | ~numpy.array, scores_b: ~tensorflow.python.framework.ops.EagerTensor | ~tensorflow.python.framework.tensor.Tensor | ~torch.Tensor | ~torch.LongTensor | ~torch.FloatTensor | ~typing.List[float] | ~numpy.array, quantile_func_a: ~typing.Callable, quantile_func_b: ~typing.Callable, num_bootstrap_iterations: int, dt: float, num_jobs: int, show_progress: bool, seed: int | None, _progress_bar: ~tqdm.std.tqdm | None) -&gt; ~typing.List[float]
+<p>.. py:function:: get_bootstrapped_violation_ratios(scores_a: ~typing.List[float] | ~numpy.ndarray | torch.Tensor | tf.Tensor | tf.Variable | jax.Array, scores_b: ~typing.List[float] | ~numpy.ndarray | torch.Tensor | tf.Tensor | tf.Variable | jax.Array, quantile_func_a: ~typing.Callable, quantile_func_b: ~typing.Callable, num_bootstrap_iterations: int, dt: float, num_jobs: int, show_progress: bool, seed: int | None, _progress_bar: ~tqdm.std.tqdm | None) -&gt; ~typing.List[float]
 :module: deepsig.aso</p>
 <p>Retrieve violation ratios computed based on a number of bootstrap samples.</p>
 <p>:Parameters:</p>
@@ -877,7 +887,7 @@ violated. The more scores and the higher num_samples / num_bootstrap_iterations,
 </div>
 <p>..
 !! processed by numpydoc !!</p>
-<p>.. py:function:: get_quantile_function(scores: ~numpy.array) -&gt; ~typing.Callable
+<p>.. py:function:: get_quantile_function(scores: ~numpy.ndarray) -&gt; ~typing.Callable
 :module: deepsig.aso</p>
 <p>Return the quantile function corresponding to an empirical distribution of scores.</p>
 <p>:Parameters:</p>
@@ -892,7 +902,7 @@ violated. The more scores and the higher num_samples / num_bootstrap_iterations,
 </div>
 <p>..
 !! processed by numpydoc !!</p>
-<p>.. py:function:: multi_aso(scores: ~typing.Dict[str, ~typing.List[float]] | ~typing.Dict[str, ~numpy.array] | ~numpy.array | ~typing.List[~typing.List[float]], confidence_level: float = 0.95, use_bonferroni: bool = True, use_symmetry: bool = True, num_samples: int = 1000, num_bootstrap_iterations: int = 1000, dt: float = 0.005, num_jobs: int = 1, return_df: bool = False, show_progress: bool = True, seed: int | None = None) -&gt; ~numpy.array | ~pandas.DataFrame
+<p>.. py:function:: multi_aso(scores: ~typing.Dict[str, ~typing.List[float]] | ~typing.Dict[str, ~numpy.ndarray] | ~numpy.ndarray | ~typing.List[~typing.List[float]], confidence_level: float = 0.95, use_bonferroni: bool = True, use_symmetry: bool = True, num_samples: int = 1000, num_bootstrap_iterations: int = 1000, dt: float = 0.005, num_jobs: int = 1, return_df: bool = False, show_progress: bool = True, seed: int | None = None) -&gt; ~numpy.ndarray | ~pandas.DataFrame
 :module: deepsig.aso</p>
 <p>Provides easy function to compare the scores of multiple models at ones. Scores can be supplied in various forms
 (dictionary, nested list, 2D arrays or tensors). Returns a matrix (or pandas.DataFrame) with results. Applies
@@ -939,7 +949,7 @@ Bonferroni correction to confidence level by default, but can be disabled by use
 </pre></div>
 </div>
 <p>:Returns:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   Union[np.array, pd.DataFrame]
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   Union[np.ndarray, pd.DataFrame]
        2D numpy array or pandas Dataframe (if scores is dictionary and return_df=True) with result of ASO.
 </pre></div>
 </div>
@@ -950,7 +960,7 @@ Bonferroni correction to confidence level by default, but can be disabled by use
 <code class="docutils literal notranslate"><span class="pre">(Efron</span> <span class="pre">&amp;</span> <span class="pre">Tibshirani,</span> <span class="pre">1994)</span> <span class="pre">&lt;https://cds.cern.ch/record/526679/files/0412042312_TOC.pdf&gt;</span></code>_.</p>
 <p>..
 !! processed by numpydoc !!</p>
-<p>.. py:function:: bootstrap_test(scores_a: ~tensorflow.python.framework.ops.EagerTensor | ~tensorflow.python.framework.tensor.Tensor | ~torch.Tensor | ~torch.LongTensor | ~torch.FloatTensor | ~typing.List[float] | ~numpy.array, scores_b: ~tensorflow.python.framework.ops.EagerTensor | ~tensorflow.python.framework.tensor.Tensor | ~torch.Tensor | ~torch.LongTensor | ~torch.FloatTensor | ~typing.List[float] | ~numpy.array, num_samples: int = 1000, num_jobs: int = 1, seed: int | None = None) -&gt; float
+<p>.. py:function:: bootstrap_test(scores_a: ~typing.List[float] | ~numpy.ndarray | torch.Tensor | tf.Tensor | tf.Variable | jax.Array, scores_b: ~typing.List[float] | ~numpy.ndarray | torch.Tensor | tf.Tensor | tf.Variable | jax.Array, num_samples: int = 1000, num_jobs: int = 1, seed: int | None = None) -&gt; float
 :module: deepsig.bootstrap</p>
 <p>Implementation of paired bootstrap test. A p-value is being estimated by comparing the mean of scores
 for two algorithms to the means of resampled populations, where <code class="docutils literal notranslate"><span class="pre">num_samples</span></code> determines the number of
@@ -988,26 +998,27 @@ the one <code class="docutils literal notranslate"><span class="pre">scores_b</s
 <code class="docutils literal notranslate"><span class="pre">Dror</span> <span class="pre">et</span> <span class="pre">al.</span> <span class="pre">(2017)</span> <span class="pre">&lt;https://arxiv.org/abs/1709.09500&gt;</span></code>_ publication.</p>
 <p>..
 !! processed by numpydoc !!</p>
-<p>.. py:function:: bonferroni_correction(p_values: ~tensorflow.python.framework.ops.EagerTensor | ~tensorflow.python.framework.tensor.Tensor | ~torch.Tensor | ~torch.LongTensor | ~torch.FloatTensor | ~typing.List[float] | ~numpy.array) -&gt; ~numpy.array
+<p>.. py:function:: bonferroni_correction(p_values: ~typing.List[float] | ~numpy.ndarray | torch.Tensor | tf.Tensor | tf.Variable | jax.Array) -&gt; ~numpy.ndarray
 :module: deepsig.correction</p>
-<p>Correct for multiple comparisons based on Bonferroni’s method.</p>
+<p>Correct for multiple comparisons based on Bonferroni’s method, i.e. by multiplying every p-value by the number of
+comparisons.</p>
 <p>:Parameters:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   **p_values: ArrayLike**
        p-values to be corrected.
 </pre></div>
 </div>
 <p>:Returns:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   np.array
-       Corrected p-values.
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   np.ndarray
+       Corrected p-values, in the same order as the input.
 </pre></div>
 </div>
 <p>..
 !! processed by numpydoc !!</p>
-<p>.. py:function:: calculate_partial_conjunction(sorted_p_values: ~numpy.array, u: int) -&gt; float
+<p>.. py:function:: calculate_partial_conjunction(sorted_p_values: ~numpy.ndarray, u: int) -&gt; float
 :module: deepsig.correction</p>
 <p>Calculate the partial conjunction p-value for u out of N.</p>
 <p>:Parameters:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   **sorted_p_values: np.array**
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   **sorted_p_values: np.ndarray**
        Sorted p-values.
 
    **u: int**
@@ -1021,11 +1032,48 @@ the one <code class="docutils literal notranslate"><span class="pre">scores_b</s
 </div>
 <p>..
 !! processed by numpydoc !!</p>
+<p>.. py:function:: correct_p_values(p_values: ~typing.List[float] | ~numpy.ndarray | torch.Tensor | tf.Tensor | tf.Variable | jax.Array, method: str = ‘holm’) -&gt; ~numpy.ndarray
+:module: deepsig.correction</p>
+<p>Correct p-values for multiple comparisons. By default, the Holm-Bonferroni method is used, which controls the
+family-wise error rate just like the Bonferroni correction, but is uniformly more powerful.</p>
+<p>:Parameters:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   **p_values: ArrayLike**
+       p-values to be corrected.
+
+   **method: str**
+       Correction method, either "holm" (default) or "bonferroni".
+</pre></div>
+</div>
+<p>:Returns:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   np.ndarray
+       Corrected p-values, in the same order as the input.
+</pre></div>
+</div>
+<p>..
+!! processed by numpydoc !!</p>
+<p>.. py:function:: holm_correction(p_values: ~typing.List[float] | ~numpy.ndarray | torch.Tensor | tf.Tensor | tf.Variable | jax.Array) -&gt; ~numpy.ndarray
+:module: deepsig.correction</p>
+<p>Correct for multiple comparisons based on the Holm-Bonferroni method
+<code class="docutils literal notranslate"><span class="pre">(Holm,</span> <span class="pre">1979)</span> <span class="pre">&lt;https://www.jstor.org/stable/4615733&gt;</span></code>_. The p-values are sorted ascendingly, and the u-th smallest
+p-value is multiplied by (N - u + 1). Afterwards, the corrected p-values are made monotonic, so that a smaller
+p-value never receives a larger corrected p-value than a bigger one.</p>
+<p>:Parameters:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   **p_values: ArrayLike**
+       p-values to be corrected.
+</pre></div>
+</div>
+<p>:Returns:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   np.ndarray
+       Corrected p-values, in the same order as the input.
+</pre></div>
+</div>
+<p>..
+!! processed by numpydoc !!</p>
 <p>.. py:module:: deepsig.permutation</p>
 <p>Implementation of paired sign test.</p>
 <p>..
 !! processed by numpydoc !!</p>
-<p>.. py:function:: permutation_test(scores_a: ~tensorflow.python.framework.ops.EagerTensor | ~tensorflow.python.framework.tensor.Tensor | ~torch.Tensor | ~torch.LongTensor | ~torch.FloatTensor | ~typing.List[float] | ~numpy.array, scores_b: ~tensorflow.python.framework.ops.EagerTensor | ~tensorflow.python.framework.tensor.Tensor | ~torch.Tensor | ~torch.LongTensor | ~torch.FloatTensor | ~typing.List[float] | ~numpy.array, num_samples: int = 1000, num_jobs: int = 1, seed: int | None = None) -&gt; float
+<p>.. py:function:: permutation_test(scores_a: ~typing.List[float] | ~numpy.ndarray | torch.Tensor | tf.Tensor | tf.Variable | jax.Array, scores_b: ~typing.List[float] | ~numpy.ndarray | torch.Tensor | tf.Tensor | tf.Variable | jax.Array, num_samples: int = 1000, num_jobs: int = 1, seed: int | None = None) -&gt; float
 :module: deepsig.permutation</p>
 <p>Implementation of a permutation-randomization test. Scores of A and B will be randomly swapped and the difference
 in samples is then compared to the original difference.</p>
@@ -1084,7 +1132,7 @@ This is based on the CLT in <code class="docutils literal notranslate"><span cla
 </div>
 <p>..
 !! processed by numpydoc !!</p>
-<p>.. py:function:: bootstrap_power_analysis(scores: ~tensorflow.python.framework.ops.EagerTensor | ~tensorflow.python.framework.tensor.Tensor | ~torch.Tensor | ~torch.LongTensor | ~torch.FloatTensor | ~typing.List[float] | ~numpy.array, scalar: float = 1.25, num_bootstrap_iterations: int = 5000, significance_threshold: float = 0.05, significance_test: ~typing.Callable | None = None, show_progress: bool = True, seed: int | None = None) -&gt; float
+<p>.. py:function:: bootstrap_power_analysis(scores: ~typing.List[float] | ~numpy.ndarray | torch.Tensor | tf.Tensor | tf.Variable | jax.Array, scalar: float = 1.25, num_bootstrap_iterations: int = 5000, significance_threshold: float = 0.05, significance_test: ~typing.Callable | None = None, show_progress: bool = True, seed: int | None = None) -&gt; float
 :module: deepsig.sample_size</p>
 <p>Perform bootstrap power analysis [1] to see whether the amount of collected scores is sufficient. It determines
 the statistical power of the sample, i.e. the probability of an statistically significant effect to be found given

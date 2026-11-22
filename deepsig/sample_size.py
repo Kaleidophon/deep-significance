@@ -8,7 +8,7 @@ from typing import Callable, Optional
 
 # EXT
 import numpy as np
-from scipy.stats import ttest_rel
+from scipy.stats import ttest_ind
 from tqdm import tqdm
 
 # PROJECT
@@ -110,13 +110,13 @@ def bootstrap_power_analysis(
         scalar > 1
     ), "Lift should be larger than 1 to produce significant differences."
 
-    if seed is not None:
-        np.random.seed(seed)
+    # Use a local random state in order to not change the global numpy random state of the user
+    random_state = np.random.RandomState(seed)
 
     # Set default significance test to Welch's t-test
     if significance_test is None:
-        significance_test = lambda scores_a, scores_b: ttest_rel(
-            scores_a, scores_b, alternative="greater"
+        significance_test = lambda scores_a, scores_b: ttest_ind(
+            scores_a, scores_b, alternative="greater", equal_var=False
         ).pvalue
 
     iters = (
@@ -131,8 +131,8 @@ def bootstrap_power_analysis(
     num_significant = 0
 
     for _ in iters:
-        resampled_scores = np.random.choice(scores, N)
-        resampled_scores_lifted = np.random.choice(scores_lifted, N)
+        resampled_scores = random_state.choice(scores, N)
+        resampled_scores_lifted = random_state.choice(scores_lifted, N)
 
         p_value = significance_test(resampled_scores_lifted, resampled_scores)
         num_significant += int(p_value <= significance_threshold)

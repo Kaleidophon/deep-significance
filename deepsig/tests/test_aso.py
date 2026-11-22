@@ -300,7 +300,7 @@ class MultiASOTests(unittest.TestCase):
         """
         seed = 123
         confidence_level = 0.95
-        num_comparisons = self.num_models * (self.num_models - 1) / 2
+        num_comparisons = self.num_models * (self.num_models - 1)
         corrected_scores = multi_aso(
             self.scores_numpy,
             confidence_level=confidence_level,

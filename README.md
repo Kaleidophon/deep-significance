@@ -5,7 +5,9 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 [![DOI](https://zenodo.org/badge/341677886.svg)](https://zenodo.org/badge/latestdoi/341677886)
 
-![](img/logo.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Kaleidophon/deep-significance/main/img/logo.png" width="550" alt="deep-significance logo">
+</p>
 
 **Contents**
 
@@ -47,7 +49,8 @@ To help mitigate this problem, this package supplies fully-tested re-implementat
 testing:
 * Statistical Significance tests such as Almost Stochastic Order (del Barrio et al, 2017; Dror et al., 2019), 
   bootstrap (Efron & Tibshirani, 1994) and permutation-randomization (Noreen, 1989).
-* Bonferroni correction methods for multiplicity in datasets (Bonferroni, 1936). 
+* Correction methods for multiple comparisons, namely the Holm-Bonferroni (Holm, 1979) and Bonferroni (Bonferroni, 1936) 
+  corrections. 
 * Bootstrap power analysis (Yuan & Hayashi, 2003) and other functions to determine the right sample size.
 
 All functions are fully tested and also compatible with common deep learning data structures, such as PyTorch / 
@@ -150,7 +153,9 @@ introduced *Almost Stochastic Order* (ASO), a test to compare two score distribu
 It builds on the concept of *stochastic order*: We can compare two distributions and declare one as *stochastically dominant*
 by comparing their cumulative distribution functions: 
 
-![](img/so.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Kaleidophon/deep-significance/main/img/so.png" width="450" alt="CDFs of two normal distributions, where the CDF of A (red) lies below the CDF of B (green) everywhere">
+</p>
 
 Here, the CDF of A is given in red and in green for B. If the CDF of A is lower than B for every $x$, we know the 
 algorithm A to score higher. However, in practice these cases are rarely so clear-cut (imagine e.g. two normal 
@@ -158,7 +163,9 @@ distributions with the same mean but different variances).
 For this reason, del Barrio et al. (2017) and Dror et al. (2019) consider the notion of *almost stochastic dominance* 
 by quantifying the extent to which stochastic order is being violated (red area):
 
-![](img/aso.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Kaleidophon/deep-significance/main/img/aso.png" width="450" alt="CDFs of two normal distributions that cross, with the area where stochastic order is violated shaded in red">
+</p>
 
 ASO returns a value $\epsilon_\text{min}$, which expresses (an upper bound to) the amount of violation of stochastic order. If 
 $\epsilon_\text{min} < \tau$ (where $\tau$ is 0.5 or less), A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as 
@@ -450,8 +457,10 @@ when multiple jobs are used!
 
 Should you be suspicious of ASO and want to revert to the good old faithful tests, this package also implements 
 the paired-bootstrap as well as the permutation randomization test. Note that as discussed in the next section, these 
-tests have less statistical power than ASO. Furthermore, a function for the Bonferroni-correction using 
-p-values can also be found using `from deepsig import bonferroni_correction`.
+tests have less statistical power than ASO. Furthermore, p-values can be corrected for multiple comparisons using 
+`from deepsig import correct_p_values`, which uses the Holm-Bonferroni method by default (`method="holm"`) and also 
+supports the more conservative Bonferroni correction (`method="bonferroni"`). Both methods are also available as 
+`holm_correction` and `bonferroni_correction`.
 
 ```python3
 import numpy as np
@@ -637,6 +646,8 @@ Andrew Gelman, John B Carlin, Hal S Stern, David B Dunson, Aki Vehtari, Donald B
 Carlin, Hal Stern, Donald Rubin, and David Dunson. Bayesian data analysis third edition, 2021.
 
 Henderson, Peter, et al. "Deep reinforcement learning that matters." Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 32. No. 1. 2018.
+
+Holm, Sture. "A simple sequentially rejective multiple test procedure." Scandinavian Journal of Statistics 6.2 (1979): 65-70.
 
 Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein. "Visualizing the Loss Landscape of Neural Nets." NeurIPS 2018: 6391-6401
 
