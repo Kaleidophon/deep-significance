@@ -56,13 +56,10 @@ dev = [
     "tensorflow>=2.4.1",
     "torch>=1.8.0",
     # Documentation
-    "m2r>=0.2.1",
-    "mistune==0.8.4",
+    "emoji>=2.0",
+    "myst-parser>=2.0",
     "numpydoc>=1.1.0",
-    "readme2tex>=0.0.1b2",
-    "recommonmark>=0.7.1",
     "sphinxbootstrap4theme>=0.6.0",
-    "sphinxemoji>=0.1.8",
 ]
 
 [tool.setuptools.dynamic]
@@ -70,4 +67,4 @@ dev = [
 version = { attr = "deepsig.__version__" }
 
 [tool.setuptools.packages.find]
-exclude = ["docs*", "dist*", "paper*", "img*", "svgs*"]
+exclude = ["docs*", "dist*", "paper*", "img*"]

@@ -20,13 +20,11 @@
 import os
 import sys
 
-from m2r import MdInclude
-
 import sphinxbootstrap4theme
-from recommonmark.transform import AutoStructify
 
 sys.path.insert(0, os.path.abspath("../"))
 sys.path.insert(0, os.path.abspath("../deepsig"))
+sys.path.insert(0, os.path.abspath("."))  # for myst_slug.py
 from deepsig import __version__  # noqa: E402
 
 
@@ -42,8 +40,7 @@ from deepsig import __version__  # noqa: E402
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.githubpages",
-    "sphinxemoji.sphinxemoji",
-    "recommonmark",
+    "myst_parser",
     "numpydoc",
 ]
 
@@ -175,22 +172,30 @@ texinfo_documents = [
     ),
 ]
 
-# Include svg. equations
-html_extra_path = ["../svgs"]
+
+
+# -- MyST (Markdown) options ----------------------------------------------
+
+# Render $...$ and $$...$$ math (same syntax that GitHub renders in the README)
+myst_enable_extensions = ["dollarmath"]
+
+# Generate anchors for headings so the README's table of contents links work
+myst_heading_anchors = 3
+
+
+# Slug function lives in its own module, as Sphinx cannot cache functions defined in conf.py
+myst_heading_slug_func = "myst_slug.github_slug"
+
+
+def emojize_readme(app, relative_path, parent_docname, content):
+    """
+    The README uses GitHub emoji shortcodes like :books:, which Sphinx doesn't understand. Replace them by the actual
+    emojis when the README is included into the documentation.
+    """
+    import emoji
+
+    content[0] = emoji.emojize(content[0], language="alias")
 
 
 def setup(app):
-    config = {
-        # 'url_resolver': lambda url: github_doc_root + url,
-        "auto_toc_tree_section": "Contents",
-        "enable_eval_rst": True,
-    }
-    app.add_config_value("recommonmark_config", config, True)
-    app.add_transform(AutoStructify)
-
-    # from m2r to make `mdinclude` work
-    app.add_config_value("no_underscore_emphasis", False, "env")
-    app.add_config_value("m2r_parse_relative_links", False, "env")
-    app.add_config_value("m2r_anonymous_references", False, "env")
-    app.add_config_value("m2r_disable_inline_math", False, "env")
-    app.add_directive("mdinclude", MdInclude)
+    app.connect("include-read", emojize_readme)

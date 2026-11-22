@@ -1,6 +1,6 @@
 # deep-significance: Easy and Better Significance Testing for Deep Neural Networks
 
-[![Coverage Status](https://coveralls.io/repos/github/Kaleidophon/deep-significance/badge.svg?branch=main&service=github)](https://coveralls.io/github/Kaleidophon/deep-significance?branch=main)
+[![CI](https://github.com/Kaleidophon/deep-significance/actions/workflows/ci.yml/badge.svg)](https://github.com/Kaleidophon/deep-significance/actions/workflows/ci.yml).
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 [![DOI](https://zenodo.org/badge/341677886.svg)](https://zenodo.org/badge/latestdoi/341677886)
@@ -20,7 +20,7 @@
   * [How to report results](#newspaper-how-to-report-results)
   * [Sample size](#control_knobs-sample-size)
   * [Other features](#sparkles-other-features)
-  * [General Recommendations & other notes](#general-recommendations) 
+  * [General Recommendations & other notes](#general-recommendations--other-notes) 
 * [:mortar_board: Cite](#mortar_board-cite)
 * [:medal_sports: Acknowledgements](#medal_sports-acknowledgements)
 * [:people_holding_hands: Papers using deep-significance](#people_holding_hands-papers-using-deep-significance)
@@ -82,7 +82,7 @@ documentation). Tests and other commands can then be run inside this environment
     uv run ./create_docs.sh
 
 Dependencies of the package are added with `uv add <package>`, development-only dependencies with 
-`uv add --dev <package>`. The version number is only maintained in `deepsig/__init__.py`.
+`uv add --dev <package>`.
 
 ## :bookmark: Examples
 
@@ -92,7 +92,7 @@ Dependencies of the package are added with `uv add <package>`, development-only 
 experimental results). 
 
 :warning: Testing models with only one set of hyperparameters and only one test set will be able to guarantee superiority
-in all settings. See [General Recommendations & other notes](#general-recommendations).
+in all settings. See [General Recommendations & other notes](#general-recommendations--other-notes).
 
 ---
 
@@ -101,36 +101,40 @@ the methods implemented in this package accordingly. For an introduction into st
 refer to resources such as [this blog post](https://machinelearningmastery.com/statistical-hypothesis-tests/) for a general
 overview or [Dror et al. (2018)](https://www.aclweb.org/anthology/P18-1128.pdf) for a NLP-specific point of view. 
 
-We assume that we have two sets of scores we would like to compare, <img src="svgs/b7e817ab52abd984b082abaa1da6a8e4.svg?invert_in_darkmode" align=middle width=17.44287434999999pt height=22.648391699999998pt/> and <img src="svgs/d06f8d92c07734af06da289c13d2beed.svg?invert_in_darkmode" align=middle width=16.80361814999999pt height=22.648391699999998pt/>,
-for instance obtained by running two models <img src="svgs/d41a53916d4850841d856bc8f5aa809a.svg?invert_in_darkmode" align=middle width=11.87217899999999pt height=22.648391699999998pt/> and <img src="svgs/f0e8ebc4201c3608138c518417f42ac4.svg?invert_in_darkmode" align=middle width=10.95894029999999pt height=22.648391699999998pt/> multiple times with a different random seed. 
-We can then define a one-sided test statistic  <img src="svgs/ae00ae93dc535f589522f8780b5aa275.svg?invert_in_darkmode" align=middle width=63.909690899999994pt height=24.65753399999998pt/> based on the gathered observations. 
+We assume that we have two sets of scores we would like to compare, $\mathbb{S}_\mathbb{A}$ and $\mathbb{S}_\mathbb{B}$,
+for instance obtained by running two models $\mathbb{A}$ and $\mathbb{B}$ multiple times with a different random seed. 
+We can then define a one-sided test statistic  $\delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})$ based on the gathered observations. 
 An example of such test statistics is for instance the difference in observation means. We then formulate the following null-hypothesis:
 
-<p align="center"><img src="svgs/00160c684b3af8ccefcdf19c69712e34.svg?invert_in_darkmode" align=middle width=128.7838134pt height=16.438356pt/></p>
+$$
+H_0: \delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B}) \le 0
+$$
 
-That means that we actually assume the opposite of our desired case, namely that <img src="svgs/d41a53916d4850841d856bc8f5aa809a.svg?invert_in_darkmode" align=middle width=11.87217899999999pt height=22.648391699999998pt/> is not better than <img src="svgs/f0e8ebc4201c3608138c518417f42ac4.svg?invert_in_darkmode" align=middle width=10.95894029999999pt height=22.648391699999998pt/>, 
+That means that we actually assume the opposite of our desired case, namely that $\mathbb{A}$ is not better than $\mathbb{B}$, 
 but equally as good or worse, as indicated by the value of the test statistic. 
 Usually, the goal becomes to reject this null hypothesis using the SST. 
 *p*-value testing is a frequentist method in the realm of SST. 
 It introduces the notion of data that *could have been observed* if we were to repeat our experiment again using 
-the same conditions, which we will write with superscript <img src="svgs/e723e08dae472a15132221e280670a7e.svg?invert_in_darkmode" align=middle width=22.87678634999999pt height=14.15524440000002pt/> in order to distinguish them from our actually 
+the same conditions, which we will write with superscript $\text{rep}$ in order to distinguish them from our actually 
 observed scores (Gelman et al., 2021). 
 We then define the *p*-value as the probability that, under the null hypothesis, the test statistic using replicated 
 observation is larger than or equal to the *observed* test statistic:
 
-<p align="center"><img src="svgs/5db9dda6d48361ba963326d3f98a033d.svg?invert_in_darkmode" align=middle width=216.90071865pt height=17.74869195pt/></p>
+$$
+p(\delta(\mathbb{S}_\mathbb{A}^\text{rep}, \mathbb{S}_\mathbb{B}^\text{rep}) \ge \delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})|H_0)
+$$
 
-We can interpret this expression as follows: Assuming that <img src="svgs/d41a53916d4850841d856bc8f5aa809a.svg?invert_in_darkmode" align=middle width=11.87217899999999pt height=22.648391699999998pt/> is not better than <img src="svgs/f0e8ebc4201c3608138c518417f42ac4.svg?invert_in_darkmode" align=middle width=10.95894029999999pt height=22.648391699999998pt/>, the test 
-assumes a corresponding distribution of statistics that <img src="svgs/38f1e2a089e53d5c990a82f284948953.svg?invert_in_darkmode" align=middle width=7.928075099999989pt height=22.831056599999986pt/> is drawn from. So how does the observed test statistic 
-<img src="svgs/ae00ae93dc535f589522f8780b5aa275.svg?invert_in_darkmode" align=middle width=63.909690899999994pt height=24.65753399999998pt/> fit in here? This is what the <img src="svgs/2ec6e630f199f589a2402fdf3e0289d5.svg?invert_in_darkmode" align=middle width=8.270567249999992pt height=14.15524440000002pt/>-value expresses: When the 
-probability is high, <img src="svgs/ae00ae93dc535f589522f8780b5aa275.svg?invert_in_darkmode" align=middle width=63.909690899999994pt height=24.65753399999998pt/> is in line with what we expected under the 
+We can interpret this expression as follows: Assuming that $\mathbb{A}$ is not better than $\mathbb{B}$, the test 
+assumes a corresponding distribution of statistics that $\delta$ is drawn from. So how does the observed test statistic 
+$\delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})$ fit in here? This is what the $p$-value expresses: When the 
+probability is high, $\delta(\mathbb{S}_\mathbb{A}, \mathbb{S}_\mathbb{B})$ is in line with what we expected under the 
 null hypothesis, so we can *not* reject the null hypothesis, or in other words, we \emph{cannot} conclude 
-<img src="svgs/d41a53916d4850841d856bc8f5aa809a.svg?invert_in_darkmode" align=middle width=11.87217899999999pt height=22.648391699999998pt/> to be better than <img src="svgs/f0e8ebc4201c3608138c518417f42ac4.svg?invert_in_darkmode" align=middle width=10.95894029999999pt height=22.648391699999998pt/>. If the probability is low, that means that the observed 
-<img src="svgs/67ebeedcf8c4d1141331d07b2cef2b03.svg?invert_in_darkmode" align=middle width=54.77736824999999pt height=24.65753399999998pt/> is quite unlikely under the null hypothesis and that the reverse case is 
-more likely - i.e. that it is likely larger than - and we conclude that <img src="svgs/d41a53916d4850841d856bc8f5aa809a.svg?invert_in_darkmode" align=middle width=11.87217899999999pt height=22.648391699999998pt/> is indeed better than 
-<img src="svgs/f0e8ebc4201c3608138c518417f42ac4.svg?invert_in_darkmode" align=middle width=10.95894029999999pt height=22.648391699999998pt/>. Note that **the <img src="svgs/2ec6e630f199f589a2402fdf3e0289d5.svg?invert_in_darkmode" align=middle width=8.270567249999992pt height=14.15524440000002pt/>-value does not express whether the null hypothesis is true**. To make our decision 
+$\mathbb{A}$ to be better than $\mathbb{B}$. If the probability is low, that means that the observed 
+$\delta(\mathbb{S}, \mathbb{S}_\mathbb{B})$ is quite unlikely under the null hypothesis and that the reverse case is 
+more likely - i.e. that it is likely larger than - and we conclude that $\mathbb{A}$ is indeed better than 
+$\mathbb{B}$. Note that **the $p$-value does not express whether the null hypothesis is true**. To make our decision 
 about whether or not to reject the null hypothesis, we typically determine a threshold - the significance level 
-<img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/>, often set to 0.05 - that the *p*-value has to fall below. However, it has been argued that a better practice 
+$\alpha$, often set to 0.05 - that the *p*-value has to fall below. However, it has been argued that a better practice 
 involves reporting the *p*-value alongside the results without a pidgeonholing of results into significant and non-significant
 (Wasserstein et al., 2019).
 
@@ -148,7 +152,7 @@ by comparing their cumulative distribution functions:
 
 ![](img/so.png)
 
-Here, the CDF of A is given in red and in green for B. If the CDF of A is lower than B for every <img src="svgs/332cc365a4987aacce0ead01b8bdcc0b.svg?invert_in_darkmode" align=middle width=9.39498779999999pt height=14.15524440000002pt/>, we know the 
+Here, the CDF of A is given in red and in green for B. If the CDF of A is lower than B for every $x$, we know the 
 algorithm A to score higher. However, in practice these cases are rarely so clear-cut (imagine e.g. two normal 
 distributions with the same mean but different variances).
 For this reason, del Barrio et al. (2017) and Dror et al. (2019) consider the notion of *almost stochastic dominance* 
@@ -156,17 +160,19 @@ by quantifying the extent to which stochastic order is being violated (red area)
 
 ![](img/aso.png)
 
-ASO returns a value <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>, which expresses (an upper bound to) the amount of violation of stochastic order. If 
-<img src="svgs/4cd4877610a47d915f39367760234822.svg?invert_in_darkmode" align=middle width=60.239714699999986pt height=17.723762100000005pt/> (where \tau is 0.5 or less), A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as 
-superior. We can also interpret <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> as a *confidence score*. The lower it is, the more sure we can be 
+ASO returns a value $\epsilon_\text{min}$, which expresses (an upper bound to) the amount of violation of stochastic order. If 
+$\epsilon_\text{min} < \tau$ (where $\tau$ is 0.5 or less), A is stochastically dominant over B in more cases than vice versa, then the corresponding algorithm can be declared as 
+superior. We can also interpret $\epsilon_\text{min}$ as a *confidence score*. The lower it is, the more sure we can be 
 that A is better than B. Note: **ASO does not compute p-values.** Instead, the null hypothesis formulated as 
 
-<p align="center"><img src="svgs/06f5ff6214110287d3948e9b44e31a1f.svg?invert_in_darkmode" align=middle width=94.97699804999999pt height=13.698590399999999pt/></p>
+$$
+H_0: \epsilon_\text{min} \ge \tau
+$$
 
 If we want to be more confident about the result of ASO, we can also set the rejection threshold to be lower than 0.5 
-(see the discussion in [this section](#general-recommendations)).
-Furthermore, the significance level <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> is determined as an input argument when running ASO and actively influence 
-the resulting <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>.
+(see the discussion in [this section](#general-recommendations--other-notes)).
+Furthermore, the significance level $\alpha$ is determined as an input argument when running ASO and actively influence 
+the resulting $\epsilon_\text{min}$.
 
 
 ### Scenario 1 - Comparing multiple runs of two models 
@@ -201,7 +207,7 @@ the test becomes, so try to collect scores from as many runs as possible to reje
 When comparing models across datasets, we formulate one null hypothesis per dataset. However, we have to make sure not to 
 fall prey to the [multiple comparisons problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem): In short, 
 the more comparisons between A and B we are conducting, the more likely gets is to reject a null-hypothesis accidentally.
-That is why we have to adjust our significance threshold <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> accordingly by dividing it by the number of comparisons, 
+That is why we have to adjust our significance threshold $\alpha$ accordingly by dividing it by the number of comparisons, 
 which corresponds to the Bonferroni correction (Bonferroni et al., 1936):
 
 ```python 
@@ -257,8 +263,8 @@ eps_min = [aso(a, b, confidence_level=0.95, num_comparisons=len(pairs), seed=see
 ### Scenario 4 - Comparing more than two models 
 
 Similarly, when comparing multiple models (now again on a per-seed basis), we can use a similar approach like in the 
-previous example. For instance, for three models, we can create a <img src="svgs/9f2b6b0a7f3d99fd3f396a1515926eb3.svg?invert_in_darkmode" align=middle width=36.52961069999999pt height=21.18721440000001pt/> matrix and fill the entries 
-with the corresponding <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> values.
+previous example. For instance, for three models, we can create a $3 \times 3$ matrix and fill the entries 
+with the corresponding $\epsilon_\text{min}$ values.
 
 The package implements the function `multi_aso()` exactly for this purpose. It has the same arguments as `aso()`, with 
 a few differences. First of all, the function takes a single `scores` argument, which can be a list of lists (of scores),
@@ -287,7 +293,7 @@ eps_min = multi_aso(my_models_scores, confidence_level=0.95, seed=seed)
 #       [0.82081635, 0.73048716, 1.        ]])
 ```
 
-In the example, `eps_min` is now a matrix, containing the <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> score between all pairs of models (for 
+In the example, `eps_min` is now a matrix, containing the $\epsilon_\text{min}$ score between all pairs of models (for 
 the same model, it set to 1 by default). The matrix is always to be read as ASO(row, column).
 
 The function applies the bonferroni correction for multiple comparisons by 
@@ -331,7 +337,7 @@ eps_min = multi_aso(my_models_scores, confidence_level=0.95, return_df=True, see
 
 ### :newspaper: How to report results
 
-When ASO used, two important details have to be reported, namely the confidence level <img src="svgs/c745b9b57c145ec5577b82542b2df546.svg?invert_in_darkmode" align=middle width=10.57650494999999pt height=14.15524440000002pt/> and the <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/>
+When ASO used, two important details have to be reported, namely the confidence level $\alpha$ and the $\epsilon_\text{min}$
 score. Below lists some example snippets reporting the results of scenarios 1 and 4:
 
     Using ASO with a confidence level $\alpha = 0.05$, we found the score distribution of algorithm A based on three 
@@ -417,7 +423,7 @@ print(timeit(lambda: aso(a, b, num_jobs=4, show_progress=False), number=5))  # 2
 
 If you want to select the maximum number of jobs possible on your device, you can set `num_jobs=-1`:
 
-```pythons
+```python
 print(timeit(lambda: aso(a, b, num_jobs=-1, show_progress=False), number=5))  # 187.26257274800003
 ```
 
@@ -469,13 +475,13 @@ as many scores as possible should be collected, especially if the variance betwe
   between runs to obtain the most trustworthy estimate of the "true" performance, such as data shuffling, weight initialization etc.
 
 * `num_bootstrap_iterations` can be reduced to increase the speed of `aso()`. However, this is not 
-recommended as the result of the test will also become less accurate. Technically, <img src="svgs/70bcb72c245ba47b6fc7439da91ec6fc.svg?invert_in_darkmode" align=middle width=28.45332764999999pt height=14.15524440000002pt/> is a upper bound
+recommended as the result of the test will also become less accurate. Technically, $\epsilon_\text{min}$ is a upper bound
   that becomes tighter with the number of samples and bootstrap iterations (del Barrio et al., 2017). Thus, increasing 
   the number of jobs with `num_jobs` instead is always preferred.
   
-* While we could declare a model stochastically dominant with <img src="svgs/dabed7f05cf133d9eb92631d564a96a8.svg?invert_in_darkmode" align=middle width=72.19750559999999pt height=21.18721440000001pt/>, we found this to have a comparatively high
+* While we could declare a model stochastically dominant with $\epsilon_\text{min} < 0.5$, we found this to have a comparatively high
 Type I error (false positives). Tests [in our paper](https://arxiv.org/pdf/2204.06815.pdf) have shown that a more useful threshold that trades of Type I and 
-  Type II error between different scenarios might be <img src="svgs/9ac49cb370a5b09fca29068ea18eab63.svg?invert_in_darkmode" align=middle width=51.969107849999986pt height=21.18721440000001pt/>.
+  Type II error between different scenarios might be $\tau = 0.2$.
   
 * Bootstrap and permutation-randomization are all non-parametric tests, i.e. they don't make any assumptions about 
 the distribution of our test metric. Nevertheless, they differ in their *statistical power*, which is defined as the probability
@@ -543,7 +549,6 @@ and [this one](https://github.com/rtmdrr/DeepComparison). Thanks also go out to 
 answer questions and provide feedback to the implementation and documentation of this package.
 
 The commit message template used in this project can be found [here](https://github.com/Kaleidophon/commit-template-for-humans).
-The inline latex equations were rendered using [readme2latex](https://github.com/leegao/readme2tex).
 
 ### :people_holding_hands: Papers using deep-significance
 
@@ -611,7 +616,7 @@ pull request if you would like to see your work added here!
 59. ["CorefInst: Leveraging LLMs for Multilingual Coreference Resolution" (Arslan et al., 2026)](https://direct.mit.edu/tacl/article/doi/10.1162/TACL.a.593/134743)
 60. ["Unsupervised Semantic Discovery via Global and Local Semantic Alignment in Multimodal Clustering" (Zhu et al., 2026)](https://ojs.aaai.org/index.php/AAAI/article/view/40832)
 
-    
+
 ### :books: Bibliography
 
 Del Barrio, Eustasio, Juan A. Cuesta-Albertos, and Carlos Matrán. "An optimal transportation approach for assessing almost stochastic order." The Mathematics of the Uncertain. Springer, Cham, 2018. 33-44.
